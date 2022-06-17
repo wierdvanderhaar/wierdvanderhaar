@@ -1,0 +1,34 @@
+SELECT   a.inst_id,
+		 b.tablespace,
+         ROUND(((b.blocks*p.value)/1024/1024),2)||'M' "SIZE",
+         a.sid||','||a.serial# SID_SERIAL,
+         a.username,
+         a.program,
+	 a.machine
+    FROM sys.gv_$session a,
+         sys.gv_$sort_usage b,
+         sys.gv_$parameter p
+   WHERE p.name  = 'db_block_size'
+     AND a.saddr = b.session_addr
+  ORDER BY a.inst_id,b.tablespace, b.blocks; 
+
+
+SELECT b.tablespace, count(*)
+    FROM sys.v_$session a,
+         sys.v_$sort_usage b,
+         sys.v_$parameter p
+   WHERE p.name  = 'db_block_size'
+     AND a.saddr = b.session_addr
+  group by b.tablespace
+  ORDER BY b.tablespace;
+  
+-- Totaal TEMP nu in gebruik.
+SELECT b.tablespace,
+        ROUND(((sum(b.blocks)*p.value)/1024/1024),2)||'M' "SIZE"
+    FROM sys.v_$session a,
+         sys.v_$sort_usage b,
+         sys.v_$parameter p
+   WHERE p.name  = 'db_block_size'
+     AND a.saddr = b.session_addr
+	 group by b.tablespace,p.value
+  ORDER BY b.tablespace;

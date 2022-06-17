@@ -1,0 +1,2 @@
+for /f "tokens=*" %%a in ('powershell get-date -format "{yyyyMMdd}"') do set td=%%a
+REM echo %td%

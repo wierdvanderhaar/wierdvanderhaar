@@ -1,0 +1,260 @@
+# Copy.ksh
+#  Author - Niek Brom DBA.nl
+#  Date - 23/03/2011
+#  Usage: see usage() function, below
+
+#---------------------------------------------------------------------------------------------------
+# Definition of variables which define script behaviour
+#---------------------------------------------------------------------------------------------------
+
+# Variables regarding source database
+
+export SOURCE_SID=xmcp
+export SOURCE_BACKUPFILES=/xmcp/backup/$SOURCE_SID
+export SOURCE_ARCHIVEFILES=/xmcp/backup/archive/ # niet meer nodig
+export SOURCE_SERVER=dgr-ux04
+
+# Variables regarding target database
+
+export TARGET_SID=xmct
+export TARGET_DATAFILES=/xmct/oradata/$TARGET_SID
+export TARGET_COPYDIR=/xmct/oradata/xmct_new
+export TARGET_OLDDIR=/xmct/oradata/xmct_old
+# Variables regarding Oracle environment
+export ORAENV_ASK=NO
+export ORACLE_SID=$TARGET_SID
+export ORACLE_HOME=/xmct/home/oracle/product/10.2.0/db_1
+export ORACLE_PATH=$ORACLE_HOME/bin
+. oraenv
+
+
+#---------------------------------------------------------------------------------------------------
+# Definition of functions used in script. 
+#---------------------------------------------------------------------------------------------------
+
+fatal(){
+	# print out an errormessage if provided, then exit with an
+	# "error" status
+
+	if [[ "$1" != "" ]] ; then
+		print Something went wrong with "$1"
+	else
+		print "something went wrong (Somewhere?)"
+	fi
+
+	exit 1
+}
+
+
+function usage {
+	print copy - a shell script to copy and recover a backup made from a database in backup mode to a new db.
+	print "usage: copy.ksh" 
+	print "To modify script behaviour, change key variables defined in script heading" 
+}
+
+#---------------------------------------------------------------------------------------------------
+# Remove old database files from system
+#---------------------------------------------------------------------------------------------------
+
+function remove_old_database {
+
+$ORACLE_PATH/sqlplus -S '/ as sysdba' <<SQLDELIM
+shutdown immediate;
+SQLDELIM
+
+#rm -fr  $TARGET_OLDDIR
+#mkdir $TARGET_OLDDIR
+#mv $TARGET_DATAFILES  $TARGET_OLDDIR
+#rm -fr $TARGET_DATAFILES
+mkdir $TARGET_DATAFILES
+mv $TARGET_COPYDIR/* $TARGET_DATAFILES
+#rm -f $TARGET_DATAFILES/*.dbf
+#rm -f $TARGET_DATAFILES/*.arc
+#rm -f $TARGET_DATAFILES/*.log
+
+}
+
+#---------------------------------------------------------------------------------------------------
+# Generate overview to copy archivelogs
+#---------------------------------------------------------------------------------------------------
+
+function create_archivelog_overview {
+cat >./archivelogs.sql.copytmp  <<SQL1DELIM
+connect fileread/fileread@$SOURCE_SID
+set feedback off
+set hea off
+set verify off
+set trimspool on
+spool archivelogs.txt.copytmp
+select 'rcp '|| file_name ||' $TARGET_COPYDIR' from v\$archived_logs where completion_time>(sysdate-1);
+spool off
+exit
+SQL1DELIM
+
+sed '/^$/d' ./archivelogs.sql.copytmp > ./archivelogs2.sql.copytmp
+mv ./archivelogs2.sql.copytmp ./archivelogs.sql.copytmp
+
+$ORACLE_HOME/bin/sqlplus -S /nolog @archivelogs.sql.copytmp > ./archivelogs.copytmp
+
+
+
+}
+
+
+
+
+#---------------------------------------------------------------------------------------------------
+# Copy SOURCE backup files to TARGET
+#---------------------------------------------------------------------------------------------------
+
+function copy_files {
+rm -fr $TARGET_DATAFILES
+rm -fr $TARGET_COPYDIR
+mkdir -p $TARGET_COPYDIR/archive
+rcp oracle@$SOURCE_SERVER:$SOURCE_BACKUPFILES/* $TARGET_COPYDIR/
+
+rcp oracle@$SOURCE_SERVER:/xmcp/backup/archive/*.* $TARGET_COPYDIR/archive/
+#rcp oracle@$SOURCE_SERVER:$SOURCE_ARCHIVEFILES/*.* $TARGET_COPYDIR/
+
+#TEST temp addition to remove control files
+#rm $TARGET_DATAFILES/*.ctl
+}
+
+#---------------------------------------------------------------------------------------------------
+# Spool list of all datafiles to tmp file
+#---------------------------------------------------------------------------------------------------
+
+function create_datafile_overview {
+cat >./datafiles.sql.copytmp  <<SQL1DELIM
+connect fileread/fileread@test
+set feedback off
+set hea off
+set verify off
+set trimspool on
+spool datafiles.sql.copytmp
+select '''$TARGET_DATAFILES'|| substr(file_name, instr(file_name, '/', -1))||''',' from dba_data_files where file_id<(select max(file_id) from dba_data_files);
+select '''$TARGET_DATAFILES'|| substr(file_name, instr(file_name, '/', -1))||'''' from dba_data_files where file_id=(select max(file_id) from dba_data_files);
+spool off
+exit
+SQL1DELIM
+
+$ORACLE_HOME/bin/sqlplus -S /nolog @datafiles.sql.copytmp > ./datafiles.copytmp
+
+sed '/^$/d' ./datafiles.copytmp > ./datafiles2.copytmp
+mv ./datafiles2.copytmp ./datafiles.copytmp
+
+}
+
+
+#---------------------------------------------------------------------------------------------------
+# Create SQL script to re-create controlfiles of TARGET db
+#---------------------------------------------------------------------------------------------------
+
+function create_controlfile_script {
+>./create_control.sql.copytmp
+cat >./create_control.sql.copytmp<<S1DELIM
+shutdown abort
+STARTUP NOMOUNT
+CREATE CONTROLFILE SET DATABASE "$TARGET_SID" RESETLOGS  NOARCHIVELOG
+    MAXLOGFILES 16
+    MAXLOGMEMBERS 3
+    MAXDATAFILES 100
+    MAXINSTANCES 8
+    MAXLOGHISTORY 2921
+LOGFILE
+  GROUP 1 '$TARGET_DATAFILES/redo01.log'  SIZE 50M,
+  GROUP 2 '$TARGET_DATAFILES/redo02.log'  SIZE 50M,
+  GROUP 3 '$TARGET_DATAFILES/redo03.log'  SIZE 50M
+DATAFILE
+S1DELIM
+
+create_datafile_overview
+
+#if exists check
+cat ./datafiles.copytmp >> ./create_control.sql.copytmp
+
+cat >> ./create_control.sql.copytmp <<S2DELIM
+CHARACTER SET WE8ISO8859P1
+;
+S2DELIM
+
+#RECOVER DATABASE UNTIL CANCEL USING BACKUP CONTROLFILE;
+#ALTER DATABASE OPEN RESETLOGS;
+#ALTER TABLESPACE TEMP2 ADD TEMPFILE '/u01/oradata/target/temp202.dbf'
+#     SIZE 8000M REUSE AUTOEXTEND ON NEXT 104857600  MAXSIZE 8000M;
+#S2DELIm
+
+}
+
+#---------------------------------------------------------------------------------------------------
+# Startup TARGET db and re-create controlfiles
+#---------------------------------------------------------------------------------------------------
+
+function startup_new_db {
+ORACLE_SID=xmct
+sqlplus -S '/ as sysdba' <<SQLDELIM
+set feedback off
+@create_control.sql.copytmp
+SQLDELIM
+}
+
+#---------------------------------------------------------------------------------------------------
+# Recover TARGET db to latest archive file copied to local disk
+#---------------------------------------------------------------------------------------------------
+
+function recover_new_db {
+
+>recover.rmn
+lsn=`ls -rt $TARGET_DATAFILES/archive/*.arc | tail -1 | awk -F_ '{print $4}'`
+cat >recover.rmn.copytmp<<R1DELIM
+startup mount
+recover database until sequence $lsn;
+sql 'alter database open resetlogs';
+R1DELIM
+
+ORACLE_SID=xmct
+$ORACLE_PATH/rman target / cmdfile=recover.rmn.copytmp log=recover.log
+$ORACLE_PATH/sqlplus '/ as sysdba' @create_temp.sql 
+}
+
+
+#---------------------------------------------------------------------------------------------------
+# Remove tempfiles 
+#---------------------------------------------------------------------------------------------------
+
+function cleanup {
+rm ./*.copytmp
+}
+
+#---------------------------------------------------------------------------------------------------
+# Main script starts here
+#---------------------------------------------------------------------------------------------------
+
+# Test for uid oracle
+# Test whether cwd is writable
+
+if [ $# -gt 0 ] ; then
+	usage
+	exit 1
+fi
+
+#touch ./test.copytmp 
+
+copy_files
+if [[ $? -ne 0 ]] ; then	fatal "copying files" ; fi
+
+remove_old_database
+if [[ $? -ne 0 ]] ; then 	fatal "removing old databases" ; fi
+
+create_controlfile_script
+if [[ $? -ne 0 ]] ; then 	fatal "creating control file script" ; fi
+
+#create_archivelog_overview
+#if [[ $? -ne 0 ]] ; then        fatal "archscopy temp" ; fi
+
+startup_new_db
+if [[ $? -ne 0 ]] ; then 	fatal "starting new database" ; fi
+
+recover_new_db
+if [[ $? -ne 0 ]] ; then 	fatal "recovering new database" ; fi
+

@@ -1,0 +1,6 @@
+#	How To Purge DBA_SCHEDULER_JOB_LOG and DBA_SCHEDULER_WINDOW_LOG (Doc ID 443364.1)
+select count(*) from dba_scheduler_job_log where log_date<sysdate -7;
+exec DBMS_SCHEDULER.PURGE_LOG(7,which_log=>'JOB_LOG');
+
+select job_name, status, max(LOG_DATE) from dba_scheduler_job_log where owner = 'SYS' group by job_name, status  order by 3;
+select status, max(LOG_DATE) from dba_scheduler_job_log where job_name = 'ORA$AUTOTASK_CLEAN' group by status;

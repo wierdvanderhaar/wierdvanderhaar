@@ -1,0 +1,69 @@
+[root@yb-demo bin]# ./yb-ysck --master_address=127.0.0.2
+I0412 07:35:45.827872  3627 mem_tracker.cc:299] MemTracker: hard memory limit is 1.525632 GB
+I0412 07:35:45.828001  3627 mem_tracker.cc:301] MemTracker: soft memory limit is 1.296787 GB
+I0412 07:35:45.830200  3627 thread_pool.cc:170] Starting thread pool { name: ysck queue_limit: 10000 max_workers: 1024 }
+I0412 07:35:45.832509  3627 ysck.cc:115] Connected to the Master
+I0412 07:35:46.108942  3627 ysck.cc:142] Connected to all 3 Tablet Servers
+W0412 07:35:46.109036  3627 ysck.cc:482] Tablet ebf988de53634b9aa4ec6f5df85367f2 has 3 instead of 0 replicas
+I0412 07:35:46.109055  3627 ysck.cc:469] Table system_schema.functions is HEALTHY
+W0412 07:35:46.109097  3627 ysck.cc:482] Tablet 21b4e57737c74fc78c2a9a47066a4908 has 3 instead of 0 replicas
+I0412 07:35:46.109110  3627 ysck.cc:469] Table system_schema.indexes is HEALTHY
+W0412 07:35:46.109123  3627 ysck.cc:482] Tablet c84e1c3c138d497dad7b150bdeab183e has 3 instead of 0 replicas
+I0412 07:35:46.109135  3627 ysck.cc:469] Table system.local is HEALTHY
+W0412 07:35:46.109148  3627 ysck.cc:482] Tablet 4c7fa31d12d34340a362ae9c979b5fca has 3 instead of 0 replicas
+W0412 07:35:46.109160  3627 ysck.cc:482] Tablet 09460651f94c497f9fc4e72dd7f07d05 has 3 instead of 0 replicas
+W0412 07:35:46.109172  3627 ysck.cc:482] Tablet 0bd98874703f48159228d0c063cffadc has 3 instead of 0 replicas
+W0412 07:35:46.109184  3627 ysck.cc:482] Tablet 610512ca25624256ae1bf58926e938c3 has 3 instead of 0 replicas
+W0412 07:35:46.109195  3627 ysck.cc:482] Tablet 83802dfd711f42618bebd591786e49df has 3 instead of 0 replicas
+W0412 07:35:46.109207  3627 ysck.cc:482] Tablet 30598120c84340cfb8e3fa9c95c8cd7d has 3 instead of 0 replicas
+I0412 07:35:46.109220  3627 ysck.cc:469] Table myapp.stock_market is HEALTHY
+W0412 07:35:46.109231  3627 ysck.cc:482] Tablet 9f589a098c6f466dae6a893eb7b1041d has 3 instead of 0 replicas
+I0412 07:35:46.109243  3627 ysck.cc:469] Table system_auth.resource_role_permissions_index is HEALTHY
+W0412 07:35:46.109256  3627 ysck.cc:482] Tablet a54250d17c3d4a229996d1c0d455c8b9 has 3 instead of 0 replicas
+I0412 07:35:46.109267  3627 ysck.cc:469] Table system.size_estimates is HEALTHY
+W0412 07:35:46.109279  3627 ysck.cc:482] Tablet 929b537b483c46f4b3a6cae4d5159fc1 has 3 instead of 0 replicas
+I0412 07:35:46.109292  3627 ysck.cc:469] Table system.peers is HEALTHY
+W0412 07:35:46.109303  3627 ysck.cc:482] Tablet 5afcc5b1a90d40a6bf2e59e7538a9d08 has 3 instead of 0 replicas
+I0412 07:35:46.109315  3627 ysck.cc:469] Table system_schema.tables is HEALTHY
+W0412 07:35:46.109326  3627 ysck.cc:482] Tablet 2f31348803f64c34b111a9f06888d236 has 3 instead of 0 replicas
+I0412 07:35:46.109339  3627 ysck.cc:469] Table system_schema.aggregates is HEALTHY
+W0412 07:35:46.109351  3627 ysck.cc:482] Tablet 4d738bc2768649ba96867641dcc25152 has 3 instead of 0 replicas
+I0412 07:35:46.109362  3627 ysck.cc:469] Table system.partitions is HEALTHY
+W0412 07:35:46.109375  3627 ysck.cc:482] Tablet 0624f0de441a47fd8bc1042f91466f0b has 3 instead of 0 replicas
+I0412 07:35:46.109385  3627 ysck.cc:469] Table system_auth.role_permissions is HEALTHY
+W0412 07:35:46.109397  3627 ysck.cc:482] Tablet fd31b860850546acb1ee5b01a8a99098 has 3 instead of 0 replicas
+I0412 07:35:46.109409  3627 ysck.cc:469] Table system_auth.roles is HEALTHY
+W0412 07:35:46.109421  3627 ysck.cc:482] Tablet 0f055d2ed56e4aa1a93117117a5c1041 has 3 instead of 0 replicas
+W0412 07:35:46.109433  3627 ysck.cc:482] Tablet 1a1f8d02b2de48debf70d10c2ebe82b1 has 3 instead of 0 replicas
+W0412 07:35:46.109445  3627 ysck.cc:482] Tablet 7f3479dcd9884150b457f39d63985ec9 has 3 instead of 0 replicas
+W0412 07:35:46.109457  3627 ysck.cc:482] Tablet e1d0132cea494ff4bdb8b94f54947349 has 3 instead of 0 replicas
+W0412 07:35:46.109468  3627 ysck.cc:482] Tablet bf4c737dec444cb1a1de060fca421464 has 3 instead of 0 replicas
+W0412 07:35:46.109480  3627 ysck.cc:482] Tablet 28f219e92c8b4df9a5f19af8a47e216c has 3 instead of 0 replicas
+W0412 07:35:46.109491  3627 ysck.cc:482] Tablet 4c3b37a04af647a9aea612c34294906c has 3 instead of 0 replicas
+W0412 07:35:46.109503  3627 ysck.cc:482] Tablet 35c6fbefd698474e91579c8794af71d8 has 3 instead of 0 replicas
+W0412 07:35:46.109515  3627 ysck.cc:482] Tablet df37fcde2eb94a588446873da6bf734b has 3 instead of 0 replicas
+W0412 07:35:46.109526  3627 ysck.cc:482] Tablet ec5edb59701240218a3caa01676e326b has 3 instead of 0 replicas
+W0412 07:35:46.109539  3627 ysck.cc:482] Tablet be9229e1e0564458bd30ca4659f6dd3c has 3 instead of 0 replicas
+W0412 07:35:46.109550  3627 ysck.cc:482] Tablet 8e4bf644ad0347e892d46300ed55db3c has 3 instead of 0 replicas
+I0412 07:35:46.109561  3627 ysck.cc:469] Table system.transactions is HEALTHY
+W0412 07:35:46.109573  3627 ysck.cc:482] Tablet d9ac97b6bf094dea92e12ab1ab180b71 has 3 instead of 0 replicas
+I0412 07:35:46.109584  3627 ysck.cc:469] Table system_schema.keyspaces is HEALTHY
+W0412 07:35:46.109596  3627 ysck.cc:482] Tablet c75d2a58ab34434ba360c4c58448d9fd has 3 instead of 0 replicas
+I0412 07:35:46.109607  3627 ysck.cc:469] Table system_schema.types is HEALTHY
+W0412 07:35:46.109620  3627 ysck.cc:482] Tablet bb8c4c7961c54b33953d345f8e44dcb1 has 3 instead of 0 replicas
+I0412 07:35:46.109632  3627 ysck.cc:469] Table system_schema.triggers is HEALTHY
+W0412 07:35:46.109642  3627 ysck.cc:482] Tablet d936e864eae54fb2b3b2d85410d9ff19 has 3 instead of 0 replicas
+I0412 07:35:46.109653  3627 ysck.cc:469] Table system_schema.columns is HEALTHY
+W0412 07:35:46.109665  3627 ysck.cc:482] Tablet 7db6d7a8aa804dcbb3dcf340f33a9a93 has 3 instead of 0 replicas
+W0412 07:35:46.109678  3627 ysck.cc:482] Tablet b30c699b74bd45c387758617a693e1e8 has 3 instead of 0 replicas
+W0412 07:35:46.109689  3627 ysck.cc:482] Tablet 62f38e19eae84706be111c4ac5a4af49 has 3 instead of 0 replicas
+W0412 07:35:46.109701  3627 ysck.cc:482] Tablet 3aee015eb4f8430f8affa2ff80f4c09f has 3 instead of 0 replicas
+W0412 07:35:46.109714  3627 ysck.cc:482] Tablet 214fe41cf7e245ed8863e4e7b59916a9 has 3 instead of 0 replicas
+W0412 07:35:46.109724  3627 ysck.cc:482] Tablet 7c623f015a8f477b97dcf2ae0ede507c has 3 instead of 0 replicas
+I0412 07:35:46.109736  3627 ysck.cc:469] Table test.t1 is HEALTHY
+W0412 07:35:46.109747  3627 ysck.cc:482] Tablet 6b6432fe21b04b35b968ce214a21efac has 3 instead of 0 replicas
+I0412 07:35:46.109759  3627 ysck.cc:469] Table system_schema.views is HEALTHY
+W0412 07:35:46.109896  3627 ysck.cc:482] Tablet 00000000000000000000000000000000 has 3 instead of 0 replicas
+I0412 07:35:46.109910  3627 ysck.cc:469] Table system_schema.sys.catalog is HEALTHY
+I0412 07:35:46.109921  3627 ysck.cc:181] The metadata for 20 tables is HEALTHY
+OK

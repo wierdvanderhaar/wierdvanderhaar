@@ -1,0 +1,10 @@
+RAC01:
+ipmitool -I open sunoem cli "set /SP/network pendingipdiscovery=static pendingipaddress=172.16.162.192 pendingipgateway=172.16.161.1 pendingipnetmask=255.255.240.0 commitpending=true"
+RAC02
+ipmitool -I open sunoem cli "set /SP/network pendingipdiscovery=static pendingipaddress=172.16.162.192 pendingipgateway=172.16.161.1 pendingipnetmask=255.255.240.0 commitpending=true"
+
+modprobe ipmi_devintf 
+modprobe ipmi_msghandler
+modprobe ipmi_si
+
+ipmitool -I open sunoem cli "set /SP/network pendingipdiscovery=static pendingipaddress=172.17.254.32 pendingipgateway=172.17.254.1 pendingipnetmask=255.255.255.0 commitpending=true state=enable"

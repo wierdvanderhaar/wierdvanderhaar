@@ -1,0 +1,61 @@
+Aanmaken van één grote file van 1 GB
+
+-- Uitwijk
+time sh -c "dd if=/dev/zero of=/OVS/Repositories/0004fb0000030000063875c801080c85/ISOs/dd-test-file bs=1G count=1 oflag=direct && sync"
+
+-- productie
+time sh -c "dd if=/dev/zero of=/OVS/Repositories/0004fb0000030000ae9d709fb1df4e99/ISOs/dd-test-file bs=1G count=1 oflag=direct && sync"
+[root@wovm1 ISOs]# time sh -c "dd if=/dev/zero of=/OVS/Repositories/0004fb0000030000ae9d709fb1df4e99/ISOs/dd-test-file bs=1G count=1 oflag=direct && sync"
+1+0 records in
+1+0 records out
+1073741824 bytes (1.1 GB) copied, 9.89738 s, 108 MB/s
+
+real    0m10.065s
+user    0m0.002s
+sys     0m2.818s
+
+
+
+
+Kleinere bestanden. Van 1M en 8k.
+time sh -c "dd if=/dev/zero of=/u01/dd-test-file bs=1024k count=1000 oflag=direct && sync"
+time sh -c "dd if=/dev/zero of=/u01/dd-test-file bs=8k count=100000 oflag=direct && sync"
+
+
+
+[root@ebs12prd u01]# time sh -c "dd if=/dev/zero of=/u01/dd-test-file bs=1024k count=1000 oflag=direct && sync"
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 28.3868 s, 36.9 MB/s
+
+real    0m28.499s
+user    0m0.001s
+sys     0m0.356s
+[root@ebs12prd u01]#
+[root@ebs12prd u01]# time sh -c "dd if=/dev/zero of=/u01/dd-test-file bs=8k count=100000 oflag=direct && sync"
+
+100000+0 records in
+100000+0 records out
+819200000 bytes (819 MB) copied, 894.309 s, 916 kB/s
+
+real    14m54.464s
+user    0m0.002s
+sys     0m3.440s
+[root@ebs12prd u01]#
+[root@ebs12prd u01]#
+[root@ebs12prd u01]# time sh -c "dd if=/dev/zero of=/u01/dd-test-file bs=1024k count=1000 && sync"
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 13.9318 s, 75.3 MB/s
+
+real    0m14.249s
+user    0m0.000s
+sys     0m0.931s
+[root@ebs12prd u01]# time sh -c "dd if=/dev/zero of=/u01/dd-test-file bs=8k count=100000 && sync"
+100000+0 records in
+100000+0 records out
+819200000 bytes (819 MB) copied, 12.369 s, 66.2 MB/s
+
+real    0m12.956s
+user    0m0.043s
+sys     0m1.083s

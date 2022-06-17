@@ -1,0 +1,1 @@
+select * from x$ksqst where KSQSTSGT > 0 order by 9 asc; 

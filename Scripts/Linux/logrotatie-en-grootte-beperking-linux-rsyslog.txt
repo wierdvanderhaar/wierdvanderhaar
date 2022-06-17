@@ -1,0 +1,45 @@
+
+Zoals ingezet bij Pijnacker-Nootdorp op lns43 en lnx44:
+
+Als de syslogs onverwacht enorm snel groeien is er een "rem" nodig.
+Normaliter zit er geen rem op en draait eenmaal per dag logrotate op Oracle Linux. Als de log-directory voor die tijd is volgelopen is het natuurlijk al te laat.
+
+
+Oplossing:
+
+1. /etc/rsyslog.conf aanpassen om ervoor te zorgen dat bij het bereiken van een omvang van ongeveer 60MB van /var/log/messages automatisch het "logrotate"-commando wordt aangeroepen.
+2. De configuratie in /etc/logrotate.conf aanpassen om als "default" compressie in te schakelen voor geroteerde bestanden
+3. De configuratie in /etc/logrotate.d/syslog aanpassen om bij een omvang van syslog-bestanden van tenminste 50MB een rotatie te doen. De oude file wordt ge-gzipped opgeslagen. We bewaren 5 exemplaren.
+
+Concrete inhoud van /etc/logrotate.d/syslog wordt dan:
+
+########################################################################################
+/var/log/cron
+/var/log/maillog
+/var/log/messages
+/var/log/secure
+/var/log/spooler
+{
+    # roteer bij 50M
+    size 50M
+    rotate 5
+    compress
+    sharedscripts
+    postrotate
+        /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+    endscript
+#########################################################################################
+
+
+Aanpassingen aan /etc/rsyslog.conf:
+vóór de sectie "rules" is toegevoegd:
+
+# speciale setting voor logbeperking
+$outchannel log_rotatie, /var/log/messages, 50000000, /usr/sbin/logrotate /etc/logrotate.conf
+
+
+In de sectie "rules" is de /var/log/messages entry vervangen door de log_rotatie "channel":
+#*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+*.info;mail.none;authpriv.none;cron.none                $log_rotatie
+
+

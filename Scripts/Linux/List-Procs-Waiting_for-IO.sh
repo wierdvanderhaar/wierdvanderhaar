@@ -1,0 +1,1 @@
+date; ps -eo state,pid,cmd | grep "^D"; echo "----" ;

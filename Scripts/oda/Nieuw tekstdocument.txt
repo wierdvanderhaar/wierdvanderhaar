@@ -1,0 +1,44 @@
+  if Reloca=$(srvctl relocate service -d $database -s $service -i $pref -t $targ)
+  then
+     echo "success "
+  else
+     echo "error"
+  fi
+ 
+ 
+Alternatively you could check the return code:
+ 
+ 
+  Reloca=$(srvctl relocate service -d $database -s $service -i $pref -t $targ)
+  if [ $? -eq 0 ]
+  then
+     echo "success "
+  else
+     echo "error"
+  fi
+ 
+ 
+or a little more complex:
+ 
+ 
+  if [  "$targ" = "pref" ]
+  then
+    cmd="srvctl relocate service -d $database -s $service -i $pref -t $targ"
+  else
+    cmd="srvctl relocate service -d $database -s $service -i $targ-t $pref"
+  fi
+  IFS=$'\n';
+  if msg=($(eval $cmd))
+  then
+    echo "success "
+  else
+    echo "error"
+  fi
+  for ((m=0;m<${#msg[@]};m++))
+  do
+    echo "${msg[$m]}"
+  done
+ 
+ 
+Regards
+Thomas

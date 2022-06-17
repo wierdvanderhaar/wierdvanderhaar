@@ -1,0 +1,414 @@
+select b.username || ´.´ || a.awname  from sys.aw$ a, dba_users b where a.owner#=b.user_id;
+SYS.EXPRESS
+SYS.AWXML
+SYS.AWREPORT
+SYS.AWMD
+SYS.AWCREATE10G
+SYS.AWCREATE
+OOWASYS921.XWDEVKIT
+OOWASYS921.XWASCODE
+OOWASYS921.XADEMO
+OOWASYS921.SAMPLES
+ONAV.NAV2UTIL
+ONAV.NAV2DATA
+ONAV.NAV2
+OPC.PLANWEB
+OPC.PLANUPDATE
+OPC.PLANPROG
+OPC.PLANDATA
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec dbms_aw.execute('aw attach ONAV.NAV2UTIL rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/ONAVNAV2UTIL.eif ''');
+exec dbms_aw.execute('aw detach ONAV.NAV2UTIL');
+
+exec dbms_aw.execute('aw attach ONAV.NAV2DATA rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/ONAVNAV2DATA.eif ''');
+exec dbms_aw.execute('aw detach ONAV.NAV2DATA');
+
+exec dbms_aw.execute('aw attach ONAV.NAV2 rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/ONAVNAV2.eif ''');
+exec dbms_aw.execute('aw detach ONAV.NAV2');
+
+exec dbms_aw.execute('aw attach OPC.PLANWEB rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/OPCPLANWEB.eif ''');
+exec dbms_aw.execute('aw detach OPC.PLANWEB');
+
+exec dbms_aw.execute('aw attach OPC.PLANUPDATE rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/OPCPLANUPDATE.eif ''');
+exec dbms_aw.execute('aw detach OPC.PLANUPDATE');
+
+exec dbms_aw.execute('aw attach OPC.PLANPROG rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/OPCPLANPROG.eif ''');
+exec dbms_aw.execute('aw detach OPC.PLANPROG');
+
+exec dbms_aw.execute('aw attach OPC.PLANDATA rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/OPCPLANDATA.eif ''');
+exec dbms_aw.execute('aw detach OPC.PLANDATA');
+
+exec dbms_aw.execute('aw attach OOWASYS921.XWDEVKIT rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/OOWASYS921XWDEVKIT.eif ''');
+exec dbms_aw.execute('aw detach OOWASYS921.XWDEVKIT');
+
+exec dbms_aw.execute('aw attach OOWASYS921.XWASCODE rw');
+exec dbms_aw.execute('allstat');
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/OOWASYS921XWASCODE.eif ''');
+exec dbms_aw.execute('aw detach OOWASYS921.XWASCODE');
+
+exec dbms_aw.execute('aw attach SYS.AWXML rw');
+exec dbms_aw.execute('aw attach SYS.AWREPORT rw');
+exec dbms_aw.execute('aw attach SYS.AWMD rw');
+exec dbms_aw.execute('aw attach SYS.AWCREATE10G rw');
+exec dbms_aw.execute('aw attach SYS.AWCREATE rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XWDEVKIT rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XWASCODE rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XADEMO rw');
+exec dbms_aw.execute('aw attach OOWASYS921.SAMPLES rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2UTIL rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2DATA rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2 rw');
+exec dbms_aw.execute('aw attach OPC.PLANWEB rw');
+exec dbms_aw.execute('aw attach OPC.PLANUPDATE rw');
+exec dbms_aw.execute('aw attach OPC.PLANPROG rw');
+exec dbms_aw.execute('aw attach OPC.PLANDATA rw');
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec dbms_aw.execute('allstat');
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec dbms_aw.execute('export all to eif file ''ONAV_EIFDIR/export_file_name.eif ''');
+
+
+
+
+
+
+
+
+WS5
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec dbms_aw.execute('aw detach SYS.EXPRESS');
+exec dbms_aw.execute('aw detach SYS.AWXML');
+exec dbms_aw.execute('aw detach SYS.AWREPORT');
+exec dbms_aw.execute('aw detach SYS.AWMD');
+exec dbms_aw.execute('aw detach SYS.AWCREATE10G');
+exec dbms_aw.execute('aw detach SYS.AWCREATE');
+exec dbms_aw.execute('aw detach OOWASYS921.XWDEVKIT');
+exec dbms_aw.execute('aw detach OOWASYS921.XWASCODE');
+exec dbms_aw.execute('aw detach OOWASYS921.XADEMO');
+exec dbms_aw.execute('aw detach OOWASYS921.SAMPLES');
+exec dbms_aw.execute('aw detach ONAV.NAV2UTIL');
+exec dbms_aw.execute('aw detach ONAV.NAV2DATA');
+exec dbms_aw.execute('aw detach ONAV.NAV2');
+exec dbms_aw.execute('aw detach OPC.PLANWEB');
+exec dbms_aw.execute('aw detach OPC.PLANUPDATE');
+exec dbms_aw.execute('aw detach OPC.PLANPROG');
+exec dbms_aw.execute('aw detach OPC.PLANDATA');
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec dbms_aw.execute('aw delete SYS.EXPRESS');
+exec dbms_aw.execute('aw delete SYS.AWXML');
+exec dbms_aw.execute('aw delete SYS.AWREPORT');
+exec dbms_aw.execute('aw delete SYS.AWMD');
+exec dbms_aw.execute('aw delete SYS.AWCREATE10G');
+exec dbms_aw.execute('aw delete SYS.AWCREATE');
+exec dbms_aw.execute('aw delete OOWASYS921.XWDEVKIT');
+exec dbms_aw.execute('aw delete OOWASYS921.XWASCODE');
+exec dbms_aw.execute('aw delete OOWASYS921.XADEMO');
+exec dbms_aw.execute('aw delete OOWASYS921.SAMPLES');
+exec dbms_aw.execute('aw delete ONAV.NAV2UTIL');
+exec dbms_aw.execute('aw delete ONAV.NAV2DATA');
+exec dbms_aw.execute('aw delete ONAV.NAV2');
+exec dbms_aw.execute('aw delete OPC.PLANWEB');
+exec dbms_aw.execute('aw delete OPC.PLANUPDATE');
+exec dbms_aw.execute('aw delete OPC.PLANPROG');
+exec dbms_aw.execute('aw delete OPC.PLANDATA');
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+SQL> @?/olap/admin/catnoamd.sql
+SQL> @?/olap/admin/olapidrp.plb
+SQL> @?/olap/admin/catnoaps.sql
+SQL> @?/olap/admin/catnoxoq.sql
+SQL> @?/rdbms/admin/utlrp.sql
+SQL> select owner, object_name, object_type from dba_objects where status <> 'VALID';
+       Remove any INVALID OLAP related objects
+
+@?/olap/admin/olap.sql SYSAUX TEMP;
+
+drop FUNCTION SYS.INTERACTIONEXECUTE;
+drop PROCEDURE SYS.XOQ_VALIDATE;
+drop SYNONYM PUBLIC.ALL_OLAP2_AWVIEWS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AWVIEWCOLS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AGGREGATION_USES;
+drop SYNONYM PUBLIC.DBA_OLAP2_AWVIEWS;
+drop SYNONYM PUBLIC.DBA_OLAP2_AWVIEWCOLS;
+drop SYNONYM PUBLIC.DBA_OLAP2_AGGREGATION_USES;
+drop SYNONYM PUBLIC.ALL_AW_LOAD_DIMENSIONS;
+drop SYNONYM PUBLIC.ALL_AW_LOAD_DIM_FILTERS;
+drop SYNONYM PUBLIC.ALL_AW_LOAD_CUBE_FILTERS;
+drop SYNONYM PUBLIC.ALL_AW_LOAD_CUBE_MEASURES;
+drop SYNONYM PUBLIC.ALL_AW_LOAD_DIM_PARMS;
+
+drop SYNONYM PUBLIC.ALL_AW_LOAD_CUBE_DIMS;
+drop SYNONYM PUBLIC.ALL_AW_LOAD_CUBES;
+drop SYNONYM PUBLIC.ALL_AW_LOAD_CUBE_PARMS;
+drop SYNONYM PUBLIC.ALL_OLAP2_MV_CUBE_AGG_MEASURES;
+drop SYNONYM PUBLIC.ALL_OLAP2_MV_CUBE_AGG_LEVELS;
+drop SYNONYM PUBLIC.ALL_LOAD_CUBE_SEGWIDTH;
+drop SYNONYM PUBLIC.ALL_AW_CUBE_AGG_PLANS;
+drop SYNONYM PUBLIC.ALL_AW_CUBE_AGG_MEASURES;
+drop SYNONYM PUBLIC.ALL_AW_CUBE_AGG_LEVELS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AWS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CATALOGS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CATALOG_MEASURES;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_PHYS_OBJ;
+
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_PHYS_OBJ_PROP;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_DIMENSIONS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_ATTRIBUTES;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CUBES;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CUBE_DIM_USES;
+drop SYNONYM PUBLIC.ALL_AW_DIM_ENABLED_VIEWS;
+drop SYNONYM PUBLIC.ALL_AW_CUBE_ENABLED_VIEWS;
+drop SYNONYM PUBLIC.ALL_AW_CUBE_ENABLED_HIERCOMBO;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_DIM_LEVELS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_DIM_HIER_LVL_ORD;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CUBE_MEASURES;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CUBE_AGG_SPECS;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CUBE_AGG_MEAS;
+
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CUBE_AGG_LVL;
+drop SYNONYM PUBLIC.ALL_OLAP2_AW_CUBE_AGG_OP;
+drop SYNONYM PUBLIC.MRV_OLAP1_POP_DIMENSIONS;
+drop SYNONYM PUBLIC.MRV_OLAP1_POP_CUBES;
+drop SYNONYM PUBLIC.MRV_OLAP2_POP_DIMENSIONS;
+drop SYNONYM PUBLIC.MRV_OLAP2_POP_CUBES;
+drop SYNONYM PUBLIC.MRV_OLAP2_AWVIEWS;
+drop SYNONYM PUBLIC.MRV_OLAP2_AWVIEWCOLS;
+drop SYNONYM PUBLIC.MRV_OLAP2_CATALOGS;
+drop SYNONYM PUBLIC.MRV_OLAP2_CATALOG_ENTITY_USES;
+drop SYNONYM PUBLIC.MRV_OLAP2_LISTDIMS_CC;
+drop SYNONYM PUBLIC.MRV_OLAP2_LISTDIMS;
+drop SYNONYM PUBLIC.MRV_OLAP2_DIM_HIERS;
+
+drop SYNONYM PUBLIC.MRV_OLAP2_HIERDIMS_CC;
+drop SYNONYM PUBLIC.MRV_OLAP2_HIERDIMS;
+drop SYNONYM PUBLIC.MRV_OLAP2_DIM_HIER_LEVEL_USES;
+drop SYNONYM PUBLIC.MRV_OLAP2_JOIN_KEY_COL_USES;
+drop SYNONYM PUBLIC.MRV_OLAP2_DIM_ATTRIBUTES;
+drop SYNONYM PUBLIC.MRV_OLAP2_ENTITY_DESC_USES;
+drop SYNONYM PUBLIC.MRV_OLAP2_DESCRIPTORS;
+drop SYNONYM PUBLIC.MRV_OLAP2_DIM_LEVEL_ATTR_MAPS;
+drop SYNONYM PUBLIC.MRV_OLAP2_CUBE_MEASURES;
+drop SYNONYM PUBLIC.MRV_OLAP2_FACTTBLKEYMAPS;
+drop SYNONYM PUBLIC.MRV_OLAP1_FACTTBLKEYMAPS;
+drop SYNONYM PUBLIC.MRV_OLAP2_FACTTBLFCTMAPS;
+drop SYNONYM PUBLIC.MRV_OLAP1_FACTTBLFCTMAPS;
+
+drop SYNONYM PUBLIC.MRV_OLAP2_HIERDIM_KEYCOL_MAP;
+drop SYNONYM PUBLIC.MRV_OLAP2_HIER_CUSTOM_SORT;
+drop SYNONYM PUBLIC.MRV_OLAP_CWM1_AGGOP;
+drop SYNONYM PUBLIC.MRV_OLAP_CWM1_AGGORD;
+drop SYNONYM PUBLIC.MRV_OLAP2_AGGREGATION_USES;
+drop SYNONYM PUBLIC.MRV_OLAP2_ENTITY_PARAMETERS;
+drop SYNONYM PUBLIC.MRV_OLAP2_ENTITY_EXT_PARMS;
+drop SYNONYM PUBLIC.MRV_OLAP2_AWS;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_MAP_DIM_USE;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_PHYS_OBJ;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_PHYS_OBJ_PROP;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_MAP_MEAS_USE;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_MAP_ATTR_USE;
+
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_DIMENSIONS;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_ATTRIBUTES;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_CUBES;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_CUBE_DIM_USES;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_DIM_LEVELS;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_CUBE_MEASURES;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_CUBE_AGG_SPECS;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_CUBE_AGG_MEAS;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_CUBE_AGG_LVL;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_CUBE_AGG_OP;
+drop SYNONYM PUBLIC.MRV_OLAP2_AW_DIM_HIER_LVL_ORD;
+drop SYNONYM PUBLIC.CWM2_OLAP_MR_SECURITY_INIT;
+drop SYNONYM PUBLIC.CWM2_OLAP_MR_SESSION_POP;
+
+drop SYNONYM PUBLIC.CWM2_OLAP_MR_CHECK_PRIVS;
+drop SYNONYM PUBLIC.CWM2_OLAP_METADATA_REFRESH;
+drop SYNONYM PUBLIC.OLAP_SYS_AW_ACCESS_CUBE_VIEW;
+drop SYNONYM PUBLIC.OLAP_SYS_AW_ACCESS_DIM_VIEW;
+drop SYNONYM PUBLIC.OLAP_SYS_AW_ENABLE_ACCESS_VIEW;
+drop SYNONYM PUBLIC.CWM2_OLAP_OLAPAPI_ENABLE;
+drop SYNONYM PUBLIC.CWM2_OLAP_AW_AWUTIL;
+drop SYNONYM PUBLIC.DBMS_AWM;
+drop PACKAGE BODY SYS.CWM2_OLAP_INSTALLER;
+drop SYNONYM NAV_OWNER.WB_OLAP_LOAD_CUBE;
+drop SYNONYM NAV_OWNER.WB_OLAP_LOAD_DIMENSION;
+drop PROCEDURE OWB_OWNER.WB_OLAP_LOAD_CUBE;
+drop PROCEDURE OWB_OWNER.WB_OLAP_LOAD_DIMENSION;
+
+drop PROCEDURE OWB_OWNER.WB_OLAP_LOAD_DIMENSION_GENUK;
+drop SYNONYM OWB_USER.WB_OLAP_LOAD_CUBE;
+drop SYNONYM OWB_USER.WB_OLAP_LOAD_DIMENSION;
+drop VIEW SYS.OLAP_OLEDB_REG_ATTRS_PVT;
+
+
+
+exec DBMS_AW.AW_CREATE ('OOWASYS921.XWDEVKIT','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('OOWASYS921.XWASCODE','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('OOWASYS921.XADEMO','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('OOWASYS921.SAMPLES','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('ONAV.NAV2UTIL','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('ONAV.NAV2DATA','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('ONAV.NAV2','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('OPC.PLANWEB','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('OPC.PLANUPDATE','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('OPC.PLANPROG','OPC_DATA',8);
+exec DBMS_AW.AW_CREATE ('OPC.PLANDATA','OPC_DATA',8);
+
+exec dbms_aw.execute('aw attach SYS.EXPRESS rw');
+exec dbms_aw.execute('aw attach SYS.AWXML rw');
+exec dbms_aw.execute('aw attach SYS.AWREPORT rw');
+exec dbms_aw.execute('aw attach SYS.AWMD rw');
+exec dbms_aw.execute('aw attach SYS.AWCREATE10G rw');
+exec dbms_aw.execute('aw attach SYS.AWCREATE rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XWDEVKIT rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XWASCODE rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XADEMO rw');
+exec dbms_aw.execute('aw attach OOWASYS921.SAMPLES rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2UTIL rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2DATA rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2 rw');
+exec dbms_aw.execute('aw attach OPC.PLANWEB rw');
+exec dbms_aw.execute('aw attach OPC.PLANUPDATE rw');
+exec dbms_aw.execute('aw attach OPC.PLANPROG rw');
+exec dbms_aw.execute('aw attach OPC.PLANDATA rw');
+
+exec dbms_aw.execute('aw attach ONAV.NAV2UTIL rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/ONAVNAV2UTIL.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach ONAV.NAV2UTIL');
+
+exec dbms_aw.execute('aw attach ONAV.NAV2DATA rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/ONAVNAV2DATA.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach ONAV.NAV2DATA');
+
+
+exec dbms_aw.execute('aw attach ONAV.NAV2 rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/ONAVNAV2.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach ONAV.NAV2');
+
+exec dbms_aw.execute('aw attach OPC.PLANWEB rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/OPCPLANWEB.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach OPC.PLANWEB');
+
+exec dbms_aw.execute('aw attach OPC.PLANUPDATE rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/OPCPLANUPDATE.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach OPC.PLANUPDATE');
+
+exec dbms_aw.execute('aw attach OPC.PLANPROG rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/OPCPLANPROG.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach OPC.PLANPROG');
+
+exec dbms_aw.execute('aw attach OPC.PLANDATA rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/OPCPLANDATA.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach OPC.PLANDATA');
+
+exec dbms_aw.execute('aw attach OOWASYS921.XWDEVKIT rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/OOWASYS921XWDEVKIT.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach OOWASYS921.XWDEVKIT');
+
+exec dbms_aw.execute('aw attach OOWASYS921.XWASCODE rw');
+exec dbms_aw.execute('import all from eif file ''EIFDIR/OOWASYS921XWASCODE.eif ''');
+exec dbms_aw.execute('update');
+commit;
+exec dbms_aw.execute('aw detach OOWASYS921.XWASCODE');
+
+exec dbms_aw.execute('import all from eif file ''EIFDIR/export_file_name.eif'' data dfns');
+exec dbms_aw.execute('update');
+commt;
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec dbms_aw.execute('aw attach SYS.EXPRESS rw');
+exec dbms_aw.execute('aw attach SYS.AWXML rw');
+exec dbms_aw.execute('aw attach SYS.AWREPORT rw');
+exec dbms_aw.execute('aw attach SYS.AWMD rw');
+exec dbms_aw.execute('aw attach SYS.AWCREATE10G rw');
+exec dbms_aw.execute('aw attach SYS.AWCREATE rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XWDEVKIT rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XWASCODE rw');
+exec dbms_aw.execute('aw attach OOWASYS921.XADEMO rw');
+exec dbms_aw.execute('aw attach OOWASYS921.SAMPLES rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2UTIL rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2DATA rw');
+exec dbms_aw.execute('aw attach ONAV.NAV2 rw');
+exec dbms_aw.execute('aw attach OPC.PLANWEB rw');
+exec dbms_aw.execute('aw attach OPC.PLANUPDATE rw');
+exec dbms_aw.execute('aw attach OPC.PLANPROG rw');
+exec dbms_aw.execute('aw attach OPC.PLANDATA rw');
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec dbms_aw.execute('allstat');
+
+grant select on oowasys921.aw$xwdevkit to OOWAUSER_ROLE;
+grant select on SYS.AW$EXPRESS to OOWAUSER_ROLE;
+grant select on SYS.AW$AWXML to OOWAUSER_ROLE;
+grant select on SYS.AW$AWREPORT to OOWAUSER_ROLE;
+grant select on SYS.AW$AWMD to OOWAUSER_ROLE;
+grant select on SYS.AW$AWCREATE10G to OOWAUSER_ROLE;
+grant select on SYS.AW$AWCREATE to OOWAUSER_ROLE;
+grant select on OOWASYS921.AW$XWDEVKIT to OOWAUSER_ROLE;
+grant select on OOWASYS921.AW$XWASCODE to OOWAUSER_ROLE;
+grant select on OOWASYS921.AW$XADEMO to OOWAUSER_ROLE;
+grant select on OOWASYS921.AW$SAMPLES to OOWAUSER_ROLE;
+
+connect onav/onav@pnav
+grant select on aw$nav2util to OOWAUSER_ROLE;
+grant select on aw$nav2 to OOWAUSER_ROLE;
+grant select on aw$nav2data to OOWAUSER_ROLE;
+grant update on aw$nav2data to OOWAUSER_ROLE;
+commit;
+connect opc/opc@pnav
+grant select on aw$PlanUpdate to OOWAUSER_ROLE;
+grant update on aw$PlanUpdate to OOWAUSER_ROLE;
+grant select on aw$PlanProg to OOWAUSER_ROLE;
+grant select on aw$PlanData to OOWAUSER_ROLE;
+grant select on aw$PlanWeb to OOWAUSER_ROLE;
+commit;
+
+GRANT SELECT ON SYS.AW$AWCREATE10G TO OOWAUSER_ROLE;
+GRANT SELECT ON SYS.AW$AWREPORT TO OOWAUSER_ROLE;
+GRANT SELECT ON SYS.AW$AWXML TO OOWAUSER_ROLE;
+GRANT SELECT ON OOWASYS921.AW$SAMPLES TO OOWAUSER_ROLE;
+GRANT SELECT ON OOWASYS921.AW$XWASCODE TO OOWAUSER_ROLE;
+GRANT SELECT ON OPC.AW$PLANWEB TO OOWAUSER_ROLE;
+GRANT SELECT ON SYS.AW$ TO OOWAUSER_ROLE;
+GRANT SELECT ON SYS.AW$EXPRESS TO OOWAUSER_ROLE;
+GRANT SELECT ON ONAV.AW$NAV2UTIL TO OOWAUSER_ROLE;
+GRANT SELECT ON SYS.AW$AWCREATE TO OOWAUSER_ROLE;
+GRANT SELECT ON ONAV.AW$NAV2DATA TO OOWAUSER_ROLE;
+GRANT SELECT ON SYS.AW$AWMD TO OOWAUSER_ROLE;
+GRANT SELECT ON OOWASYS921.AW$XADEMO TO OOWAUSER_ROLE;
+
+GRANT SELECT ON OOWASYS921.AW$XWDEVKIT TO OOWAUSER_ROLE;
+GRANT SELECT ON OPC.AW$PLANUPDATE TO OOWAUSER_ROLE;
+GRANT SELECT ON ONAV.AW$NAV2 TO OOWAUSER_ROLE;
+GRANT SELECT ON OPC.AW$PLANDATA TO OOWAUSER_ROLE;
+GRANT SELECT ON OPC.AW$PLANPROG TO OOWAUSER_ROLE;

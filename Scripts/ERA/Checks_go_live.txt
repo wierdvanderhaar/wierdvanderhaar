@@ -1,0 +1,86 @@
+create user dbacheck identified by sscdesom default tablespace sysaux;
+grant connect, dba to dbacheck;
+
+sqlplus dbacheck/sscdesom
+
+create table T_CONTROL (step varchar2(50), when varchar2(25));
+insert into T_CONTROL values ('Before logcatchup',to_char(sysdate,'YYYY-MM-DD HH24:MI:SS'));
+commit;
+
+-- Execute logcatchup
+
+insert into T_CONTROL values ('after logcatchup',to_char(sysdate,'YYYY-MM-DD HH24:MI:SS'));
+commit;
+
+
+
+insert into T_CONTROL values ('after RMAN backup',to_char(sysdate,'YYYY-MM-DD HH24:MI:SS'));
+commit;
+
+insert into T_CONTROL values ('before LogCatchup so part of recovery-point',to_char(sysdate,'YYYY-MM-DD HH24:MI:SS'));
+commit;
+
+insert into T_CONTROL values ('after LogCatcup',to_char(sysdate,'YYYY-MM-DD HH24:MI:SS'));
+commit;
+
+create table T_OBJECTS_BRON as select owner, object_type, count(*) as aantal from dba_objects group by owner, object_type order by owner;
+create table T_INVALID_OBJECTS_BRON as select owner, object_type, object_name, status from dba_objects where status <> 'VALID' order by 1,2;
+
+
+
+
+
+create or replace procedure vultabel is
+-- Gecreerd door Wierd van der Haar DBA.nl
+-- 30-03-2011 op verzoek van Sicco Steijaert.
+cursor cursor1 is select chartorowid(trim(M_ROW$$)) as "ROWID" from mlog$_gaporders;
+cursor cursor2 is select chartorowid(trim(M_ROW$$)) as "ROWID" from mlog$_gapresults;
+begin
+for x in cursor1 loop
+insert into U_GAPORDERS (select gao.* from GAPORDERS GAO where GAO.rowid=x.ROWID);
+delete from mlog$_gaporders loggabo where chartorowid(trim(M_ROW$$))=x.ROWID;
+commit;
+end loop;
+for x in cursor2 loop
+insert into U_GAPRESULTS (select gar.* from GAPRESULTS GAR where GAR.rowid=x.ROWID);
+delete from mlog$_gapresults loggabr where chartorowid(trim(M_ROW$$))=x.ROWID;
+commit;
+end loop;
+end;
+/
+
+
+
+
+SQL> select * from t_control;
+
+STAP                                               DATUM
+-------------------------------------------------- -------------------------
+Before backup                                      2021-08-18 14:44:46
+after RMAN backup                                  2021-08-18 14:54:01
+before LogCatchup so part of recovery-point        2021-08-18 14:54:58
+
+
+run
+{
+RESTORE DATABASE from tag TAG20210818T144542;
+RECOVER DATABASE UNTIL TIME "TO_DATE('2021-08-18 14:54.10', 'YYYY-MM-DD HH24:MI:SS')";
+sql 'ALTER DATABASE OPEN RESETLOGS';
+}
+
+
+SQL> select * from t_control;
+
+STAP                                               DATUM
+-------------------------------------------------- -------------------------
+Before backup                                      2021-08-18 09:40:01
+after RMAN backup                                  2021-08-18 09:56:52
+
+
+SQL> select * from t_control;
+
+STAP                                               DATUM
+-------------------------------------------------- -------------------------
+Before backup                                      2021-08-18 14:44:46
+after RMAN backup                                  2021-08-18 14:54:01
+before LogCatchup so part of recovery-point        2021-08-18 14:54:58

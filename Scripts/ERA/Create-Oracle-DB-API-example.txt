@@ -1,0 +1,153 @@
+-- CURL EXAMPLE --
+curl -k -X POST \
+	https://10.68.103.254/era/v0.9/databases/provision \
+	-H 'Content-Type: application/json' \
+	-H 'Authorization: Basic YWRtaW46RHV0Y2hTRTEh' \
+	-d \	'{"databaseType":"oracle_database","name":"RBAPI","softwareProfileId":"9d559d37-8096-421b-9599-6c3196a518ea","softwareProfileVersionId":"c08662bf-92cb-4ebc-b5b0-e32be033ab0b","computeProfileId":"72b8d18e-6146-4ec8-8998-627f7c2426ad","networkProfileId":"e7f1ca58-63a0-4cce-9b63-fef638f07548","dbParameterProfileId":"37da9f8f-6943-4484-b51b-0072f15ae709","timeMachineInfo":{"name":"RBAPI_TM","description":"","slaId":"4d9dcd6d-b6f8-47f0-8015-9e691c1d3cf4","schedule":{"snapshotTimeOfDay":{"hours":1,"minutes":0,"seconds":0},"continuousSchedule":{"enabled":true,"logBackupInterval":30,"snapshotsPerDay":1},"weeklySchedule":{"enabled":true,"dayOfWeek":"WEDNESDAY"},"monthlySchedule":{"enabled":true,"dayOfMonth":"11"},"quartelySchedule":{"enabled":true,"startMonth":"JANUARY","dayOfMonth":"11"},"yearlySchedule":{"enabled":false,"dayOfMonth":31,"month":"DECEMBER"}},"tags":[],"autoTuneLogDrive":true},"actionArguments":[{"name":"listener_port","value":"1521"},{"name":"database_size","value":"8092"},{"name":"enable_tde","value":false},{"name":"db_character_set","value":"AL32UTF8"},{"name":"national_character_set","value":"AL16UTF16"},{"name":"working_dir","value":"/tmp"},{"name":"enable_ha","value":true},{"name":"auto_tune_staging_drive","value":true},{"name":"enable_cdb","value":false},{"name":"database_fra_size","value":"1024"},{"name":"asm_driver","value":"asmlib"},{"name":"delete_logs_older_than","value":"0"},{"name":"dbserver_name","value":"WH-RB-API"},{"name":"sys_asm_password","value":"Nutanix_4u"},{"name":"global_database_name","value":"RBAPI"},{"name":"oracle_sid","value":"RBAPI"},{"name":"sys_password","value":"Nutanix_4u"},{"name":"system_password","value":"Nutanix_4u"}],"createDbserver":true,"nodeCount":1,"nxClusterId":"3fa2ae1e-86b1-46df-8fbb-cbca8e31d323","sshPublicKey":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6cfJhudXh/KrHz3PVFbS8eTJN/EsDrJS2A4SwAdkxI/cy+y6s+DeO9/pJXkfP5kNsxzUzmaprMQic0i3SZ38n2wQk4KRKHdedxdxgE+BNGUyKLf5ZbjctoZOuPoskkoMtXv5IUOLbaxpYXnVLa+xgwMO7PwXHvQLBW5Sr6uYVQYPsU59DO3bILo3Op0yFL7YJAmHLX0krpXtTJ5kqtGLxLvJhaSrc6cOvK5Rl9kfWrxaeNFjzPF8v3SYvzddSl2TLe1mARsHJlxRIefd3VCCdOpp6HvtGA7LUit+GtKsFhxp2SQ7zIocefWltOf8sH9II0MAT04rKd6iwkol9Rh3kMtNSIoFdfjb93j6JxE9Tc8Q+nKsPTNTFr8otciF5lQ/SJamG/EHMxA34rHwzA1XhH3ryP16IjBmhcz4VLHL9x1EdKGMls2xrxfVI1sxpgQOWAdwb+lC2mXPNjAWEPjoZ0FNSLAHxREl6NW1kFRO/MFtPdkp+ivLvxFw+XlkRxis= wierdvanderhaar@C02C74VYLVDL","clustered":false,"vmPassword":"Nutanix/4u","autoTuneStagingDrive":true}'
+	
+	
+-- JSON example --
+import requests
+
+url = "https://10.68.103.254/era/v0.9/databases/provision"
+
+data = '''
+{
+  "databaseType": "oracle_database",
+  "name": "RBAPI",
+  "softwareProfileId": "9d559d37-8096-421b-9599-6c3196a518ea",
+  "softwareProfileVersionId": "c08662bf-92cb-4ebc-b5b0-e32be033ab0b",
+  "computeProfileId": "72b8d18e-6146-4ec8-8998-627f7c2426ad",
+  "networkProfileId": "e7f1ca58-63a0-4cce-9b63-fef638f07548",
+  "dbParameterProfileId": "37da9f8f-6943-4484-b51b-0072f15ae709",
+  "timeMachineInfo": {
+    "name": "RBAPI_TM",
+    "description": "",
+    "slaId": "4d9dcd6d-b6f8-47f0-8015-9e691c1d3cf4",
+    "schedule": {
+      "snapshotTimeOfDay": {
+        "hours": 1,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "continuousSchedule": {
+        "enabled": true,
+        "logBackupInterval": 30,
+        "snapshotsPerDay": 1
+      },
+      "weeklySchedule": {
+        "enabled": true,
+        "dayOfWeek": "WEDNESDAY"
+      },
+      "monthlySchedule": {
+        "enabled": true,
+        "dayOfMonth": "11"
+      },
+      "quartelySchedule": {
+        "enabled": true,
+        "startMonth": "JANUARY",
+        "dayOfMonth": "11"
+      },
+      "yearlySchedule": {
+        "enabled": false,
+        "dayOfMonth": 31,
+        "month": "DECEMBER"
+      }
+    },
+    "tags": [],
+    "autoTuneLogDrive": true
+  },
+  "actionArguments": [
+    {
+      "name": "listener_port",
+      "value": "1521"
+    },
+    {
+      "name": "database_size",
+      "value": "8092"
+    },
+    {
+      "name": "enable_tde",
+      "value": false
+    },
+    {
+      "name": "db_character_set",
+      "value": "AL32UTF8"
+    },
+    {
+      "name": "national_character_set",
+      "value": "AL16UTF16"
+    },
+    {
+      "name": "working_dir",
+      "value": "/tmp"
+    },
+    {
+      "name": "enable_ha",
+      "value": true
+    },
+    {
+      "name": "auto_tune_staging_drive",
+      "value": true
+    },
+    {
+      "name": "enable_cdb",
+      "value": false
+    },
+    {
+      "name": "database_fra_size",
+      "value": "1024"
+    },
+    {
+      "name": "asm_driver",
+      "value": "asmlib"
+    },
+    {
+      "name": "delete_logs_older_than",
+      "value": "0"
+    },
+    {
+      "name": "dbserver_name",
+      "value": "WH-RB-API"
+    },
+    {
+      "name": "sys_asm_password",
+      "value": "Nutanix_4u"
+    },
+    {
+      "name": "global_database_name",
+      "value": "RBAPI"
+    },
+    {
+      "name": "oracle_sid",
+      "value": "RBAPI"
+    },
+    {
+      "name": "sys_password",
+      "value": "Nutanix_4u"
+    },
+    {
+      "name": "system_password",
+      "value": "Nutanix_4u"
+    }
+  ],
+  "createDbserver": true,
+  "nodeCount": 1,
+  "nxClusterId": "3fa2ae1e-86b1-46df-8fbb-cbca8e31d323",
+  "sshPublicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6cfJhudXh/KrHz3PVFbS8eTJN/EsDrJS2A4SwAdkxI/cy+y6s+DeO9/pJXkfP5kNsxzUzmaprMQic0i3SZ38n2wQk4KRKHdedxdxgE+BNGUyKLf5ZbjctoZOuPoskkoMtXv5IUOLbaxpYXnVLa+xgwMO7PwXHvQLBW5Sr6uYVQYPsU59DO3bILo3Op0yFL7YJAmHLX0krpXtTJ5kqtGLxLvJhaSrc6cOvK5Rl9kfWrxaeNFjzPF8v3SYvzddSl2TLe1mARsHJlxRIefd3VCCdOpp6HvtGA7LUit+GtKsFhxp2SQ7zIocefWltOf8sH9II0MAT04rKd6iwkol9Rh3kMtNSIoFdfjb93j6JxE9Tc8Q+nKsPTNTFr8otciF5lQ/SJamG/EHMxA34rHwzA1XhH3ryP16IjBmhcz4VLHL9x1EdKGMls2xrxfVI1sxpgQOWAdwb+lC2mXPNjAWEPjoZ0FNSLAHxREl6NW1kFRO/MFtPdkp+ivLvxFw+XlkRxis= wierdvanderhaar@C02C74VYLVDL",
+  "clustered": false,
+  "vmPassword": "Nutanix/4u",
+  "autoTuneStagingDrive": true
+}
+'''
+
+headers = {
+	'Content-Type': "application/json",
+	'Authorization': "Basic YWRtaW46RHV0Y2hTRTEh"
+}
+
+requests.packages.urllib3.disable_warnings()
+response = requests.request("POST", url, data=data, headers=headers, verify=False)
+
+print(response.status_code)
+print(response.text)	

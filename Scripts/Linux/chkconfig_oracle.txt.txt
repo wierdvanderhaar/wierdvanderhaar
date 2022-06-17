@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# Run level script to start Oracle 10g services on RedHat Enterprise Linux (RHAS 4)
+# Script should work on other UNIX like oses :)
+# -------------------------------------------------------------------------
+# Copyright (c) 2006 nixCraft project <http://cyberciti.biz/fb/>
+# This script is licensed under GNU GPL version 2.0 or above
+# Comment/suggestion: <vivek at nixCraft DOT com>
+# -------------------------------------------------------------------------
+# chkconfig: 345 91 19
+# description: Startup/Shutdown Oracle service
+ 
+OUSER="oracle"
+DBPATH="/opt/oracle/db10g"
+OMSPATH="/opt/oracle/oms10g"
+AGENTPATH="/opt/oracle/agent10g"
+ 
+case "$1" in
+        start)
+        echo  "*** Starting Oracle *** "
+        su - $OUSER -c "$DBPATH/bin/lsnrctl start"
+        su - $OUSER -c "$DBPATH/bin/dbstart"
+        su - $OUSER -c "$OMSPATH/opmn-bin/opmnctl startall"
+        su - $OUSER -c "$AGENTPATH/bin/emctl start agent"
+        ;;
+        stop)
+        echo  "*** Stopping Oracle *** "
+        su - $OUSER -c "$AGENTPATH/bin/emctl stop agent"
+        su - $OUSER -c "$OMSPATH/opmn-bin/opmnctl stopall"
+        su - $OUSER -c "$DBPATH/bin/dbshut"
+        su - $OUSER -c "$DBPATH/bin/lsnrctl stop"
+        ;;
+        restart)
+        $0 stop
+        $1 start
+        ;;
+        *)
+        echo $"Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+exit 0

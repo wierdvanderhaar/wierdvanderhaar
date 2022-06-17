@@ -1,0 +1,12 @@
+na naar $ORACLE_HOME/ccr/bin
+run emocmrsp 			#Dit maakt een responsefile aan waarmee gestart moet worden. Als je bij het generenen van de rsp file geen email adres opgeeft betekend dit dat de volgende stap met meer opties moet starten.
+run setupCCR -R ocm.rsp		#Dit configureerd OCM en uload de info naar Oracle support. 
+Gaan naar support.oracle.com en bekijk of het systeem goed is opgenomen.
+
+
+Oracle Configuration Manager has been configured in connected mode. If the
+target ORACLE_HOME is running a database, please refer to the
+"Post-installation Database Configuration" section of the OCM Installation
+and Administration Guide
+(http://www.oracle.com/technology/documentation/ocm.html) to complete the
+installation.

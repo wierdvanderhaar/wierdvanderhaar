@@ -1,0 +1,36 @@
+#!/bin/bash
+. ~/.bash_profile
+# Shell script to start DataGuard Broker Fast-Start Failover Observer.
+# -------------------------------------------------------------------------
+# Created by:   Wierd van der Haar
+# Company:      DBA.nl
+# Date:         09-09-2016
+# -------------------------------------------------------------------------
+# description: Startup/Shutdown FSFO Observer.
+# set -x
+export SCRIPTDIR=/home/oracle/fsfo-observer
+export LOGDIR=${SCRIPTDIR}/logging
+export ORACLE_HOME=/var/opt/oracle/product/11.2.0/observer_1
+export PATH=$ORACLE_HOME/bin:$PATH
+export DATE=`date +%c`
+export WHAT=$1
+
+if [[ "$WHAT" = "START" ]]; then
+        rm ${LOGDIR}/start-observer.nohup
+        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"    >> ${LOGDIR}/logbook_fsfo_observer.log
+        echo "${DATE} | Starting the observer......"    >> ${LOGDIR}/logbook_fsfo_observer.log
+        nohup dgmgrl sys/lithos@LIS1 "start observer file='/home/oracle/fsfo-observer/statefile/LIS-fsfo.dat'" >> /home/oracle/fsfo-observer/logging/start-observer.nohup &
+        echo "${DATE} | FSFO Observer is NOW started!"  >> ${LOGDIR}/logbook_fsfo_observer.log
+        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"    >> ${LOGDIR}/logbook_fsfo_observer.log
+        exit 1
+elif [[ "$WHAT" = "STOP" ]]; then
+        echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"     >> ${LOGDIR}/logbook_fsfo_observer.log
+        echo "${DATE} | Stopping the observer....."     >> ${LOGDIR}/logbook_fsfo_observer.log
+        dgmgrl sys/lithos@LIS1 "stop observer"
+        echo "${DATE} | FSFO Observer is NOW stopped!"  >> ${LOGDIR}/logbook_fsfo_observer.log
+        echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"     >> ${LOGDIR}/logbook_fsfo_observer.log
+        exit 2
+else
+        echo "No valid value was provided. Please execute the script with the START or STOP value"
+        exit 3
+fi

@@ -1,0 +1,18 @@
+SELECT * FROM pg_stat_archiver;
+select pg_current_wal_lsn();
+select pg_start_backup('test_wierd');
+select pg_stop_backup();
+SELECT * FROM pg_tablespace;
+show data_directory;
+
+
+
+SELECT *,
+    current_setting('archive_mode')::BOOLEAN
+        AND (last_failed_wal IS NULL
+            OR last_failed_wal <= last_archived_wal)
+        AS is_archiving,
+    CAST (archived_count AS NUMERIC)
+        / EXTRACT (EPOCH FROM age(now(), stats_reset))
+        AS current_archived_wals_per_second
+FROM pg_stat_archiver

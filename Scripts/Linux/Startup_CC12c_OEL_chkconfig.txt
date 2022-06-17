@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Script should work on other UNIX like oses :)
+# -------------------------------------------------------------------------
+# Copyright (c) 2006 nixCraft project <http://cyberciti.biz/fb/>
+# This script is licensed under GNU GPL version 2.0 or above
+# Comment/suggestion: <vivek at nixCraft DOT com>
+# -------------------------------------------------------------------------
+# chkconfig: 345 91 19
+# description: Startup/Shutdown Oracle service
+
+export OUSER="oracle"
+export ORACLE_BASE="/u01/app/oracle"
+export DBPATH="${ORACLE_BASE}/product/12.2.0/dbhome_1"
+# export OMSPATH="${ORACLE_BASE}/product/12.1.0/oms/oms"
+export AGENTPATH="${ORACLE_BASE}/product/12.1.0/agent12c/agent_inst"
+
+case "$1" in
+        start)
+        echo  "*** Starting Oracle *** "
+        su - $OUSER -c "$DBPATH/bin/dbstart ${DBPATH}"
+        su - $OUSER -c "$OMSPATH/bin/emctl start oms"
+        su - $OUSER -c "$AGENTPATH/bin/emctl start agent"
+        ;;
+        stop)
+        echo  "*** Stopping Oracle *** "
+        su - $OUSER -c "$AGENTPATH/bin/emctl stop agent"
+        su - $OUSER -c "$OMSPATH/bin/emctl stop oms -all"
+        su - $OUSER -c "$DBPATH/bin/dbshut ${DBPATH}"
+        ;;
+        restart)
+        $0 stop
+        $1 start
+        ;;
+        *)
+        echo $"Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+exit 0

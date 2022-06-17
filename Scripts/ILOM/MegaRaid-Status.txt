@@ -1,0 +1,25 @@
+http://docs.oracle.com/cd/E37710_01/doc.41/e56331/toc.htm#1.14.X5-2L
+
+Having said that, please provide below logs:
+
+1) Megacli outputs to understand how the disks failed:
+
+/opt/MegaRAID/MegaCli/MegaCli64 -AdpAllInfo -aALL
+/opt/MegaRAID/MegaCli/MegaCli64 -PDList -aALL
+/opt/MegaRAID/MegaCli/MegaCli64 -AdpEventLog -GetEvents -aALL
+/opt/MegaRAID/MegaCli/MegaCli64 -fwtermlog -dsply -aALL
+/opt/MegaRAID/MegaCli/MegaCli64 -LdPdInfo -aALL
+
+
+2) ASR Manager diag bundle
+
+From the ASR Manager, collect and upload the output of the ASR bundle:
+# cd /opt/asrmanager/util/diag
+# ./asrDiagUtil.sh
+
+
+3) Provide the /var/log/ssm file outputs, like /var/log/ssm/event.log 
+
+# Smart Status
+smartctl -a /dev/sdi 
+smartctl -a /dev/sd

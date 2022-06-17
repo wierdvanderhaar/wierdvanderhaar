@@ -1,0 +1,4 @@
+select c.table_name, c.num_rows, ind.ind_count from dba_tables c,
+(select table_name, count(*) as ind_count from dba_indexes a, unused_indexes b where a.index_name=b.index_name group by table_name order by 1) ind
+where c.table_name = ind.table_name
+order by 2,1;

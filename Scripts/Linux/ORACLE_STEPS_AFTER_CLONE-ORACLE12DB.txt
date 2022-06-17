@@ -1,0 +1,59 @@
+#!/bin/bash
+. ~/.bash_profile
+# stap 1
+# Creatie Oracle 12.2 database
+echo "Zorg dat je de volgende gegevens hebt: SID, type database die je wilt creeren en de characterset."
+echo "Geef op wat voor type database je wilt creeren."
+echo "Geef plus-options als je een database met options (JAVA/XML-DB/Intermedia) wilt creeren."
+echo "Geef no-options als je een database zonder options wilt creeren."
+read -p "Type database?: " dbtype
+export DBTYPE=$dbtype
+read -p "Database naam?: " dbname
+export ORACLE_SID=${dbname}
+read -p "Characterset bv:AL32UTF8 " charset
+export CHARSET=${charset}
+export ORACLE_HOME=/u01/app/oracle/product/12.2.0/dbhome_1
+export HOST=`hostname`
+$ORACLE_HOME/bin/dbca -silent -createDatabase -templateName O12R2-${DBTYPE}.dbt -gdbname ${ORACLE_SID} -characterset ${CHARSET} -sysPassword oracle12 -systemPassword oracle12
+echo "${ORACLE_SID}:${ORACLE_HOME}:Y" > /etc/oratab
+############################
+# Skip listener creatie
+############################
+# Listener creatie
+############################
+# sed -i s/LISTENERNAME/LISTENER_${ORACLE_SID}/g ${ORACLE_HOME}/network/admin/listener.ora
+# sed -i s/HOSTNAME/${HOST}/g ${ORACLE_HOME}/network/admin/listener.ora
+# sed -i s/HOSTNAME/${HOST}/g ${ORACLE_HOME}/network/admin/tnsnames.ora
+# sed -i s/DBNAME/${ORACLE_SID}/g ${ORACLE_HOME}/network/admin/tnsnames.ora
+# sed -i s/LISTENERNAME/LISTENER_${ORACLE_SID}/g ${ORACLE_HOME}/network/admin/tnsnames.ora
+# # Start listener
+# ${ORACLE_HOME}/bin/lsnrctl stop
+# ${ORACLE_HOME}/bin/lsnrctl start LISTENER_${ORACLE_SID}
+############################
+# # Nazorg
+export ORAENV_ASK=NO; . oraenv
+sqlplus '/ as sysdba' <<EOF
+ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
+ALTER SYSTEM SET LOCAL_LISTENER='LISTENER_${ORACLE_SID}' SCOPE=BOTH;
+ALTER SYSTEM SET SEC_CASE_SENSITIVE_LOGON=FALSE SCOPE=BOTH;
+-- MOS DOCID 1992652
+ALTER SYSTEM SET "_disable_highres_ticks"=TRUE scope=SPFILE:
+-- MOS DOCID 2439129
+EXEC DBMS_SQLTUNE.SET_TUNING_TASK_PARAMETER (task_name => 'AUTO_STATS_ADVISOR_TASK',parameter => 'EXECUTION_DAYS_TO_EXPIRE',value => 14);
+#ALTER SYSTEM SET OS_AUTHENT_PREFIX = 'OPS$' SCOPE = SPFILE;
+#create USER OPS$BACKUP identified externally default tablespace USERS temporary tablespace TEMP;
+#grant unlimited tablespace to OPS$BACKUP;
+#grant CONNECT to OPS$BACKUP;
+#grant SELECT_CATALOG_ROLE to OPS$BACKUP;
+#grant EXECUTE_CATALOG_ROLE to OPS$BACKUP;
+#grant EXP_FULL_DATABASE to OPS$BACKUP;
+#grant HS_ADMIN_ROLE to OPS$BACKUP;
+#GRANT EXECUTE ON SYS.DBMS_DEFER_IMPORT_INTERNAL TO OPS$BACKUP;
+#GRANT EXECUTE ON SYS.DBMS_EXPORT_EXTENSION TO OPS$BACKUP;
+#grant execute on DBMS_JAVA to OPS$BACKUP;
+#grant execute on SYS.DBMS_JVM_EXP_PERMS to OPS$BACKUP;
+shutdown immediate
+startup
+EOF
+/home/oracle/scripts/create_user_backup.sh
+/home/oracle/scripts/create_usr_readonly.sh

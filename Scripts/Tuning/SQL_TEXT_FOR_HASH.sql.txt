@@ -1,0 +1,4 @@
+select piece, sql_text 
+   from sys.v_$sqltext 
+   where hash_value = &hash_value    
+   order by piece;

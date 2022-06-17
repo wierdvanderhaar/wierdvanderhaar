@@ -1,0 +1,439 @@
+#! /bin/ksh
+#
+# Name : dbshut
+#        This script is based on dbshut as supplied by Oracle.
+#
+# Mutatie-historie
+# ----------------
+# 07-11-2006  JSTEI  Instelling ORATAB aangepast
+# 07-11-2006  JSTEI  Methodiek stoppen listener aangepast
+# 08-11-2006  JSTEI  Instellen ORATAB voor stoppen listener
+# 09-11-2006  JSTEI  Ondersteuning voor meerdere listeners
+# 20-11-2006  JSTEI  Instelling omgevingsvariabelen bij stoppen listener
+
+###################################
+# 
+# usage: dbshut $ORACLE_HOME
+#
+# This script is used to shutdown ORACLE from /etc/rc(.local).
+# It should ONLY be executed as part of the system boot procedure.
+#
+# This script will shutdown all databases listed in the oratab file
+# whose third field is a "Y" or "W".  If the third field is set to "Y" and
+# there is no ORACLE_SID for an entry (the first field is a *),
+# then this script will ignore that entry.
+#
+# This script requires that ASM ORACLE_SID's start with a +, and 
+# that non-ASM instance ORACLE_SID's do not start with a +.
+#
+# Note:
+# Use ORACLE_TRACE=T for tracing this script.
+# Oracle Net Listener is also shutdown using this script.
+#
+# The progress log for each instance shutdown is logged in file 
+# $ORACLE_HOME/shutdown.log.
+#
+# To configure:
+# 1) Set ORATAB:
+#    On Solaris 
+#      ORATAB=/var/opt/oracle/oratab
+#    All other UNIX platforms
+#      ORATAB=/etc/oratab
+#
+# 2) Update $ORATAB/oratab with Database Instances that need to be shutdown.
+#    Entries are of the form:
+#    $ORACLE_SID:$ORACLE_HOME:<N|Y>:
+#    An example entry:
+#    main:/usr/lib/oracle/emagent_10g:Y
+#
+# Note:
+# Use ORACLE_TRACE=T for tracing this script.
+# Oracle Net Listener is NOT shutdown using this script.
+#
+# The progress log for each instance shutdown is logged in file 
+# $ORACLE_HOME/shutdown.log.
+#
+# To configure:
+# 1) Set ORATAB:
+#    On Solaris 
+#      ORATAB=/var/opt/oracle/oratab
+#    All other UNIX platforms
+#      ORATAB=/etc/oratab
+#
+# 2) Update $ORATAB/oratab with Database Instances that need to be shutdown.
+#    Entries are of the form:
+#    $ORACLE_SID:$ORACLE_HOME:<N|Y>:
+#    An example entry:
+#    main:/usr/lib/oracle/emagent_10g:Y
+#
+#####################################
+
+# ------------------------------------------------------------
+# Name       : Show_Usage
+# Parameters : -
+#
+# Description
+# -----------
+# Show the correct usage.
+# ------------------------------------------------------------
+
+Show_Usage() {
+   (
+   echo "Usage :" ${0} [options]... 
+   echo
+   echo Options 
+   echo -------
+   echo "-c"
+   echo "   Only shut down instances that are marked for cold back-up"
+   echo "-d"
+   echo "   Shutdown listener. (Default unless -c is used)"
+   echo "-h"
+   echo "   Help information (this info)"
+   echo """-n"
+   echo "   Do NOT shutdown listener. (Default if -c is used)"
+   ) >&2
+}
+
+# -------------------------------------------------------------
+# Name       : InitVars
+# Parameters : 
+#
+# Description
+# -----------
+# Initialize the various initialization variables.
+# -------------------------------------------------------------
+
+InitVars() {
+   trap 'exit' 1 2 3
+
+   ORATAB=/var/opt/oracle/oratab
+
+   case $ORACLE_TRACE in
+   T) set -x ;;
+   esac
+
+# Set path if path not set (if called from /etc/rc)
+   case $PATH in
+     "") PATH=/bin:/usr/bin:/etc
+         export PATH ;;
+   esac
+
+# Save LD_LIBRARY_PATH
+   SAVE_LLP=$LD_LIBRARY_PATH
+
+  Pc=0
+  Pd=0
+  Pn=0
+}
+
+# -------------------------------------------------------------
+# Name       : CheckVars
+# Parameters : 
+#
+# Description
+# -----------
+# Check the various initialization variables.
+# -------------------------------------------------------------
+
+CheckVars() {
+   if [ ! ${ORATAB} ] ; then
+     echo "Set ORATAB to dir where oratab file is located" >&2
+     exit 1;
+   fi
+   if [ ! -f ${ORATAB} ] ; then
+     echo "Configuration file ${ORATAB} is missing" >&2
+     exit 1;
+   fi
+}
+
+# -----------------------------------------------------------
+# Name       : EnvironmentScript
+# Parameters : 1 - ORACLE_HOME
+# 
+# Description
+# -----------
+# Find the name of the environment setting script.
+#
+# Result
+# ------
+# The result will be placed in the variable ENV_SCRIPT.
+# -----------------------------------------------------------
+
+EnvironmentScript() {
+   ENV_SCRIPT=''
+   for SCRIPT_NAME in /usr/local/bin/db*.env; do
+      . ${SCRIPT_NAME} 2>/dev/null
+      if [ ${ORACLE_HOME} == ${1} ]; then
+         ENV_SCRIPT=${SCRIPT_NAME}
+         break
+      fi
+   done
+}
+
+# ------------------------------------------------------------
+# Naam       : ParseParams
+# Parameters : parameter list
+#
+# Description
+# -----------
+# Parse the parameters.
+# ------------------------------------------------------------
+
+ParseParams() {
+   while getopts cdhn name 2>/dev/null
+   do
+      case ${name} in
+      c)        Pc=1
+                ;;
+      d)        if [ ${Pn} -ne 0 ]; then
+                   echo Options ${name} and n are mutually exclusive >&2
+                   Show_Usage
+                   exit 1
+                fi
+                Pd=1
+                ;;
+      h)        Show_Usage
+                exit 0
+                ;;
+      n)        if [ ${Pd} -ne 0 ]; then
+                   echo Options ${name} and d are mutually exclusive >&2
+                   Show_Usage
+                   exit 1
+                fi
+                Pn=1
+                ;;
+      ?)   echo Ongeldige optie >&2
+           Show_Usage
+           exit 2;;
+      esac
+   done
+
+   shift $((${OPTIND} -1))
+
+}
+
+# -------------------------------------------------------------
+# Name       : StopListener
+# Parameters : 
+#
+# Description
+# -----------
+# Stop all the running listeners.
+# -------------------------------------------------------------
+
+StopListener() {
+   LOG=/dev/null
+   ps -ef | grep '/tnslsnr ' | cut -c48- | while read LINE
+   do
+      LISTENER_CMD=`echo ${LINE} | cut -d' ' -f 1`
+      LISTENER_HOME=`echo ${LISTENER_CMD} | sed 's/\/bin\/tnslsnr//'`
+      LISTENER_NAME=`echo ${LINE} | cut -d' ' -f 2`
+      TNS_ADMIN=${LISTENER_HOME}/network/admin
+
+      if [ ! -f ${TNS_ADMIN}/listener.ora ]; then
+         echo "Listener configuration file "${TNS_ADMIN}"/listener.ora not found." >&2
+         continue
+      fi
+
+      EnvironmentScript ${LISTENER_HOME}
+      if [ -z ''${ENV_SCRIPT} ]; then
+          echo Environment settings script for Oracle Home ${LISTENER_HOME} not found >&2
+          continue
+      fi
+
+      (
+         echo . ${SCRIPT_NAME}
+         echo ${ORACLE_HOME}/bin/lsnrctl stop ${LISTENER_NAME} \>${LOG} 2\>\&1
+      ) | ${SHELL}
+   done
+}
+
+# -------------------------------------------------------------
+# Name       : stopinst
+# Parameters : -
+#
+# Description
+# -----------
+# Stop the given instance.
+# -------------------------------------------------------------
+
+stopinst() {
+  OLD_PATH=${PATH}
+  export ORACLE_SID=`echo ${LINE} | awk -F: '{print $1}' -`
+  if [ "${ORACLE_SID}" = '*' ] ; then
+    export ORACLE_SID=""
+  fi
+  export ORACLE_HOME=`echo $LINE | awk -F: '{print $2}' -`
+# Put $ORACLE_HOME/bin into PATH and export.
+  export PATH=${ORACLE_HOME}/bin:/bin:/usr/bin:/etc 
+# add for bug 652997
+  export LD_LIBRARY_PATH=${SAVE_LLP}:${ORACLE_HOME}/lib 
+  PFILE=${ORACLE_HOME}/dbs/init${ORACLE_SID}.ora
+
+# See if it is a V6 or V7 database
+  VERSION=undef
+  if [ -f $ORACLE_HOME/bin/sqldba ] ; then
+    SQLDBA=sqldba
+    VERSION=`$ORACLE_HOME/bin/sqldba command=exit | awk '
+      /SQL\*DBA: (Release|Version)/ {split($3, V, ".") ;
+      print V[1]}'`
+    case $VERSION in
+      "6") ;;
+      *) VERSION="internal" ;;
+    esac
+  else
+    if [ -f $ORACLE_HOME/bin/svrmgrl ] ; then
+      SQLDBA=svrmgrl
+      VERSION="internal"
+    else
+      SQLDBA="sqlplus /nolog"
+    fi
+  fi
+
+  case $VERSION in
+    "6")  sqldba command=shutdown ;;
+    "internal")  $SQLDBA <<EOF
+connect internal
+shutdown immediate
+EOF
+     ;;
+     *)  $SQLDBA <<EOF
+connect / as sysdba
+shutdown immediate
+quit
+EOF
+     ;;
+  esac
+
+  if test $? -eq 0 ; then
+    echo "${INST} \"${ORACLE_SID}\" shut down."
+  else
+    echo "${INST} \"${ORACLE_SID}\" not shut down."
+  fi
+
+  PATH=${OLD_PATH}
+}
+
+# --------------------------------------------------------------
+# Name       : StopNonDependentInst
+# Parameters : 
+#
+# Description
+# -----------
+# Stop all the instances that are not ASM instances and do not have
+# a 'W' entry.
+# --------------------------------------------------------------
+
+StopNonDependentInst() {
+   for ORACLE_SID in `ps -ef | grep ora_smon | grep -v 'grep' | cut -c 57-`; do
+      LINE=`grep '^'${ORACLE_SID}':' ${ORATAB}`
+      if [ ${?} -eq 0 ]; then
+         ORACLE_HOME=`echo ${LINE} | cut -d: -f 2`
+         START_FLAG=`echo ${LINE} | cut -d: -f 3`
+         BACKUP_MODE=`echo ${LINE} | cut -d: -f 4`
+
+         LOG=$ORACLE_HOME/shutdown.log
+         if [ ${START_FLAG} == 'W' ]; then
+            continue
+         fi
+
+         if [ ${Pc} == 1 -a ${BACKUP_MODE} != 'C' ]; then
+            continue
+         fi
+
+         INST="Database instance"
+         echo "Processing $INST \"$ORACLE_SID\": log file $LOG"
+         stopinst >> $LOG 2>&1
+      fi
+   done
+}
+
+# --------------------------------------------------------------
+# Name       : StopDependentInst
+# Parameters : 
+#
+# Description
+# -----------
+# Stop all the instances that are not ASM instances and have a
+# 'W' entry.
+# --------------------------------------------------------------
+
+StopDependentInst() {
+   for ORACLE_SID in `ps -ef | grep ora_smon | grep -v 'grep' | cut -c 57-`; do
+      LINE=`grep '^'${ORACLE_SID}':' ${ORATAB}`
+      if [ ${?} -eq 0 ]; then
+         ORACLE_HOME=`echo ${LINE} | cut -d: -f 2`
+         START_FLAG=`echo ${LINE} | cut -d: -f 3`
+         BACKUP_MODE=`echo ${LINE} | cut -d: -f 4`
+
+         LOG=$ORACLE_HOME/shutdown.log
+         if [ ${START_FLAG} != 'W' ]; then
+            continue
+         fi
+
+         if [ ${Pc} == 1 -a ${BACKUP_MODE} != 'C' ]; then
+            continue
+         fi
+
+         INST="Database instance"
+         echo "Processing $INST \"$ORACLE_SID\": log file $LOG"
+         stopinst >> $LOG 2>&1
+      fi
+   done
+}
+
+StopAsmInst() {
+   cat ${ORATAB} | while read LINE
+   do
+     case $LINE in
+       \#*)                ;;        #comment-line in oratab
+       LISTENER*)          ;;        #listener-entry in oratab
+       *)
+       ORACLE_SID=`echo $LINE | awk -F: '{print $1}' -`
+       if [ "$ORACLE_SID" = '*' ] ; then
+         # NULL SID - ignore
+         ORACLE_SID=""
+         continue
+       fi
+
+       if [ `echo $ORACLE_SID | cut -b 1` != '+' ]; then
+          continue               # Not a ASM instance
+       fi
+
+       BACKUP_MODE=`echo ${LINE} | cut -d: -f 4`
+       if [ ${Pc} == 1 -a ${BACKUP_MODE} != 'C' ]; then
+          continue               # Hot back-up or mode not specified
+       fi
+
+       INST="ASM instance"
+       ORACLE_HOME=`echo $LINE | awk -F: '{print $2}' -`
+       LOG=$ORACLE_HOME/shutdown.log
+       echo "Processing $INST \"$ORACLE_SID\": log file $LOG"
+       stopinst >> $LOG 2>&1
+     ;;
+     esac
+   done
+}
+
+# QWERTY
+(
+   echo "Invoked on : "`date`
+   echo "Parameters : "${*}
+) >>/export/home/oracle/dbshut.out
+# QWERTY
+
+InitVars
+CheckVars
+ParseParams ${*}
+
+if [ ${Pd} -eq 0 ]; then
+   if [ ${Pn} -eq 0 -a ${Pc} -eq 0 ]; then
+      StopListener
+   fi
+else
+   StopListener
+fi
+
+StopNonDependentInst
+StopDependentInst
+StopAsmInst

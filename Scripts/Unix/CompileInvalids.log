@@ -1,0 +1,294 @@
+Compiling dwha
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+						   ----------
+sum
+
+Er zijn geen rijen geselecteerd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_BGN  2011-07-20 15:15:06
+
+
+PL/SQL-procedure is geslaagd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_END  2011-07-20 15:15:10
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OBJECTS WITH ERRORS
+-------------------
+		  0
+
+
+ERRORS DURING RECOMPILATION
+---------------------------
+			  0
+
+Invoking Ultra Search Install/Upgrade validation procedure VALIDATE_WK
+Ultra Search VALIDATE_WK done with no error
+
+PL/SQL-procedure is geslaagd.
+
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+						   ----------
+sum
+
+Er zijn geen rijen geselecteerd.
+
+Compiling dwhp
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+						   ----------
+sum
+
+Er zijn geen rijen geselecteerd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_BGN  2011-07-20 15:15:17
+
+
+PL/SQL-procedure is geslaagd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_END  2011-07-20 15:15:20
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OBJECTS WITH ERRORS
+-------------------
+		  0
+
+
+ERRORS DURING RECOMPILATION
+---------------------------
+			  0
+
+Invoking Ultra Search Install/Upgrade validation procedure VALIDATE_WK
+Ultra Search VALIDATE_WK done with no error
+
+PL/SQL-procedure is geslaagd.
+
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+						   ----------
+sum
+
+Er zijn geen rijen geselecteerd.
+
+Compiling mpmo
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+MPMPLUS 		       PACKAGE			    1
+MPMPLUS 		       PACKAGE BODY		    2
+MPMPLUS 		       PROCEDURE		    1
+MPM_REP 		       VIEW			    5
+PUBLIC			       SYNONYM			   10
+						   ----------
+sum							   19
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_BGN  2011-07-20 15:15:26
+
+
+PL/SQL-procedure is geslaagd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_END  2011-07-20 15:15:34
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OBJECTS WITH ERRORS
+-------------------
+		  8
+
+
+ERRORS DURING RECOMPILATION
+---------------------------
+			  0
+
+Invoking Ultra Search Install/Upgrade validation procedure VALIDATE_WK
+Ultra Search VALIDATE_WK done with no error
+
+PL/SQL-procedure is geslaagd.
+
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+MPMPLUS 		       PACKAGE			    1
+MPMPLUS 		       PACKAGE BODY		    2
+MPMPLUS 		       PROCEDURE		    1
+MPM_REP 		       VIEW			    4
+						   ----------
+sum							    8
+
+Compiling mpmt
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+MPMPLUS 		       PACKAGE			    1
+MPMPLUS 		       PACKAGE BODY		    4
+MPMPLUS 		       PROCEDURE		    1
+MPM_REP 		       VIEW			    4
+PUBLIC			       SYNONYM			   12
+						   ----------
+sum							   22
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_BGN  2011-07-20 15:15:40
+
+
+PL/SQL-procedure is geslaagd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_END  2011-07-20 15:15:44
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OBJECTS WITH ERRORS
+-------------------
+		  8
+
+
+ERRORS DURING RECOMPILATION
+---------------------------
+			  0
+
+Invoking Ultra Search Install/Upgrade validation procedure VALIDATE_WK
+Ultra Search VALIDATE_WK done with no error
+
+PL/SQL-procedure is geslaagd.
+
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+MPMPLUS 		       PACKAGE			    1
+MPMPLUS 		       PACKAGE BODY		    2
+MPMPLUS 		       PROCEDURE		    1
+MPM_REP 		       VIEW			    4
+						   ----------
+sum							    8
+
+Compiling pima
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+PIMS_PNB		       FUNCTION 		    1
+PIMS_PNB		       VIEW			    2
+						   ----------
+sum							    3
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_BGN  2011-07-20 15:15:49
+
+
+PL/SQL-procedure is geslaagd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_END  2011-07-20 15:15:52
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OBJECTS WITH ERRORS
+-------------------
+		  0
+
+
+ERRORS DURING RECOMPILATION
+---------------------------
+			  0
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+						   ----------
+sum
+
+Er zijn geen rijen geselecteerd.
+
+Compiling pimp
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+						   ----------
+sum
+
+Er zijn geen rijen geselecteerd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_BGN  2011-07-20 15:15:59
+
+
+PL/SQL-procedure is geslaagd.
+
+
+TIMESTAMP
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMP_TIMESTAMP UTLRP_END  2011-07-20 15:16:01
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OBJECTS WITH ERRORS
+-------------------
+		  0
+
+
+ERRORS DURING RECOMPILATION
+---------------------------
+			  0
+
+
+PL/SQL-procedure is geslaagd.
+
+
+OWNER			       OBJECT_TYPE	       AANTAL
+------------------------------ ------------------- ----------
+						   ----------
+sum
+
+Er zijn geen rijen geselecteerd.
+

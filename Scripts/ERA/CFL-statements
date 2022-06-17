@@ -1,0 +1,123 @@
+++++ Add standby redologs for primary database!!
+alter database drop logfile group 4;
+alter database drop logfile group 5;
+alter database drop logfile group 6;
+alter database drop logfile group 7;
+
+declare
+redosize number (10);
+redologgroups number(3);
+standbylogs number(3);
+sql_smt Varchar2(150);
+begin
+select distinct bytes into redosize from v$log;
+select count(distinct group#)+1 into redologgroups from v$logfile where type='ONLINE';
+select count(distinct group#) into standbylogs from v$logfile where type='STANDBY';
+WHILE standbylogs < redologgroups LOOP 
+sql_smt := 'alter database add standby logfile size ' || redosize;
+dbms_output.put_line (sql_smt);
+execute immediate 'alter database add standby logfile size ' || redosize ;
+standbylogs := standbylogs +1;
+END LOOP;
+END;
+/
+
+
+
+
+
+
+-- One primary and Standby
+-- Define FRA and Flashback retention.
+-- DB_FLASHBACK_RETENTION_TARGET=2880 <= 2 days
+ALTER SYSTEM SET DB_FLASHBACK_RETENTION_TARGET=2880 SCOPE=BOTH;
+-- Define DB_RECOVERY_FILE_DEST
+ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE=100G SCOPE=BOTH;
+-- SQL> ALTER SYSTEM SET DB_RECOVERY_FILE_DEST='/var/opt/oracle/fra' SCOPE=BOTH;
+-- Define LOG_ARCHIVE_DEST_10
+-- SQL> ALTER SYSTEM SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST' SCOPE=BOTH;
+ALTER DATABASE FLASHBACK ON;
+-- CHECK FLASHBACK USAGES.
+SELECT ESTIMATED_FLASHBACK_SIZE FROM V$FLASHBACK_DATABASE_LOG;
+SELECT FLASHBACK_ON FROM V$DATABASE; 
+
+-- Restart databases
+SHUTDOWN IMMEDIATE
+STARTUP MOUNT
+ALTER DATABASE ARCHIVELOG;
+ALTER DATABASE FLASHBACK ON;
+
+
+BEGIN
+   DBMS_SERVICE.CREATE_SERVICE(
+      service_name => 'CFLHA_OCI',
+      network_name => 'CFLHA_OCI',
+      aq_ha_notifications => TRUE,
+      failover_method => 'BASIC',
+      failover_type => 'SESSION',
+      failover_retries => 150,
+      failover_delay => 10);
+END;
+/
+
+create or replace trigger START_CFLHA after startup on database
+DECLARE
+   role varchar (30);
+BEGIN
+   select database_role into role from v$database;
+   if role='PRIMARY' then
+      dbms_service.start_service('CFLHA_OCI');
+   end if;
+END;
+/
+
+CFLHA=
+    (DESCRIPTION =
+        (ADDRESS_LIST =
+            (FAILOVER = on)
+            (LOAD_BALANCE = on)
+            (CONNECT_TIMEOUT = 5)(TRANSPORT_CONNECT_TIMEOUT = 3)(RETRY_COUNT=10)
+            	(ADDRESS = (PROTOCOL = TCP)(HOST=10.68.101.179)(PORT = 1521))
+                (ADDRESS = (PROTOCOL = TCP)(HOST=10.68.101.99)(PORT = 1521)))
+        (CONNECT_DATA =
+                (SERVER = DEDICATED)
+                (SERVICE_NAME = CFLHA_OCI))
+    )
+
+
+
+
+- Create control table
+create user c##dbacheck identified by Nutanix_4U default tablespace sysaux;
+grant connect, dba to c##dbacheck;
+connect dbacheck/Nutanix_4U
+create table T_CONTROL (stap varchar2(50), datum varchar2(25));
+insert into T_CONTROL values ('Start Freeze',to_char(sysdate,'YYYY-MM-DD HH24:MI:SS'));
+commit;
+
+
+col username format a20
+col machine format a20
+col failover_type format a20
+col failover_method format a20
+col failed_over format a10
+col service_name format a20
+col module format a35
+set lines 200
+select username, machine, failover_type, failover_method, failed_over,service_name,module from v$session 
+where username is not null 
+and FAILOVER_TYPE = 'SESSION' 
+order by username, service_name, failover_type;
+
+select * from T_CONTROL order by 1;
+
+-- Connect to primary and do shutdown abort
+-- using DGMGRL execute failover to
+-- check status
+-- Start former primary
+-- reinstate database from DGMGRL
+-- check status
+-- switchback to former primary
+
+
+

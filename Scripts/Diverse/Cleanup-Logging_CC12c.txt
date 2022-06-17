@@ -1,0 +1,46 @@
+#!/bin/sh
+
+export ORABASE="/u01/app/oracle"
+export OMSPATH="$ORABASE/product/12.1.0/oms"
+export GCPATH="$ORABASE/product/gc_inst"
+export AGENTPATH="$ORABASE/product/agent/agent_inst"
+
+
+#################################################################
+#find and clean Oracle 12c Agent log files older then 7 days
+#################################################################
+find ${AGENTPATH}/sysman/log/ -name "gcagent.log.*" -mtime +7 -exec rm {} \;
+find ${AGENTPATH}/sysman/log/ -name "*.trc.*" -mtime +7 -exec rm {} \;
+#################################################################
+#find and clean Oracle 12c OMS log files older then 7 days
+#################################################################
+find ${GCPATH}/em/EMGC_OMS1/sysman/log/ -name "emoms.trc*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/em/EMGC_OMS1/sysman/log/ -name "*.trc.*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/em/EMGC_OMS1/sysman/log/ -name "emctl.log.*" -mtime +7 -exec rm {} \;
+#################################################################
+#find and clean Oracle 12c Oracle HTTP Server (OHS) log files older then 7 days
+#################################################################
+find ${GCPATH}/WebTierIH1/diagnostics/logs/OHS/ohs1/  -name "access_log*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/WebTierIH1/diagnostics/logs/OHS/ohs1/  -name "em_upload_https_access_log*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/WebTierIH1/diagnostics/logs/OHS/ohs1/  -name "ohs1-*.log" -mtime +7 -exec rm {} \;
+#################################################################
+#find and clean Oracle 12c Oracle WebLogic log files older then 7 days
+#################################################################
+find ${GCPATH}/user_projects/domains/GCDomain/servers/EMGC_OMS1/logs/ -name "access.log*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/user_projects/domains/GCDomain/servers/EMGC_OMS1/logs/ -name "EMGC_OMS1.log*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/user_projects/domains/GCDomain/servers/EMGC_OMS1/logs/ -name "EMGC_OMS1.out*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/user_projects/domains/GCDomain/servers/EMGC_OMS1/logs/ -name "EMGC_OMS1-diagnostic*.log" -mtime +7 -exec rm {} \;
+find ${GCPATH}/user_projects/domains/GCDomain/servers/EMGC_ADMINSERVER/logs -name "EMGC_ADMINSERVER.out*" -mtime +7 -exec rm {} \;
+find ${GCPATH}/user_projects/domains/GCDomain/servers/EMGC_ADMINSERVER/logs -name "GCDomain.log*" -mtime +7 -exec rm {} \;
+#################################################################
+#find and clean Oracle 12c OPMN log files older then 7 days
+#################################################################
+find ${GCPATH}/WebTierIH1/diagnostics/logs/OPMN/opmn/ -name "*.log" -mtime +7 -exec rm {} \;
+#################################################################
+#find and clean Oracle 12c diagnose folder in oracle home log files older then 7 days
+#################################################################
+find /home/oracle/oradiag_oracle/diag/clients/user_oracle/host_1846882399_11/alert  -name "log_*.xml" -mtime +7 -exec rm {} \;
+#################################################################
+#the next line is commented for know because on 12c I disabled the module according to metalink note:1396472.1
+#################################################################
+find ${GCPATH}/WebTierIH1/diagnostics/logs/OHS/ohs1/ -name "*.log" -mtime +7 -exec rm {} \;

@@ -1,0 +1,4 @@
+connect target /
+crosscheck archivelog all;
+delete noprompt archivelog until time 'SYSDATE-4';
+exit;

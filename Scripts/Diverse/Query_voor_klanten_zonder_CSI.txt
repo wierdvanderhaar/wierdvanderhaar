@@ -1,0 +1,31 @@
+select x.contact_details from 
+(SELECT o.REFERENCE_NO_
+		, c.contact_details
+		, c.organization
+		FROM 	aradmin.CALL@lnk_ed c,
+				aradmin.organisation@lnk_ed o,
+				aradmin.person@lnk_ed p,
+				(select b.nummer
+				from 	intra.so_bedrijf_controle b, 
+						intra.intra_dossier_csis c,
+						(select  e.nummer as bednumb
+							from 	intra.INTRA_FACTUUR f,
+							intra.so_bedrijf_controle e
+							where 	(f.datum_tot > TRUNC(SYSDATE) or f.datum_tot is null)
+							and 	e.nummer=f.BEDNR
+							group by e.nummer) g
+				where b.nummer=c.bednr(+)
+				and	  b.nummer=g.bednumb
+				and   c.csi is null
+				group by b.nummer
+				order by 1) z
+		WHERE 	c.contact_method = 1
+		AND 	lower(c.contact_details) = lower(p.e_mail)
+		AND 	c.ORGANIZATION = o.ORGANISATION_NAME
+		AND 	c.contact_details is not null
+		AND		o.REFERENCE_NO_ = z.nummer
+		AND		c.organization not like 'DBA.NL%'
+		group by  o.REFERENCE_NO_
+		, c.contact_details
+		, c.organization
+		 order by 3) x;

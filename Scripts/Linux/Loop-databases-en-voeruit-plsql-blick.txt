@@ -1,0 +1,49 @@
+#!/bin/sh
+export PATH=/usr/local/bin:usr/sbin:$PATH
+export ORAENV_ASK=NO
+set -x
+ps -ef|grep -v grep|grep pmon|awk '{printf(substr($8,10)"\n")}' | while read DBSID
+do
+  export ORACLE_SID=$DBSID
+  . oraenv 1>/dev/null 2>&1
+  echo $ORACLE_SID
+  sqlplus /nolog <<EOF
+connect / as sysdba
+declare
+cursor c1 is  select file_name from dba_data_files;
+vfilename varchar2(100);
+vsql varchar2(1000);
+begin
+open c1;
+LOOP
+fetch c1 into vfilename;
+exit when c1%NOTFOUND;
+vsql := 'alter database datafile '''||vfilename||''' autoextend on maxsize 32767M';
+--dbms_output.put_line(vsql);
+execute immediate vsql;
+end loop;
+close c1;
+end;
+/
+
+@?/pdb3
+
+declare
+cursor c1 is  select file_name from dba_data_files;
+vfilename varchar2(100);
+vsql varchar2(1000);
+begin
+open c1;
+LOOP
+fetch c1 into vfilename;
+exit when c1%NOTFOUND;
+vsql := 'alter database datafile '''||vfilename||''' autoextend on maxsize 32767M';
+-- dbms_output.put_line(vsql);
+execute immediate vsql;
+end loop;
+close c1;
+end;
+/
+exit
+EOF
+done

@@ -1,0 +1,29 @@
+col c1 heading ‘Owner’              format a13
+col c2 heading ‘Object|Type’        format a15
+col c3 heading ‘Object|Name’        format a25
+col c4 heading ‘Average|CPU|Cost’   format 9,999,999
+col c5 heading ‘Average|IO|Cost’    format 9,999,999
+ 
+ 
+break on c1 skip 2
+break on c2 skip 2
+ 
+ 
+select
+  p.object_owner    c1,
+  p.object_type     c2,
+  p.object_name     c3,
+  avg(p.cpu_cost )   c4,
+  avg(p.io_cost )    c5
+from
+  dba_hist_sql_plan p
+where
+        p.object_name is not null
+    and
+        p.object_owner <> 'SYS'
+group by
+  p.object_owner,
+  p.object_type,
+  p.object_name
+order by
+  1,2,4 desc;

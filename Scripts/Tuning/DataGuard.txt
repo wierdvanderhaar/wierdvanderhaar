@@ -1,0 +1,23 @@
+-- Handige views and queries voor een DG omgeving.
+SQL> select * from v$dataguard_status where FACILITY='Role Management Services';
+
+select * from V$FS_FAILOVER_STATS;
+
+
+
+
+-- Apply rate/speed op standby. 
+set lines 200
+col type format a30
+col ITEM format a20
+col comments format a20
+select * from v$recovery_progress;
+
+DGMGRL> SHOW FAST_START FAILOVER;
+
+
+
+
+col machine format a30
+col service_name format a25
+select username, machine, to_char(LOGON_TIME,'YYYY-MM-DD HH24:mi:ss'), FAILOVER_TYPE,FAILOVER_METHOD,FAILED_OVER,SERVICE_NAME, module from v$session where username is not null and username <> 'SYS' order by LOGON_TIME, service_name, username, failed_over

@@ -1,0 +1,210 @@
+PZCM
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+AMERICAN_AMERICA.AL32UTF8
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Oracle Database Catalog Views
+Oracle Database Packages and Types
+
+SQL>   2    3    4    5    6    7    8    9   10   11   12   13
+'CREATETABLESPACE'||TABLESPACE_NAME||'DATAFILE'||''''||LOWER(FILE_NAME)||''''||'SIZE'||ROUND((SUM(BYTES/1024/1024)),0)||'MAUTOEXTENDONNEXT100MMAXSIZEUNLIMITEDEXTENTMANAGEMENTLOCALSEGMENTSPACEMANAGEME
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+create tablespace PZCM_DATA datafile '/db/zcm/pzcm/oradata/pzcm_data01.dbf' size 500M autoextend on next 100M maxsize UNLIMITED extent management local segment space management auto;
+create tablespace TOOLS datafile '/db/zcm/pzcm/oradata/tools01_pzcm.dbf' size 200M autoextend on next 100M maxsize UNLIMITED extent management local segment space management auto;
+create tablespace USERS datafile '/db/zcm/pzcm/oradata/users1_pzcm.dbf' size 10M autoextend on next 100M maxsize UNLIMITED extent management local segment space management auto;
+
+SQL>   2    3    4    5    6    7
+'ALTERSYSTEMSET'||NAME||'='||VALUE||'SCOPE=SPFILE;'
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+alter system set cursor_sharing=EXACT scope=spfile;
+alter system set nls_length_semantics='BYTE' scope=spfile;
+alter system set open_cursors=300 scope=spfile;
+alter system set optimizer_index_caching=0 scope=spfile;
+alter system set optimizer_index_cost_adj=100 scope=spfile;
+alter system set pga_aggregate_target=25165824 scope=spfile;
+alter system set sga_max_size=252M scope=spfile;
+alter system set sga_target=252M scope=spfile;
+
+8 rows selected.
+
+SQL>
+no rows selected
+
+SQL>
+OWNER                            COUNT(*)
+------------------------------ ----------
+PRODZCM                                 1
+
+SQL> SQL> SQL>   2    3
+no rows selected
+
+
+SQL> SQL> SP2-0042: unknown command "SYS privs" - rest of line ignored.
+SQL>   2    3    4    5    6    7    8    9
+
+'GRANT'||PRIVILEGE||'ON'||GRANTOR||'."'||TABLE_NAME||'"TO'||GRANTEE||';'
+----------------------------------------------------------------------------------------------------------------------------------------------------
+grant DEBUG on SYS."AW$" to DBA;
+grant SELECT on SYS."AW$" to DBA;
+grant DEBUG on SYS."PS$" to DBA;
+grant SELECT on SYS."PS$" to DBA;
+grant SELECT on SYS."AWSEQ$" to DBA;
+grant ALTER on SYS."AWSEQ$" to DBA;
+grant DEBUG on SYS."AW_OBJ$" to DBA;
+grant SELECT on SYS."AW_OBJ$" to DBA;
+grant DEBUG on SYS."AW_PROP$" to DBA;
+grant SELECT on SYS."AW_PROP$" to DBA;
+grant FLASHBACK on SYS."MAP_OBJECT" to DBA;
+grant DEBUG on SYS."MAP_OBJECT" to DBA;
+grant QUERY REWRITE on SYS."MAP_OBJECT" to DBA;
+grant ON COMMIT REFRESH on SYS."MAP_OBJECT" to DBA;
+grant UPDATE on SYS."MAP_OBJECT" to DBA;
+grant SELECT on SYS."MAP_OBJECT" to DBA;
+grant INSERT on SYS."MAP_OBJECT" to DBA;
+grant DELETE on SYS."MAP_OBJECT" to DBA;
+grant ALTER on SYS."MAP_OBJECT" to DBA;
+grant SELECT on SYS."V_$SQL_PLAN" to PERFSTAT;
+grant SELECT on SYS."V_$SQL_WORKAREA_HISTOGRAM" to PERFSTAT;
+grant SELECT on SYS."V_$PGA_TARGET_ADVICE" to PERFSTAT;
+grant SELECT on SYS."V_$PGASTAT" to PERFSTAT;
+grant SELECT on SYS."V_$DLM_MISC" to PERFSTAT;
+grant SELECT on SYS."V_$CR_BLOCK_SERVER" to PERFSTAT;
+grant SELECT on SYS."V_$CURRENT_BLOCK_SERVER" to PERFSTAT;
+grant SELECT on SYS."V_$INSTANCE_CACHE_TRANSFER" to PERFSTAT;
+grant SELECT on SYS."V_$BUFFER_POOL" to PERFSTAT;
+grant SELECT on SYS."V_$BUFFER_POOL_STATISTICS" to PERFSTAT;
+grant SELECT on SYS."V_$INSTANCE_RECOVERY" to PERFSTAT;
+grant SELECT on SYS."V_$THREAD" to PERFSTAT;
+grant SELECT on SYS."V_$PROCESS" to PERFSTAT;
+grant SELECT on SYS."V_$SESSION" to PERFSTAT;
+grant SELECT on SYS."V_$LATCH" to PERFSTAT;
+grant SELECT on SYS."V_$LATCH_CHILDREN" to PERFSTAT;
+grant SELECT on SYS."V_$LATCH_PARENT" to PERFSTAT;
+grant SELECT on SYS."V_$LATCH_MISSES" to PERFSTAT;
+grant SELECT on SYS."V_$SESSTAT" to PERFSTAT;
+grant SELECT on SYS."V_$SYSSTAT" to PERFSTAT;
+grant SELECT on SYS."V_$OSSTAT" to PERFSTAT;
+grant SELECT on SYS."V_$ROLLSTAT" to PERFSTAT;
+grant SELECT on SYS."V_$UNDOSTAT" to PERFSTAT;
+grant SELECT on SYS."V_$SGA" to PERFSTAT;
+grant SELECT on SYS."V_$CLUSTER_INTERCONNECTS" to DBANL;
+grant SELECT on SYS."V_$PARAMETER" to DBANL;
+grant SELECT on SYS."V_$PARAMETER" to PERFSTAT;
+grant SELECT on SYS."V_$SYSTEM_PARAMETER" to PERFSTAT;
+grant SELECT on SYS."V_$ROWCACHE" to PERFSTAT;
+grant SELECT on SYS."V_$LIBRARYCACHE" to PERFSTAT;
+grant SELECT on SYS."V_$DATABASE" to DBANL;
+grant SELECT on SYS."V_$DATABASE" to PERFSTAT;
+grant SELECT on SYS."V_$INSTANCE" to DBANL;
+grant SELECT on SYS."V_$INSTANCE" to PERFSTAT;
+grant SELECT on SYS."V_$SQLAREA" to PERFSTAT;
+grant SELECT on SYS."V_$SQLTEXT" to PERFSTAT;
+grant SELECT on SYS."V_$SQL" to PERFSTAT;
+grant SELECT on SYS."V_$SGASTAT" to PERFSTAT;
+grant SELECT on SYS."V_$WAITSTAT" to PERFSTAT;
+grant SELECT on SYS."V_$BACKUP" to DBANL;
+grant SELECT on SYS."V_$BACKUP_SET" to DBANL;
+grant SELECT on SYS."V_$DATABASE_BLOCK_CORRUPTION" to DBANL;
+grant SELECT on SYS."V_$DATAFILE" to DBANL;
+grant SELECT on SYS."V_$ARCHIVE_DEST" to DBANL;
+grant SELECT on SYS."V_$SESSION_EVENT" to PERFSTAT;
+grant SELECT on SYS."V_$SYSTEM_EVENT" to PERFSTAT;
+grant SELECT on SYS."V_$EVENT_NAME" to PERFSTAT;
+grant SELECT on SYS."V_$EVENT_HISTOGRAM" to PERFSTAT;
+grant SELECT on SYS."V_$FILE_HISTOGRAM" to PERFSTAT;
+grant SELECT on SYS."V_$TEMP_HISTOGRAM" to PERFSTAT;
+grant SELECT on SYS."V_$RESOURCE_LIMIT" to PERFSTAT;
+grant SELECT on SYS."V_$ARCHIVE_DEST_STATUS" to DBANL;
+grant SELECT on SYS."V_$DB_CACHE_ADVICE" to PERFSTAT;
+grant SELECT on SYS."V_$SGA_TARGET_ADVICE" to PERFSTAT;
+grant SELECT on SYS."V_$SEGMENT_STATISTICS" to PERFSTAT;
+grant SELECT on SYS."V_$SEGSTAT_NAME" to PERFSTAT;
+grant SELECT on SYS."V_$SEGSTAT" to PERFSTAT;
+grant SELECT on SYS."V_$SHARED_POOL_ADVICE" to PERFSTAT;
+grant SELECT on SYS."V_$JAVA_POOL_ADVICE" to PERFSTAT;
+grant SELECT on SYS."V_$STREAMS_POOL_ADVICE" to PERFSTAT;
+grant SELECT on SYS."V_$ENQUEUE_STATISTICS" to PERFSTAT;
+grant SELECT on SYS."V_$PROCESS_MEMORY" to PERFSTAT;
+grant SELECT on SYS."V_$SQLSTATS" to PERFSTAT;
+grant SELECT on SYS."V_$MUTEX_SLEEP" to PERFSTAT;
+grant SELECT on SYS."GV_$SESSION" to DBANL;
+grant SELECT on SYS."GV_$SYSSTAT" to DBANL;
+grant SELECT on SYS."GV_$ROWCACHE" to DBANL;
+grant SELECT on SYS."GV_$LIBRARYCACHE" to DBANL;
+grant SELECT on SYS."GV_$INSTANCE" to DBANL;
+grant SELECT on SYS."GV_$INSTANCE" to PERFSTAT;
+grant SELECT on SYS."GV_$LOG_HISTORY" to DBANL;
+grant SELECT on SYS."V_$RULE_SET" to PERFSTAT;
+grant SELECT on SYS."V_$BUFFERED_QUEUES" to PERFSTAT;
+grant SELECT on SYS."V_$BUFFERED_SUBSCRIBERS" to PERFSTAT;
+grant SELECT on SYS."V_$PROPAGATION_SENDER" to PERFSTAT;
+grant SELECT on SYS."V_$PROPAGATION_RECEIVER" to PERFSTAT;
+grant SELECT on SYS."DBA_INDEXES" to DBANL;
+grant SELECT on SYS."DBA_OBJECTS" to DBANL;
+grant SELECT on SYS."DBA_TABLES" to DBANL;
+grant SELECT on SYS."DBA_USERS" to DBANL;
+grant SELECT on SYS."DBA_JOBS" to DBANL;
+grant SELECT on SYS."DBA_SEGMENTS" to DBANL;
+grant SELECT on SYS."DBA_FREE_SPACE" to DBANL;
+grant SELECT on SYS."DBA_DATA_FILES" to DBANL;
+grant SELECT on SYS."DBA_TABLESPACES" to DBANL;
+grant SELECT on SYS."DBA_TEMP_FILES" to DBANL;
+grant EXECUTE on SYS."DBMS_UTILITY" to DBANL;
+grant EXECUTE on SYS."DBMS_JOB" to DBANL;
+grant EXECUTE on SYS."DBMS_JOB" to PERFSTAT;
+grant EXECUTE on SYS."DBMS_LOGSTDBY" to LOGSTDBY_ADMINISTRATOR;
+grant EXECUTE on SYS."DBMS_LOGSTDBY" to DBA;
+grant EXECUTE on SYS."DBMS_INTERNAL_SAFE_SCN" to LOGSTDBY_ADMINISTRATOR;
+grant EXECUTE on SYS."DBMS_SYSTEM" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_FLASHBACK" to DBA;
+grant EXECUTE on SYS."DBMS_SERVER_ALERT" to DBSNMP;
+grant EXECUTE on SYS."DBMS_SERVER_ALERT" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_SERVER_ALERT" to DBA;
+grant EXECUTE on SYS."DBMS_AQ" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_AQADM" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_DEFER_SYS" to DBA;
+grant EXECUTE on SYS."DBMS_SCHEDULER" to DBANL;
+grant SELECT on SYS."DBA_SCHEDULER_JOBS" to DBANL;
+grant EXECUTE on SYS."DBMS_TDB" to DBA;
+grant SELECT on SYS."V_$RMAN_BACKUP_JOB_DETAILS" to DBANL;
+grant SELECT on SYS."V_$BACKUP_SET_DETAILS" to DBANL;
+grant EXECUTE on SYS."DBMS_RLS" to DBANL;
+grant EXECUTE on SYS."OUTLN_PKG" to OUTLN;
+grant EXECUTE on SYS."OUTLN_PKG" to DBA;
+grant EXECUTE on SYS."OUTLN_EDIT_PKG" to DBA;
+grant SELECT on SYS."V_$STREAMS_CAPTURE" to PERFSTAT;
+grant SELECT on SYS."V_$STREAMS_APPLY_COORDINATOR" to PERFSTAT;
+grant SELECT on SYS."V_$STREAMS_APPLY_SERVER" to PERFSTAT;
+grant SELECT on SYS."V_$STREAMS_APPLY_READER" to PERFSTAT;
+grant EXECUTE on SYS."DBMS_RESUMABLE" to DBA;
+grant SELECT on SYS."DBA_REGISTRY" to DBANL;
+grant EXECUTE on SYS."DBMS_DRS" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_DEFER_QUERY" to DBA;
+grant EXECUTE on SYS."DBMS_STORAGE_MAP" to DBA;
+grant EXECUTE on SYS."DBMS_SERVER_TRACE" to DBA;
+grant EXECUTE on SYS."DBMS_SERVICE" to DBA;
+grant DEQUEUE on SYS."ALERT_QUE" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_MONITOR" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_MONITOR" to DBA;
+grant SELECT on SYS."V_$SYS_TIME_MODEL" to PERFSTAT;
+grant SELECT on SYS."V_$SESS_TIME_MODEL" to PERFSTAT;
+grant EXECUTE on SYS."DBMS_WORKLOAD_REPOSITORY" to OEM_MONITOR;
+grant EXECUTE on SYS."DBMS_WORKLOAD_REPOSITORY" to DBA;
+grant EXECUTE on SYS."DBMS_UADV_ARR" to DBA;
+grant EXECUTE on SYS."DBMS_UNDO_ADV" to DBA;
+grant EXECUTE on SYS."LOAD_UNDO_STAT" to DBA;
+grant EXECUTE on SYS."RESET_UNDO_STAT" to DBA;
+grant EXECUTE on SYS."DBMS_FEATURE_USAGE_REPORT" to DBA;
+grant EXECUTE on SYS."DBMS_WORKLOAD_CAPTURE" to DBA;
+grant EXECUTE on SYS."DBMS_SHARED_POOL" to PERFSTAT;
+grant SELECT on SYS."STATS$X_$KCBFWAIT" to PERFSTAT;
+grant SELECT on SYS."STATS$X_$KSPPSV" to PERFSTAT;
+grant SELECT on SYS."STATS$X_$KSPPI" to PERFSTAT;
+grant SELECT on SYS."STATS$V_$FILESTATXS" to PERFSTAT;
+grant SELECT on SYS."STATS$V_$TEMPSTATXS" to PERFSTAT;
+grant SELECT on SYS."STATS$V_$SQLXS" to PERFSTAT;
+grant SELECT on SYS."STATS$V_$SQLSTATS_SUMMARY" to PERFSTAT;
+grant SELECT on SYS."STATS$V_$DYNAMIC_REM_STATS" to PERFSTAT;
+grant WRITE on SYS."ALRTLOG_DIR" to DBANL;
+grant READ on SYS."ALRTLOG_DIR" to DBANL;

@@ -1,0 +1,46 @@
+yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+yum install -y postgis32_13  postgis32_13-devel postgis32_13-utils
+
+- create SW profile out of this
+- create database vm using profile
+- postgis is part of extentions
+
+postgres=# CREATE EXTENSION postgis;
+CREATE EXTENSION
+postgres=# select * from pg_available_extensions where name like 'postgis%';
+          name          | default_version | installed_version |                          comment                           
+------------------------+-----------------+-------------------+------------------------------------------------------------
+ postgis_topology       | 3.2.0           |                   | PostGIS topology spatial types and functions
+ postgis_sfcgal         | 3.2.0           |                   | PostGIS SFCGAL functions
+ postgis_tiger_geocoder | 3.2.0           |                   | PostGIS tiger geocoder and reverse geocoder
+ postgis_raster         | 3.2.0           |                   | PostGIS raster types and functions
+ postgis                | 3.2.0           | 3.2.0             | PostGIS geometry and geography spatial types and functions
+
+
+
+postgres=# select * from pg_available_extensions ;
+
+-- Post script
+#!/bin/bash
+
+###################################################
+# Poste-script
+###################################################
+
+set -x
+export DATE=`date +%Y%m%d`
+export SCRIPTDIR=/scripts
+export LOGDIR=${SCRIPTDIR}/logging/${DATE}
+# export ORATAB=/etc/oratab
+export host=`hostname`
+
+mkdir -p $LOGDIR
+
+echo "This is the post-script being executed" > ${LOGDIR}/${DATE}_${host}_post.log
+
+# enable postgis extention in postgres db
+sudo -u postgres psql postgresql://postgres:postgres@10.42.5.54/postgres <<EOF
+create extension postgis;
+EOF
+

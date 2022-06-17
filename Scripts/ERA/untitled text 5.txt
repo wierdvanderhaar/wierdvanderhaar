@@ -1,0 +1,78 @@
+nutanix@NTNX-19SM5A490063-A-CVM:10.68.101.17:~$ acli vm.get WH-CentOS-VM include_vmdisk_paths=1 | grep -E 'disk_list|vmdisk_nfs_path|vmdisk_size|vmdisk_uuid'
+    disk_list {
+    disk_list {
+      source_vmdisk_uuid: "c1c04d14-d172-4763-a4b4-d0ee7349f9ae"
+      vmdisk_nfs_path: "/SelfServiceContainer/.acropolis/vmdisk/f04ad74c-68af-4117-8256-aa0b7df60890"
+      vmdisk_size: 10737418240
+      vmdisk_uuid: "f04ad74c-68af-4117-8256-aa0b7df60890"
+
+
+nfs_ls -Rlai | grep -E '^/|/SelfServiceContainer/.acropolis/vmdisk/f04ad74c-68af-4117-8256-aa0b7df60890' 
+
+acli image.create <image name> source_url="nfs://127.0.0.1/SelfServiceContainer/.acropolis/vmdisk/f04ad74c-68af-4117-8256-aa0b7df60890" container=name> image_type=kDiskImage
+
+qemu-img convert -c nfs://127.0.0.1/SelfServiceContainer/.acropolis/vmdisk/f04ad74c-68af-4117-8256-aa0b7df60890 -O qcow2 WH-CentOS-VM.qcow2
+
+
+nutanix@NTNX-19SM5A490063-A-CVM:10.68.101.17:~$ acli vm.get WH-CentOS-VM
+WH-CentOS-VM {
+  can_clear_removed_from_host_uuid: True
+  config {
+    agent_vm: False
+    allow_live_migrate: True
+    boot {
+      boot_device_order: "kCdrom"
+      boot_device_order: "kDisk"
+      boot_device_order: "kNetwork"
+      uefi_boot: False
+    }
+    cpu_passthrough: False
+    disable_branding: False
+    disk_list {
+      addr {
+        bus: "ide"
+        index: 0
+      }
+      cdrom: True
+      device_uuid: "daba1cf8-6db6-4c17-9f88-33b33856bdb3"
+      empty: True
+    }
+    disk_list {
+      addr {
+        bus: "scsi"
+        index: 0
+      }
+      container_id: 480
+      container_uuid: "c6965661-7ced-4a70-b55c-ca2ce694c18f"
+      device_uuid: "5f8207fa-42db-4c23-92e5-8204f1490e69"
+      naa_id: "naa.6506b8db2454fe2e641e53ebde8b410a"
+      source_vmdisk_uuid: "c1c04d14-d172-4763-a4b4-d0ee7349f9ae"
+      vmdisk_size: 10737418240
+      vmdisk_uuid: "f04ad74c-68af-4117-8256-aa0b7df60890"
+    }
+    hwclock_timezone: "UTC"
+    machine_type: "pc"
+    memory_mb: 8192
+    name: "WH-CentOS-VM"
+    nic_list {
+      connected: True
+      ip_address: "10.68.101.239"
+      mac_addr: "50:6b:8d:f5:de:0a"
+      network_name: "Network-01"
+      network_type: "kNativeNetwork"
+      network_uuid: "cd747efd-edc7-48cc-9348-5b76aa51714e"
+      type: "kNormalNic"
+      uuid: "6a9498cc-a798-4187-b4fe-c6563e80c4cf"
+      vlan_mode: "kAccess"
+    }
+    num_cores_per_vcpu: 1
+    num_threads_per_core: 1
+    num_vcpus: 4
+    num_vnuma_nodes: 0
+    vga_console: True
+    vm_type: "kGuestVM"
+  }
+  logical_timestamp: 3
+  state: "kOff"
+  uuid: "d6f5b12b-7f01-455b-9b6d-06d2b01cdb52"
+}

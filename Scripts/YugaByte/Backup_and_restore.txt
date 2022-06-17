@@ -1,0 +1,100 @@
+-- Backup metadata only
+ysql_dump -h 127.0.0.1 --include-yb-metadata --serializable-deferrable --create --schema-only --dbname northwind --file ysql.northwind.schema.sql
+
+[root@yb-demo tserver]# yb-admin --master_addresses 127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 create_database_snapshot ysql.northwind
+Started snapshot creation: 748732c1-0f0d-4afb-8af8-3c36f80e17c5
+
+
+
+
+
+
+/* 
+yb-admin: yb-admin [-master_addresses server1:port,server2:port,server3:port,...]  [-timeout_ms <millisec>] [-certs_dir_name <dir_name>] <operation>
+<operation> must be one of:
+ 1. change_config <tablet_id> <ADD_SERVER|REMOVE_SERVER> <peer_uuid> [PRE_VOTER|PRE_OBSERVER]
+ 2. list_tablet_servers <tablet_id>
+ 3. backfill_indexes_for_table <table>
+ 4. list_tables [include_db_type] [include_table_id] [include_table_type]
+ 5. list_tables_with_db_types
+ 6. list_tablets <table> [max_tablets] (default 10, set 0 for max) [JSON] [include_followers]
+ 7. modify_table_placement_info [<(<keyspace> <table_name>)|tableid.<table_id>>] [placement_info] [replication_factor] [placement_uuid]
+ 8. modify_placement_info <placement_info> <replication_factor> [placement_uuid]
+ 9. clear_placement_info
+ 10. add_read_replica_placement_info <placement_info> <replication_factor> [placement_uuid]
+ 11. modify_read_replica_placement_info <placement_info> <replication_factor> [placement_uuid]
+ 12. delete_read_replica_placement_info
+ 13. delete_namespace <namespace>
+ 14. delete_namespace_by_id <namespace_id>
+ 15. delete_table <table>
+ 16. delete_table_by_id <table_id>
+ 17. delete_index <index>
+ 18. delete_index_by_id <index_id>
+ 19. flush_table <table> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 20. flush_table_by_id <table_id> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 21. flush_sys_catalog
+ 22. compact_sys_catalog
+ 23. compact_table <table> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 24. compact_table_by_id <table_id> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 25. list_all_tablet_servers
+ 26. list_all_masters
+ 27. change_master_config <ADD_SERVER|REMOVE_SERVER> <ip_addr> <port> [<uuid>]
+ 28. dump_masters_state [CONSOLE]
+ 29. list_tablet_server_log_locations
+ 30. list_tablets_for_tablet_server <ts_uuid>
+ 31. set_load_balancer_enabled <0|1>
+ 32. get_load_balancer_state
+ 33. get_load_move_completion
+ 34. get_leader_blacklist_completion
+ 35. get_is_load_balancer_idle
+ 36. list_leader_counts <table>
+ 37. setup_redis_table
+ 38. drop_redis_table
+ 39. get_universe_config
+ 40. change_blacklist <ADD|REMOVE> <ip_addr>:<port> [<ip_addr>:<port>]...
+ 41. change_leader_blacklist <ADD|REMOVE> <ip_addr>:<port> [<ip_addr>:<port>]...
+ 42. master_leader_stepdown [dest_uuid]
+ 43. leader_stepdown <tablet_id> [dest_ts_uuid]
+ 44. split_tablet <tablet_id>
+ 45. create_transaction_table <table_name>
+ 46. ysql_catalog_version
+ 47. ddl_log
+ 48. upgrade_ysql
+ 49. set_wal_retention_secs <table> <seconds>
+ 50. get_wal_retention_secs <table>
+ 51. list_snapshots [SHOW_DETAILS] [NOT_SHOW_RESTORED] [SHOW_DELETED] [JSON]
+ 52. create_snapshot <table> [<table>]... [flush_timeout_in_seconds] (default 60, set 0 to skip flushing)
+ 53. list_snapshot_restorations [<restoration_id>]
+ 54. create_snapshot_schedule <snapshot_interval_in_minutes> <snapshot_retention_in_minutes> <keyspace>
+ 55. list_snapshot_schedules [<schedule_id>]
+ 56. delete_snapshot_schedule <schedule_id>
+ 57. restore_snapshot_schedule <schedule_id> (<timestamp> | minus <interval>)
+ 58. create_keyspace_snapshot [ycql.]<keyspace_name>
+ 59. create_database_snapshot [ysql.]<database_name>
+ 60. restore_snapshot <snapshot_id> [{<timestamp> | minus {interval}]
+ 61. export_snapshot <snapshot_id> <file_name>
+ 62. import_snapshot <file_name> [<namespace> <table_name> [<table_name>]...]
+ 63. delete_snapshot <snapshot_id>
+ 64. list_replica_type_counts <table>
+ 65. set_preferred_zones <cloud.region.zone> [<cloud.region.zone>]...
+ 66. rotate_universe_key key_path
+ 67. disable_encryption
+ 68. is_encryption_enabled
+ 69. add_universe_key_to_all_masters key_id key_path
+ 70. all_masters_have_universe_key_in_memory key_id
+ 71. rotate_universe_key_in_memory key_id
+ 72. disable_encryption_in_memory
+ 73. write_universe_key_to_file <key_id> <file_name>
+ 74. create_cdc_stream <table_id>
+ 75. create_change_data_stream <namespace> [checkpoint_type]
+ 76. delete_cdc_stream <stream_id> [force_delete]
+ 77. delete_change_data_stream <db_stream_id>
+ 78. list_cdc_streams [table_id]
+ 79. list_change_data_streams [namespace]
+ 80. get_change_data_stream_info <db_stream_id>
+ 81. setup_universe_replication <producer_universe_uuid> <producer_master_addresses> <comma_separated_list_of_table_ids> [comma_separated_list_of_producer_bootstrap_ids]
+ 82. delete_universe_replication <producer_universe_uuid> [ignore-errors]
+ 83. alter_universe_replication <producer_universe_id> {set_master_addresses [comma_separated_list_of_producer_master_addresses] |  add_table [comma_separated_list_of_table_ids]            [comma_separated_list_of_producer_bootstrap_ids] |  remove_table [comma_separated_list_of_table_ids] |  rename_id <new_producer_universe_id>}
+ 84. set_universe_replication_enabled <producer_universe_uuid> <0|1>
+ 85. bootstrap_cdc_producer <comma_separated_list_of_table_ids>
+ */

@@ -1,0 +1,50 @@
+[oracle@duitsland admin]$ cat cman.ora
+######################################################################
+#
+# Copyright (c) 2001,2002, Oracle Corporation. All rights reserved.
+#
+# NAME
+#    cman.ora
+#
+# DESCRIPTION
+#    Sample CMAN configuration file that the user can modify for their
+#    own use.
+#
+# NOTES
+#    1. Change <fqhost> to your fully qualified hostname
+#    2. Change <lsnport> to the listening port number
+#    3. Change <logdir> and <trcdir> to your log and trace directories
+#
+# MODIFIED  (MM/DD/YYYY)
+# asankrut   10/05/2002  -   Added Rule List Specifications
+# asankrut   06/11/2002  -   Modified to add new parameters; added comments.
+# asankrut   12/31/2001  -   Creation.
+#
+######################################################################
+
+# CMAN Alias
+cman_duitsland =
+(configuration=
+  # Listening address of the cman
+  (address=(protocol=tcp)(host=172.27.1.8)(port=1621))
+  (parameter_list =
+        (connection_statistics=yes)
+        (diag_adr_enabled=on)
+        (adr_base=/u01/app/oracle/diag)
+#       (log_directory=/u01/app/oracle/product/12.1.0/cmanhome_1/network/admin/log)
+        (log_level=off)
+#       (trace_directory=/u01/app/oracle/product/12.1.0/cmanhome_1/network/admin/log)
+        (trace_level=off)
+        (trace_timestamp=off)
+        (remote_admin=off))
+  (rule_list=
+    (rule=(src=192.168.251.7/24)(dst=172.27.1.2)(srv=bpa)(act=accept))  #Connecties vanaf de DMZ naar de BPA database op de Engeland zijn toegestaan.
+    (rule=(src=192.168.251.7/24)(dst=172.27.1.3)(srv=bpa)(act=accept))  #Connecties vanaf de DMZ naar de BPA database op de Frankrijk zijn toegestaan.
+# Rules voor SQUIT moeten nog worden aangepast zodra de DMZ server voor SQUIT er is. Pas dan het IP Adres aan.
+#    (rule=(src=192.168.251.x)(dst=172.27.1.2)(srv=squit)(act=accept))  #Connecties vanaf de DMZ naar de SQUIT database op de Engeland zijn toegestaan.
+#    (rule=(src=192.168.251.x)(dst=172.27.1.3)(srv=squit)(act=accept))  #Connecties vanaf de DMZ naar de SQUIT database op de Frankrijk zijn toegestaan.
+#    (rule=(src=*)(dst=*)(srv=*)(act=accept))
+    (rule=(src=*)(dst=*)(srv=cmon)(act=accept)(action_list=(aut=off)(moct=0)(mct=0)(mit=0)(conn_stats=on))
+    )
+  )
+)

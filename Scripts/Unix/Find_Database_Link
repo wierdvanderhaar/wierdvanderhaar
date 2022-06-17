@@ -1,0 +1,228 @@
+#! /bin/ksh
+#
+# Find the database link in the running databases
+#
+# -d   database
+# -e   Exact (default). -l and -e are mutually exclusive.
+# -l   Like. -l and -e are mutually exclusive.
+#
+# History
+# -------
+# 2007-10-10  JSTEI  Some instances were not recognonized.
+#                    Fixed.
+
+# -------------------------------------------------------------
+# Name       : Show_Help
+# Parameters : -
+#
+# Description
+# -----------
+# Show help
+# -------------------------------------------------------------
+
+Show_Help()
+{
+   (
+      echo 'Usage: ${0} [options...] {database-link}...'
+      echo 
+      echo 'Possible options are:'
+      echo '---------------------'
+      echo '-d   database'
+      echo '-e   exact linkname match'
+      echo '-h   Show header'
+      echo '-l   like linkname match'
+   ) >&2
+}
+
+# -------------------------------------------------------------
+# Name       : Init_Vars
+# Parameters : -
+#
+# Description
+# -----------
+# Initialize variables
+# -------------------------------------------------------------
+
+Init_Vars() {
+   pe=0
+   pd=0
+   ph=0
+   pl=0
+
+   dVal=''
+}
+
+# -------------------------------------------------------------
+# Name       : Process_Options
+# Parameters : ${*}
+#
+# Description
+# -----------
+# Process the variables
+# -------------------------------------------------------------
+
+Process_Options() {
+   while getopts ehld: OPTION_NAME 2>/dev/null; do
+      case ${OPTION_NAME} in
+        d) grep '^'${OPTARG}':' ${ORATAB_LOC} >/dev/null 2>&1 
+           if [ ${?} -ne 0 ]; then
+              if [ `grep -i '^'${OPTARG}':' ${ORATAB_LOC} | wc -l` -eq 1 ]; then
+                 OPTARG=`grep -i '^'${OPTARG}':' ${ORATAB_LOC} | cut -d: -f 1`
+              else
+                 echo ${0}: Database ${OPTARG} does not exist >&2
+                 exit 1
+              fi
+           fi
+           pd=`expr ${pd} + 1`
+           dVal=${dVal}' '${OPTARG}
+           ;;
+        e) if [ ${pl} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and l are mutually exclusive >&2
+              exit 1
+           elif [ ${pe} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              pe=1
+           fi
+           ;;
+        l) if [ ${pe} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and e are mutually exclusive >&2
+              exit 1
+           elif [ ${pl} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              pl=1
+           fi
+           ;;
+        h) ph=1
+           ;;
+        *) echo ${0}: Invalid option  >&2
+           Show_Help
+           exit 1
+           ;;
+      esac
+   done
+
+   shift $((${OPTIND} -1))
+
+   LINK_LIST=${*}
+}
+
+Show_Header() {
+   echo "Oracle SID db-link owner    db-link host                   db-link user   "
+   echo "---------- ---------------- ------------------------------ ---------------"
+}
+
+# -------------------------------------------------------------
+# Name       : Set_Default_DB_List
+# Parameters : 
+#
+# Description
+# -----------
+# Generate a default list of databases to check.
+# -------------------------------------------------------------
+
+Set_Default_DB_List() {
+   dVal=''
+   pd=0
+   for DB in `ps -ef | 
+              grep ' ora_smon_[^ ]*$' | 
+              sed 's/[^*]*smon_//g' |
+              sort`; do
+      pd=`expr ${pd} + 1`
+      dVal=${dVal}' '${DB}
+   done
+}
+
+# -------------------------------------------------------------
+# Name       : Get_SQL
+# Parameters : 1 - database link
+#
+# Description
+# -----------
+# Build a SQL Statement for querying the database
+# -------------------------------------------------------------
+
+Get_SQL() {
+   if [ ${pl} -ne 0 ]; then
+      SQL="SELECT owner,host,username FROM dba_db_links WHERE UPPER(host) LIKE UPPER('%${1}%' ORDER BY 1,2,3);"
+   else
+      if [ ${pe} -ne 0 ]; then
+         SQL="SELECT owner,host,username FROM dba_db_links WHERE host = '${1} ORDER BY 1,2,3';"
+      else
+         SQL="SELECT owner,host,username FROM dba_db_links ORDER BY 1,2,3;" 
+      fi
+   fi
+}
+
+# ---------------------------------------------------------------
+#                  M A I N
+# ---------------------------------------------------------------
+
+ORATAB_LOC=/var/opt/oracle/oratab
+
+Init_Vars
+Process_Options ${*}
+if [ ${pd} -eq 0 ]; then
+   Set_Default_DB_List
+fi
+if [ ${pd} -eq 0 ]; then
+   echo ${0}': No databases found to check' >&2
+   exit 1
+fi
+
+if [ ${ph} -eq 1 ]; then
+   Show_Header
+fi
+
+TMP_FILE=/tmp/`basename ${0}`'.'${$}
+for DB_LINK in ${LINK_LIST:-'NULL'}; do
+   for DB in ${dVal}; do
+      grep '^'${DB}':' ${ORATAB_LOC} >/dev/null 2>&1
+      if [ ${?} -eq 0 ]; then
+         ORACLE_SID=${DB}
+         ORAENV_ASK=NO
+         . oraenv
+         Get_SQL ${DB_LINK}
+         sqlplus -S '/ as sysdba' >/dev/null 2>&1 <<EOF
+set feedback off
+whenever sqlerror exit
+whenever oserror exit
+set pagesize 0
+set linesize 2000
+set trimspool on
+spool ${TMP_FILE}
+${SQL}
+
+spool off
+exit
+EOF
+         if [ `cat ${TMP_FILE} | wc -l` -ne 0 ]; then
+            cat ${TMP_FILE} | awk '
+		BEGIN	{ REGEL = 1 }
+	        REGEL == 0	{	REGEL = 1 }
+
+		REGEL == 4	{	printf("%-10s %-15s  %-30s %-15s\n","'${ORACLE_SID}'",OWNER,DB_LINK,USERNAME)
+					USERNAME=""
+					DB_LINK=""
+					REGEL=0
+				}
+
+		REGEL == 3	{	REGEL = 4
+					USERNAME=$1
+				}
+
+		REGEL == 2	{	REGEL = 3 
+					DB_LINK=$1
+				}
+
+		REGEL == 1	{	REGEL = 2
+					OWNER=$1
+				}
+'
+         fi
+      fi
+   done
+done

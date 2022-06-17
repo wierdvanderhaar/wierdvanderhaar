@@ -1,0 +1,32 @@
+select trunc(ntimestamp#), count(*) 
+from AUD$ 
+where trunc(ntimestamp#) between TRUNC(SYSDATE) -14 and trunc(sysdate) 
+group by trunc(ntimestamp#)
+order by 1;
+
+select trunc(ntimestamp#), count(*) 
+from AUD$ 
+-- where trunc(ntimestamp#) between TRUNC(SYSDATE) -14 and trunc(sysdate) 
+group by trunc(ntimestamp#)
+order by 1;
+
+
+-- List amount of logings per account. 
+
+select userid, trunc(ntimestamp#), count(*) 
+from AUD$ 
+where userid = 'HISREAD'
+and action#=100
+and trunc(ntimestamp#) between TRUNC(SYSDATE) -365 and trunc(sysdate) 
+group by userid, trunc(ntimestamp#)
+order by 1;
+
+column os_username format a20
+column username format a20
+column trunc(timestamp) format a20
+select 	os_username, username, trunc(timestamp), count(*) 
+from 	dba_audit_session
+where 	username = 'HISREAD'
+and 	ACTION_NAME =  'LOGON'
+group by 	os_username, username, trunc(timestamp)
+order by 3,2,1;

@@ -1,0 +1,4 @@
+Mail vanuit Linux using mailx:
+
+mailx -S smtp=ms-stbv30 -r ${SERVER}@gemeente-steenbergen.nl -s "logfile van ${SERVER} | ${DATE}" -v administrator@gemeente-steenbergen.nl < ${LOGFILE}
+https://www.ibm.com/developerworks/community/blogs/Dougclectica/entry/command_line_mail_test_through_remote_smtp_server?lang=en

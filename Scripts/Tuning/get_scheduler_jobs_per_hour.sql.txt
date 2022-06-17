@@ -1,0 +1,6 @@
+select to_char(LOG_DATE,'DD-MM-YYYY HH24') as PER_UUR, status, count(*) 
+from DBA_SCHEDULER_JOB_LOG 
+where status is not null
+-- where to_char(LOG_DATE,'DD-MM-YYYY') < to_char(SYSDATE-7,'DD-MM-YYYY') 
+group by to_char(LOG_DATE,'DD-MM-YYYY HH24'), status
+order by 1;

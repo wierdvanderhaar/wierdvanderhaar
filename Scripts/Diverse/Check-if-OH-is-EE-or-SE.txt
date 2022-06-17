@@ -1,0 +1,1 @@
+strings $ORACLE_HOME/lib/libvsn10.a | grep -i release

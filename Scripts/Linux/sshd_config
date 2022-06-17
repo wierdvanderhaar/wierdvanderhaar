@@ -1,0 +1,5 @@
+AllowUsers oracle@cls192-priv
+Match group ssh-users
+    AllowUsers *
+	
+	

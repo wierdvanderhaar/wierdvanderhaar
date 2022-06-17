@@ -1,0 +1,11 @@
+yum install -y wget \
+zip \
+unzip \ 
+curl \ 
+net-tools \
+sshpass \
+readline-devel \
+zlib-devel \
+gcc \
+rsync \
+iptables-services 

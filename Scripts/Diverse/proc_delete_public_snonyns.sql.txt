@@ -1,0 +1,8 @@
+declare 
+cursor cur1 is select synonym_name from all_synonyms where owner = 'PUBLIC' and table_owner = 'EXFSYS'; 
+begin 
+for c1 in cur1 loop 
+EXECUTE IMMEDIATE 'drop public synonym '||dbms_assert.enquote_name(c1.synonym_name, false); 
+end loop; 
+end; 
+/ 

@@ -1,0 +1,1 @@
+Get-Counter -Counter "\Memory\Available MBytes" >> D:\dbanl\scripts\checkup\$env:computername-geheugen.log

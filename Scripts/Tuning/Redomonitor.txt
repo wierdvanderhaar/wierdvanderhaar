@@ -1,0 +1,15 @@
+create table redomonitor (status varchar2(10), tijd date, waarde number(5));
+
+insert into redomonitor (a, b, c, d) select 'Start' AS a || sysdate as B || inst_id AS c || round((sum(value)/1024/1024),0) AS from sys.gv_$sysstat where name = 'redo size' group by inst_id;
+
+create or replace procedure p_redomonitor 
+(v_status in varchar) 
+IS
+v_waarde number(5);
+begin
+select round((sum(value)/1024/1024),0) into v_waarde from sys.gv_$sysstat where name = 'redo size';
+insert into redomonitor values(v_status,sysdate,v_waarde);
+commit;
+end;
+/
+

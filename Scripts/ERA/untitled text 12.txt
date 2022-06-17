@@ -1,0 +1,20 @@
+curl 'https://10.68.101.32/era/v0.9/profiles/90edc3ae-0b16-4d42-a703-a8e666b0cd41' \
+  -X 'DELETE' \
+  -H 'Connection: keep-alive' \
+  -H 'sec-ch-ua: " Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"' \
+  -H 'authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJFcmFTZXJ2ZXIiLCJhdWQiOiJkNjVlMWJjNS01NTk0LTQ4MTYtYWY0OS04ZTVhNzBjOGU4YjMiLCJzdWIiOiJkNjVlMWJjNS01NTk0LTQ4MTYtYWY0OS04ZTVhNzBjOGU4YjMiLCJyb2xlcyI6IltcIjY0ZTUxODM5LTdkN2MtNDUyZC04ZDUxLTU0NjA5ZjQ4NjlmYVwiXSIsImdyb3VwcyI6IltcIjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMFwiXSIsInR5cGUiOiJ1c2VyIiwiaWF0IjoxNjI2Njk3MTg0LCJleHAiOjEzMDQ3NTcxNjAwNCwianRpIjoiMGQyMTVjM2EwNjk3NGVlN2FiMjJlNDVlOWU4ZTViYzcifQ.Dn1Xh4doChuAKetku-_HnQVz9uakNBwV0uOwoDnDqWC1GvL3gjZmCOZz6Xooztp1LYrY62SZ8XpX37ZMvqbTo9Nbw9h_WPuP79YPKAXR3j7S8Pf9e4U1n82JjwomojjhLViZcFFxpCEub-qZvMFvDxKnSyfglflX7Ts3jFPFVj7b5AzdxBQbUFQSqoF-hW5Z23P4XATusg6woYTRqW0sqPWyTiktqettr8_BNCwqKr5oviVZgsRaCEObugAljDOAlyUapySnTes47ocqcrzrJvUKKczQuzwq-vWlvEO6ozQmOr6hxe-B2KQovGqW2ivcYqNq5wP1XJR4imxTA3UKsg' \
+  -H 'cache-control: no-cache' \
+  -H 'client_tz: Europe/Amsterdam' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36' \
+  -H 'content-type: application/json' \
+  -H 'Accept: */*' \
+  -H 'Origin: https://10.68.101.32' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Referer: https://10.68.101.32/' \
+  -H 'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7,de;q=0.6' \
+  -H 'Cookie: JSESSIONID=11D79F5A5652937A88CA5E9309976557' \
+  --compressed \
+  --insecure

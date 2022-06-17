@@ -1,0 +1,667 @@
+#! /bin/ksh
+#
+# Naam       : oraexp
+# Aanroep    : oraexp [optie]... {database}...
+#
+# Omschrijving
+# ------------
+# Maak een volledige of gedeeltelijke export van een Oracle databank.
+#
+# Mutatie historie
+# ----------------
+# 2008-10-22  JSTEI  Export via DataPump toegevoegd (standaard methode vanaf 10g)
+# 2008-10-27  JSTEI  Bij methode 'exp' wordt NLS_LANG ingesteld a.d.h.v. waarde in database
+# 2010-01-14  JSTEI  Functionaliteit voor paralelle verwerking DataPump ingebouwd
+
+ORATAB_LOC=/var/opt/oracle/oratab
+ORASETTINGS_LOC=/var/opt/oracle/orasettings
+
+# ------------------------------------------------------------ 
+# Naam       : Controleer_Bestanden
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Controleer of alle benodigde bestanden aanwezig zijn
+# ------------------------------------------------------------ 
+
+Controleer_Bestanden() {
+   if [ ! -f ${ORATAB_LOC} ]; then
+      echo ${0}: Bestand ${ORATAB_LOC} ontbreekt >&2
+      exit 1
+   fi
+   if [ ! -f ${ORASETTINGS_LOC} ]; then
+      echo ${0}: Bestand ${ORASETTINGS_LOC} ontbreekt >&2
+      exit 1
+   fi
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Help_Aanroep
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Toon hoe het script aangeroepen moet worden.
+# ------------------------------------------------------------ 
+
+Help_Aanroep() {
+   (
+   echo "Gebruik :" ${0} [opties]... Database
+   echo
+   echo Geldige opties
+   echo --------------
+   echo "-c compress"
+   echo "   Comprimeer het dumpbestand"
+   echo "-e dumpfile"
+   echo "   Te gebruiken dumpfile voor export"
+   echo "-f"
+   echo "   Maak een full export."
+   echo "-h directory"
+   echo "   Gebruik de opgegeven Oracle Home"
+   echo "-l"
+   echo "   Te gebruiken logfile voor export"
+   echo "-o optie"
+   echo "   Optie voor export"
+   echo "-s schemanaam"
+   echo "   Maak een schema export."
+   echo "-S"
+   echo "   Silent / non-interactief"
+   ) >&2
+}
+
+# ------------------------------------------------------------ 
+# Naam       : InitialiseerVariabelen
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Initialiseer de benodigde variabelen
+# ------------------------------------------------------------ 
+
+InitialiseerVariabelen()
+{
+   Pc=0
+   Pe=0
+   Pf=0
+   Ph=0
+   Pl=0
+   Pm=0
+   Po=0
+   Ps=0
+   PS=0
+
+   e_VAL=''
+   f_VAL=''
+   h_VAL=''
+   l_VAL=''
+   m_VAL=''
+   o_VAL=''
+   s_VAL=''
+
+   export NLS_NUMERIC_CHARACTERS=.,
+
+   WORKER=01
+}
+
+# ------------------------------------------------------------ 
+# Naam       : VerwerkParameters
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Parse de opgegeven parameters.
+# ------------------------------------------------------------ 
+
+VerwerkParameters() {
+   while getopts ce:fh:l:m:o:s:S name
+   do
+      case ${name} in
+      c)        Pc=`expr ${Pc} + 1`
+                ;;
+      e)        Pe=`expr ${Pe} + 1`
+                e_VAL="${OPTARG}"
+                if [ -z ''${e_VAL} ]; then
+                   echo ${0}: Naam dumpbestand ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                ;;
+      f)        Pf=`expr ${Pf} + 1`
+                ;;
+      h)        Ph=`expr ${Ph} + 1`
+                h_VAL="${OPTARG}"
+                if [ -z ''${h_VAL} ]; then
+                   echo ${0}: Directory ORACLE_HOME ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                ;;
+      l)        Pl=`expr ${Pl} + 1`
+                l_VAL="${OPTARG}"
+                if [ -z ''${l_VAL} ]; then
+                   echo ${0}: Naam logbestand ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                ;;
+      m)        Pm=`expr ${Pm} + 1`
+                m_VAL="${OPTARG}"
+                if [ -z ''${m_VAL} ]; then
+                   echo ${0}: Exportmethode ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                if [ ${m_VAL} != 'exp' -a ${m_VAL} != 'expdp' ]; then
+                   echo ${0}': Ongeldige exportmethode ('${m_VAL}')' >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                ;;
+      o)        Po=`expr ${Po} + 1`
+                if [ -z "${OPTARG}"} ]; then
+                   echo ${0}: Optie ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                o_VAL=${o_VAL}' '"${OPTARG}"
+                ;;
+      s)        Ps=`expr ${Ps} + 1`
+                s_VAL="${OPTARG}"
+                if [ -z ''${s_VAL} ]; then
+                   echo ${0}: Schemanaam ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                if [ ${Ps} -eq 1 ]; then
+                   s_VAL="${OPTARG}"
+                else
+                   s_VAL=${s_VAL}','"${OPTARG}"
+                fi
+                ;;
+      S)        PS=`expr ${PS} + 1`
+                ;;
+      ?)   echo Ongeldige optie >&2
+           Help_Aanroep
+           exit 2;;
+      esac
+   done
+
+   shift $((${OPTIND} -1))
+
+   DBs=${*}
+}
+
+# ------------------------------------------------------------ 
+# Naam       : ControleerParameters
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Controleer de opgegeven parameters.
+# ------------------------------------------------------------ 
+
+ControleerParameters()
+{
+   if [ ${Pe} -gt 1 -o ${Pl} -gt 1 -o ${Pf} -gt 1 ]; then
+      echo ${0}: Optie mag slechts eenmaal opgegeven worden >&2
+      Help_Aanroep
+      exit 3
+   fi
+
+   if [ ${Pf} -eq 1 -a ${Ps} -eq 1 ]; then
+      echo ${0}: Een full export en een schema export sluiten elkaar uit >&2
+      Help_Aanroep
+      exit 3
+   fi
+   if [ ${Pe} -eq 1 -a `echo ${DBs} | wc -w` -gt 1 ]; then
+      echo ${0}: In combinatie met een dumpfile mag er slechts 1 database opgegeven worden >&2
+      Help_Aanroep
+      exit 3
+   fi
+   if [ ${Pl} -eq 1 -a `echo ${DBs} | wc -w` -gt 1 ]; then
+      echo ${0}: In combinatie met een logfile mag er slechts 1 database opgegeven worden >&2
+      Help_Aanroep
+      exit 3
+   fi
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Opgemaakte_Regel
+# Parameters : tekst
+# Omschrijving
+# ------------
+# Maak de opgegeven tekst op voor een overzicht. De regel
+# wordt zonodig aangevuld met een punt (.) en afgesloten met
+# een dubbele punt (:)
+# ------------------------------------------------------------ 
+
+Opgemaakte_Regel()
+{
+   echo ${*} | awk '
+BEGIN { FS="@" }
+      { printf("%s",$1)
+        for ( OFFSET=length($1) ; OFFSET < 37 ; OFFSET=OFFSET+1 )
+           printf(".")
+         printf(" : ")
+      }
+'
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Vraag_Database_Naam
+# Parameters : -
+# Omschrijving
+# ------------
+# Controleer of de opgegeven database voorkomt in oratab.
+# ------------------------------------------------------------ 
+
+Vraag_Database_Naam() {
+   if [ ${#} -eq 0 ] ; then
+      OK='N'
+   else
+      Opgemaakte_Regel 'Oracle database'     ; echo ${1}
+      grep '^'${1}':' ${ORATAB_LOC} >/dev/null 2>&1
+      if [ ${?} -eq 0 ] ; then
+         OK='J'
+         DB_NAME=${1}
+      else
+         echo ${0}: Database ${1} komt niet voor in ${ORATAB_LOC} >&2
+         OK='N'
+      fi
+   fi
+
+   while [ ${OK} = 'N' ] ; do
+      Opgemaakte_Regel 'Oracle database'     
+      read VALUE
+      if [ -z ${VALUE} ] ; then
+         echo '>>> Database naam moet opgegeven worden!' >&2
+      else
+         grep '^'${VALUE}':' ${ORATAB_LOC} >/dev/null 2>&1
+         if [ ${?} -eq 0 ] ; then
+            OK='J'
+            DB_NAME=${VALUE}
+         else
+            echo ${0}: Database ${VALUE} komt niet voor in ${ORATAB_LOC} >&2
+         fi
+      fi
+   done
+
+   if [ ${Ph} -eq 0 ]; then
+      OH=`grep '^'${DB_NAME}':' ${ORATAB_LOC} | cut -d: -f 2`
+   else
+      OH=${h_VAL}
+   fi
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Instellen_Oracle_Omgeving
+# Parameters : -
+# Omschrijving
+# ------------
+# Stelt de omgevingsvariabelen voor Oracle in.
+# ------------------------------------------------------------ 
+
+Instellen_Oracle_Omgeving() {
+   if [ ! -x ${OH}/bin/oraenv ]; then
+      echo ${0}: Initialisatiescript ${OH}/bin/oraenv ontbreekt voor database ${DB_NAME}
+      exit 1
+   fi
+
+   ORAENV_ASK=NO
+   ORACLE_SID=${DB_NAME}
+   . ${OH}/bin/oraenv
+
+   if [ -f ${ORACLE_HOME}/bin/expdp ]; then
+      EXP_PROGRAMMA=expdp
+   else
+      EXP_PROGRAMMA=exp
+   fi
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Vraag_Export_Schema
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Vraag de gebruiker naar de naam van het te exporteren schema
+# ------------------------------------------------------------ 
+
+Vraag_Export_Schema() {
+   s_VAL=''
+   Opgemaakte_Regel "Te exporteren schema (ENTER=database)"
+   read s_VAL
+   if [ -z ${s_VAL} ] ; then
+      Pf=1
+   else
+      Ps=1
+   fi
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Instellen_Export_Omgeving
+# Parameters : -
+# Omschrijving
+# ------------
+# Stelt de omgevingsvariabelen voor de Export in.
+# ------------------------------------------------------------ 
+
+Instellen_Export_Omgeving() {
+   # Instellen basis waarden
+
+   SEQUENCE=\$\{SEQUENCE\}
+   if [ ${Pf} -eq 1 ]; then
+      SCHEMA='fe'
+   else
+      SCHEMA=`echo ${s_VAL} | tr ',' '_'`
+   fi
+
+   EXPORT_USER=`grep '^EXPORT_USER=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   EXPORT_PWD=`grep '^EXPORT_PWD=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+
+   if [ ${Pe} -eq 0 ]; then
+      DUMP_BASE_DIRECTORY=`grep '^DUMP_BASE_DIRECTORY=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+      DUMP_FILENAME_ORG=`grep '^DUMP_FILENAME=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   else
+      DUMP_BASE_DIRECTORY=`dirname ${e_VAL}`
+      DUMP_FILENAME_ORG=`basename ${e_VAL}`
+   fi
+
+   PARFILE_BASE_DIRECTORY=`grep '^PARFILE_BASE_DIRECTORY=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+
+   if [ ${Pl} -eq 0 ]; then
+      EXPORT_LOG_BASE_DIRECTORY=`grep '^EXPORT_LOG_BASE_DIRECTORY=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+      EXPORT_LOG_FILENAME=`grep '^EXPORT_LOG_FILENAME=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   else
+      EXPORT_LOG_BASE_DIRECTORY=`dirname ${l_VAL}`
+      EXPORT_LOG_FILENAME=`basename ${l_VAL}`
+   fi
+
+   YYMMDD=`date +%y%m%d`
+   YYYYMMDD=`date +%Y%m%d`
+
+   # Invullen omgevingsvariabelen
+
+   EXPORT_USER=`eval echo ${EXPORT_USER}`
+   EXPORT_PWD=`eval echo ${EXPORT_PWD}`
+   DUMP_BASE_DIRECTORY=`eval echo ${DUMP_BASE_DIRECTORY}`
+   DUMP_FILENAME=`eval echo ${DUMP_FILENAME_ORG}`
+   PARFILE_BASE_DIRECTORY=`eval echo ${PARFILE_BASE_DIRECTORY}`
+   PARFILE_FILENAME=${$}.prm
+   EXPORT_LOG_BASE_DIRECTORY=`eval echo ${EXPORT_LOG_BASE_DIRECTORY}`
+   EXPORT_LOG_FILENAME=`eval echo ${EXPORT_LOG_FILENAME}`
+
+   # Invullen SEQUENCE indien van toepassing
+
+   echo ${DUMP_FILENAME} | grep '${SEQUENCE}' >/dev/null 2>&1
+   if [ ${?} -eq 0 ] ; then
+      SEQUENCE=1
+      DUMP_FILENAME2=`eval echo ${DUMP_FILENAME}`
+      while [ -f ${DUMP_BASE_DIRECTORY}/${DUMP_FILENAME2} ] ; do
+         SEQUENCE=`expr ${SEQUENCE} + 1`
+         DUMP_FILENAME2=`eval echo ${DUMP_FILENAME}`
+      done
+      DUMP_FILENAME=${DUMP_FILENAME2}
+      EXPORT_LOG_FILENAME=`eval echo ${EXPORT_LOG_FILENAME}`
+   else
+      echo ${EXPORT_LOG_FILENAME} | grep '${SEQUENCE}' >/dev/null 2>&1
+      if [ ${?} -eq 0 ] ; then
+         SEQUENCE=1
+         EXPORT_LOG_FILENAME2=`eval echo ${EXPORT_LOG_FILENAME}`
+         while [ -f ${EXPORT_LOG_BASE_DIRECTORY}/${EXPORT_LOG_FILENAME2} ] ; do
+            SEQUENCE=`expr ${SEQUENCE} + 1`
+            EXPORT_LOG_FILENAME2=`eval echo ${EXPORT_LOG_FILENAME}`
+         done
+         EXPORT_LOG_FILENAME=${EXPORT_LOG_FILENAME2}
+         EXPORT_LOG_FILENAME=`eval echo ${EXPORT_LOG_FILENAME}`
+      fi
+   fi
+
+   if [ ${EXP_PROGRAMMA} = 'exp' ]; then
+      export NLS_LANG=`Lees_NLS_LANG | tail -1`
+   fi
+}
+
+Lees_Data_Pump_Dir_Folder() {
+sqlplus -s /nolog <<EOF
+whenever sqlerror exit
+connect ${EXPORT_USER}/${EXPORT_PWD}
+set feedback off
+set heading off
+set pagesize 0
+select directory_path
+from all_directories
+where owner = 'SYS'
+and directory_name = 'DATA_PUMP_DIR'
+/
+exit
+EOF
+}
+
+Lees_NLS_LANG() {
+sqlplus -s /nolog <<EOF
+whenever sqlerror exit
+set termout off
+set echo off
+connect ${EXPORT_USER}/${EXPORT_PWD}
+set termout on
+set feedback off
+set heading off
+set pagesize 0
+SELECT nls_language || '_' || nls_territory || '.' || nls_characterset
+  FROM ( select 'American' as nls_language
+           from v\$nls_parameters
+          where parameter = 'NLS_LANGUAGE'
+       )
+      ,(  select 'America' as nls_territory
+           from v\$nls_parameters
+          where parameter = 'NLS_TERRITORY'
+       )
+      ,( select value as nls_characterset
+           from v\$nls_parameters
+          where parameter = 'NLS_CHARACTERSET'
+       )
+/
+exit
+EOF
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Toon_Instellingen
+# Parameters : -
+# Omschrijving
+# ------------
+# Toon de gebruikte instellingen
+# ------------------------------------------------------------ 
+
+Toon_Instellingen() {
+   DP_FOLDER=`Lees_Data_Pump_Dir_Folder 2>/dev/null | head -1 | sed 's:/$::'`
+
+   if [ ${EXP_PROGRAMMA} = 'exp' ]; then
+      Opgemaakte_Regel 'Exportbestand'       ; echo ${DUMP_BASE_DIRECTORY}/${DUMP_FILENAME}
+      Opgemaakte_Regel 'Logbestand'          ; echo ${EXPORT_LOG_BASE_DIRECTORY}/${EXPORT_LOG_FILENAME}
+   else
+      Opgemaakte_Regel 'Data Pump folder'    ; echo ${DP_FOLDER}
+      Opgemaakte_Regel 'Exportbestand'       ; echo ${DUMP_FILENAME}
+      Opgemaakte_Regel 'Logbestand'          ; echo ${EXPORT_LOG_FILENAME}
+   fi
+   Opgemaakte_Regel 'Parameterbestand'    ; echo ${PARFILE_BASE_DIRECTORY}/${PARFILE_FILENAME}
+}
+
+Vraag_Methode()
+{
+   if [ ${PS} -eq 0 -a ${Pm} -eq 0 -a ${EXP_PROGRAMMA} = 'expdp' ]; then
+      while [ 1 == 1 ]; do
+         Opgemaakte_Regel "Export methode (exp/expdp) ["${EXP_PROGRAMMA}"]"
+         read VALUE
+         if [ -z ''${VALUE} ]; then
+            break
+         fi
+         if [ ${VALUE} != 'exp' -a ${VALUE} != 'expdp' ]; then
+            echo '>>> Ongeldige back-up methode' >&2
+            continue
+         fi     
+         EXP_PROGRAMMA=${VALUE}
+         break
+      done
+   else
+      if [ ${EXP_PROGRAMMA} = 'exp' ]; then
+         Opgemaakte_Regel "Export methode" ; echo 'Conventiioneel (exp)'
+      else
+         Opgemaakte_Regel "Export methode" ; echo 'Datapump (expdp)'
+      fi
+   fi
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Aanmaken_Parameterbestand
+# Parameters : 
+#
+# Omschrijving
+# ------------
+# Maak een (tijdelijk) parameterbestand aan
+# ------------------------------------------------------------ 
+
+Aanmaken_Parameterbestand() {
+   (
+     echo 'userid='${EXPORT_USER}'/'${EXPORT_PWD}
+     if [ ${EXP_PROGRAMMA} = 'exp' ]; then
+         if [ ${Pf} -eq 1 ]; then
+            echo 'full=Y'
+         else
+            echo 'owner='${s_VAL}
+         fi
+         echo 'file='${DUMP_BASE_DIRECTORY}/${DUMP_FILENAME}
+         echo 'log='${EXPORT_LOG_BASE_DIRECTORY}/${EXPORT_LOG_FILENAME}
+     else
+         if [ ${Pf} -eq 1 ]; then
+            echo 'full=Y'
+         else
+            echo 'schemas='${s_VAL}
+         fi
+         WORKER='%U'
+         DUMP_FILENAME=`eval echo ${DUMP_FILENAME_ORG}`
+         echo 'dumpfile='`basename ${DUMP_FILENAME}`
+         echo 'logfile='`basename ${EXPORT_LOG_FILENAME}`
+     fi
+     for OPTION in ${o_VAL}; do
+        echo ${OPTION} 
+     done
+   ) >${PARFILE_BASE_DIRECTORY}/${PARFILE_FILENAME}
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Voeg_Toe_Aan_Parameterbestand
+# Parameters : ${1}   - Parameter
+#              ${2}.. - Parameterwaarde
+#
+# Omschrijving
+# ------------
+# Voeg de opgegeven parameter toe aan het parameterbestand
+# ------------------------------------------------------------ 
+
+Voeg_Toe_Aan_Parameterbestand() {
+   (
+     echo ${1}'=\c'
+     shift
+     echo ${*}
+   ) >>${PARFILE_BASE_DIRECTORY}/${PARFILE_FILENAME}
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Vraag_Parameters
+# Parameters : 
+#
+# Omschrijving
+# ------------
+# Vraag naar de waarden van overige parameters
+# ------------------------------------------------------------ 
+
+ExportParameters() {
+   if [ ${EXP_PROGRAMMA} = 'exp' ]; then
+      PAR_PREFIX_NAAM=EXPORT_PARAMETER_
+   else
+      PAR_PREFIX_NAAM=EXPORT_DP_PARAMETER_
+      echo ${PAR_PREFIX_NAAM}PARALLEL=8
+   fi
+
+   grep '^'${PAR_PREFIX_NAAM}'[^=]*=' ${ORASETTINGS_LOC} | grep -v -i PARALLEL=
+}
+
+Vraag_Parameters()
+{
+   if [ ${EXP_PROGRAMMA} = 'exp' ]; then
+      PAR_PREFIX_NAAM=EXPORT_PARAMETER_
+   else
+      PAR_PREFIX_NAAM=EXPORT_DP_PARAMETER_
+   fi
+
+#   for PARLINE in `grep '^'${PAR_PREFIX_NAAM}'[^=]*=' ${ORASETTINGS_LOC}`; do
+   for PARLINE in `ExportParameters`; do
+      PARAMETER_NAME=`echo ${PARLINE} | cut -d= -f 1 | sed 's/^'${PAR_PREFIX_NAAM}'//'`
+      grep -i '^'${PARAMETER_NAME}'=' ${PARFILE_BASE_DIRECTORY}/${PARFILE_FILENAME} >/dev/null 2>/dev/null
+      if [ ${?} -ne 0 ]; then
+         PARAMETER_VALUE=`echo ${PARLINE} | cut -d= -f 2`
+         Opgemaakte_Regel ${PARAMETER_NAME}' ('${PARAMETER_VALUE}')'
+         if [ ${PS} -eq 0 ]; then
+            read VALUE
+            if [ -z ${VALUE} ]; then
+               VALUE=${PARAMETER_VALUE}
+            fi
+         else
+            VALUE=${PARAMETER_VALUE}
+            echo ${VALUE}
+         fi
+         Voeg_Toe_Aan_Parameterbestand ${PARAMETER_NAME} ${VALUE}
+      fi
+   done
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Start_Export
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Start de feitelijke export
+# ------------------------------------------------------------ 
+
+Start_Export() {
+   ${ORACLE_HOME}/bin/${EXP_PROGRAMMA} parfile=${PARFILE_BASE_DIRECTORY}/${PARFILE_FILENAME}
+   if [ ${Pc} -eq 1 ]; then
+      compress ${DUMP_BASE_DIRECTORY}/${DUMP_FILENAME}
+   fi
+}
+
+# ----------------------------------------------------------------------------------------------
+#                   H O O F D P R O G R A M M A
+# ----------------------------------------------------------------------------------------------
+
+Controleer_Bestanden
+InitialiseerVariabelen
+VerwerkParameters ${*}
+ControleerParameters 
+if [ `echo ${DBs} | wc -w` -eq 0 ]; then
+   Vraag_Database_Naam
+   DBs=${DB_NAME}
+fi
+
+for DB_NAME in ${DBs}; do
+   Instellen_Oracle_Omgeving
+
+   Vraag_Methode
+
+   if [ ${Pf} -eq 0 -a ${Ps} -eq 0 ]; then
+      Vraag_Export_Schema 
+   fi
+   Instellen_Export_Omgeving
+   Toon_Instellingen
+   rm -f ${PARFILE_BASE_DIRECTORY}/${PARFILE_FILENAME}
+   Aanmaken_Parameterbestand
+   Vraag_Parameters
+   Start_Export
+#   rm ${PARFILE_BASE_DIRECTORY}/${PARFILE_FILENAME}
+   Toon_Instellingen
+done
+

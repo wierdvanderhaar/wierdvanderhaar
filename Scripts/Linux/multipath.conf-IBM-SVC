@@ -1,0 +1,474 @@
+## Use user friendly names, instead of using WWIDs as names.
+defaults {
+        user_friendly_names yes
+        polling_interval 30
+}
+
+# The blacklist section - use this to blacklist a multipath device based on
+# its wwid ( using wwid ) or device names ( using devnode ) or
+# vendor and product id ( using device block).
+blacklist {
+        devnode "^(ram|raw|loop|fd|md|dm-|sr|scd|st)[0-9]*"
+        wwid 3600508b1001c677b9abb6ed4d38e504a
+        wwid HP_iLO_LUN_00_Media_0_000002660A01-0:0
+}
+
+devices {
+        device {
+                vendor                  "IBM"
+                product                 "2145"
+                path_grouping_policy    "group_by_prio"
+                path_selector           "service-time 0"
+                hardware_handler        "1 alua"
+                prio                    "alua"
+                path_checker            "tur"
+                failback                "immediate"
+                no_path_retry           5
+                rr_weight               uniform
+                rr_min_io_rq            "1"
+                dev_loss_tmo            120
+        }
+}
+
+multipaths {
+        multipath {
+                wwid                    360050768018107e0c00000000000007e
+                alias                   ASMDBCL01CRSMER101
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000007f
+                alias                   ASMDBCL01CRSMER102
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360080e5000363ea2000016d156722596
+                alias                   ASMDBCL01CRSMER103
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000088
+                alias                   ASMDBCL01DATAMER101
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000087
+                alias                   ASMDBCL01DATAMER102
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000008a
+                alias                   ASMDBCL01DATAMER103
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000089
+                alias                   ASMDBCL01DATAMER104
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000008c
+                alias                   ASMDBCL01DATAMER105
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000008b
+                alias                   ASMDBCL01DATAMER106
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000008e
+                alias                   ASMDBCL01DATAMER107
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000008d
+                alias                   ASMDBCL01DATAMER108
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000008f
+                alias                   ASMDBCL01DATAMER109
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000090
+                alias                   ASMDBCL01DATAMER110
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000091
+                alias                   ASMDBCL01DATAMER111
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000092
+                alias                   ASMDBCL01DATAMER112
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000093
+                alias                   ASMDBCL01DATAMER113
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000096
+                alias                   ASMDBCL01DATAMER114
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a7
+                alias                   ASMDBCL01DATAMER115
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000095
+                alias                   ASMDBCL01DATAMER116
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000094
+                alias                   ASMDBCL01FRAMER101
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a9
+                alias                   ASMDBCL01FRAMER102
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a8
+                alias                   ASMDBCL01FRAMER103
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000aa
+                alias                   ASMDBCL01FRAMER104
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000ac
+                alias                   ASMDBCL01FRAMER105
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000ab
+                alias                   ASMDBCL01FRAMER106
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b3
+                alias                   ASMDBCL01BACKUPMER101
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b4
+                alias                   ASMDBCL01BACKUPMER102
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b5
+                alias                   ASMDBCL01BACKUPMER103
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000080
+                alias                   ASMDBCL01CRSMER201
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000081
+                alias                   ASMDBCL01CRSMER202
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000009c
+                alias                   ASMDBCL01DATAMER201
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000ad
+                alias                   ASMDBCL01DATAMER202
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a5
+                alias                   ASMDBCL01DATAMER203
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000009a
+                alias                   ASMDBCL01DATAMER204
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a3
+                alias                   ASMDBCL01DATAMER205
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b1
+                alias                   ASMDBCL01DATAMER206
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a4
+                alias                   ASMDBCL01DATAMER207
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000009e
+                alias                   ASMDBCL01DATAMER208
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a1
+                alias                   ASMDBCL01DATAMER209
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000009f
+                alias                   ASMDBCL01DATAMER210
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000009b
+                alias                   ASMDBCL01DATAMER211
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c00000000000009d
+                alias                   ASMDBCL01DATAMER212
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000099
+                alias                   ASMDBCL01DATAMER213
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a2
+                alias                   ASMDBCL01DATAMER214
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000ae
+                alias                   ASMDBCL01DATAMER215
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000098
+                alias                   ASMDBCL01DATAMER216
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a6
+                alias                   ASMDBCL01FRAMER201
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c000000000000097
+                alias                   ASMDBCL01FRAMER202
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000a0
+                alias                   ASMDBCL01FRAMER203
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000af
+                alias                   ASMDBCL01FRAMER204
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b2
+                alias                   ASMDBCL01FRAMER205
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b0
+                alias                   ASMDBCL01FRAMER206
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b8
+                alias                   ASMDBCL01BACKUPMER201
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b7
+                alias                   ASMDBCL01BACKUPMER202
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+        multipath {
+                wwid                    360050768018107e0c0000000000000b6
+                alias                   ASMDBCL01BACKUPMER203
+                path_selector           "round-robin 0"
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+}

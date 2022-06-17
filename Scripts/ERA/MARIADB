@@ -1,0 +1,92 @@
+https://portal.nutanix.com/page/documents/details?targetId=Release-Notes-Nutanix-Era-v2_3_0_1:v23-era-software-compatibility-r.html
+https://confluence.eng.nutanix.com:8443/display/ED/Install+and+Run+MariaDB+Server+from+source+code
+
+
+
+Before you begin
+Ensure that you meet the following requirements before you register an MariaDB instance with Era.
+For general requirements, see MariaDB Database and Database Server VM Registration Prerequisites
+Keep OS and database software on separate disks.
+Register only one instance on the host.
+Run mysqld daemon.
+Enable binary logging.
+DBA level access is required for the databases that you want to add.
+
+
+MariaDB Database and Database Server VM Registration Prerequisites
+Ensure that you meet the following requirements before you start registering a database or a database server VM.
+
+General
+Database server VMs must have connectivity to Prism Element through the TCP port 9440.
+The Era server must have connectivity to the database server VM.
+Era supports registering databases on VMs that are a part of an existing Nutanix Protection Domain (PD): all the entities associated with or attached to the VM must be protected. For example, if there is a volume group (VG) attached to the database server VM, then the existing PD must protect both the VG and VM, not only the VG.
+Software Dependencies (Linux)
+To register a database server VM with Era, the database server VM must satisfy all the required software and configuration dependencies. (For more information about the software packages that must be installed, see Database Server VM Registration Pre-requirement Checks and Running Pre-requirement Script (Linux)).
+
+OS Configuration (Linux)
+SUDO NOPASS access is required.
+Linux OS root access is required.
+Install and configure crontab.
+Configure binary paths as secure_paths in the etc/sudoers file.
+Ensure that Prism APIs are callable from the VM.
+/tmp folder must have read and write permissions.
+Disable requiretty setting on the source database to register the database.
+Ensure that the /etc/sudoers file includes the following line under defaults: secure_path = /sbin:/bin:/usr/sbin:/usr/bin
+OS Configuration (Windows)
+Ensure that Prism APIs are callable from the VM.
+
+
+Create a CentOS VM using a centos image.
+Create a user with sudo privileges and provide it passwordless sudo access. Say the user is era.
+Installations Instructions
+MariaDB:  Install MariaDB at a desired location from source code
+Register this DBServer with ERA. Provide following inputs
+ERA user: era
+ERA user password: <your password>
+Base Dir: /mariadb or /mysql
+Create a software profile in ERA from Profile → Create → Choose DB Server.
+
+
+
+
+
+[root@centos ~]# vi /etc/fstab
+[root@centos ~]# mkdir /mariadb
+[root@centos ~]# mount /mariadb
+useradd -m era
+passwd era
+echo "era     ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers
+[root@centos ~]# groupadd mysql
+[root@centos ~]# useradd -r -g mysql -s /bin/false mysql
+[root@centos ~]# chown mysql:mysql /mariadb
+
+yum install yum-utils
+yum-builddep mariadb-server
+yum install -y git \
+      gcc \
+      gcc-c++ \
+      bison \
+      libxml2-devel \
+      libevent-devel \
+      rpm-build
+      
+vi /etc/yum.repos.d/mariaDB.repo
+# MariaDB 10.6 CentOS repository list - created 2021-11-03 10:02 UTC
+# https://mariadb.org/download/
+[mariadb]
+name = MariaDB
+baseurl = https://mirrors.xtom.de/mariadb/yum/10.3/centos7-amd64
+gpgkey=https://mirrors.xtom.de/mariadb/yum/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+
+sudo yum install MariaDB-server MariaDB-client
+
+
+cmake .. -DCMAKE_INSTALL_PREFIX=/mariadb \
+         -DINSTALL_SECURE_FILE_PRIVDIR=/mariadb/ \
+         -DMYSQL_DATADIR=/mariadb/sqldata/mysql \
+         -DSYSTEMD_PID_DIR=/mariadb/var/run/mysql \
+         -DCMAKE_CXX_COMPILER=g++ \
+         -DCURSES_INCLUDE_PATH=/usr/include/ncurses \
+         -DHAVE_LIBAIO_H=/usr/include
+

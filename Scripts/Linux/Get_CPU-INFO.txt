@@ -1,0 +1,1 @@
+ dmidecode -t 4 | egrep -i "Designation|Intel|core|thread"

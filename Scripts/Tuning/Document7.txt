@@ -1,0 +1,35 @@
+SELECT 	cv.recseq, NVL(cv.bsn, :"SYS_B_0") AS bsn, 
+	TO_CHAR(cv.gebdat, :"SYS_B_1") AS gebdat, 
+	cv.geslachtnr, 
+	cv.naam, 
+	cv.voorl, 
+	cv.voorv, 
+	cv.mnaam, 
+	cv.mvoorv, 
+	cv.afwadres, 
+	cv.afwhuisnr, 
+	cv.afwpc1, 
+	cv.afwpc2, 
+	cv.afwwoonpl, 
+	cp.dpolsseq, 
+	cp.mutseq, 
+	cp.agentnr, 
+	cp.hfdwijznr, 
+	cp.clientnr, 
+	NVL(a.agnt_combinatiecode, :"SYS_B_2") AS agnt_combinatiecode 
+FROM 	vta.cvobjzorgdetail cv 
+	INNER JOIN vta.cpolsdetail cp ON (cp.dpolsseq = cv.dpolsseq AND cp.mutseq = cv.mutseq) 
+	INNER JOIN vta.agnt a ON (a.agnt_nr = cp.agentnr) 
+	WHERE cv.mutseq = (SELECT MAX(cv2.mutseq) 
+				FROM vta.cvobjzorgdetail cv2 
+				WHERE cv2.dpolsseq = cv.dpolsseq 
+				AND cv2.dvobjseq = cv.dvobjseq 
+				AND cv2.mutseq IN (SELECT cp.mutseq 
+						FROM vta.cpolsdetail cp 
+						WHERE cp.dpolsseq = cv2.dpolsseq 
+						AND cp.hfdwijznr IN (SELECT h.hfdwijznr FROM vta.hfdwijz h WHERE h.meenemen_in_selectie = :"SYS_B_3"))) 
+						AND (cv.einddat IS NULL OR cv.einddat > TO_DATE(:"SYS_B_4", :"SYS_B_5")) 
+						AND NVL(a.agnt_combinatiecode, :"SYS_B_6") <> :"SYS_B_7" 
+						AND NVL(cv.bsn, :"SYS_B_8") = :p_bsn 
+ORDER BY cv.gebdat, cv.geslachtnr, cv.naam, cv.voorl
+

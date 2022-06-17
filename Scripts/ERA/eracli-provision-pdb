@@ -1,0 +1,54 @@
+era > database provision engine=oracle_database generate_input_file pluggable_database database_id=a4b818d5-0d5e-4a24-8fdc-57dfb15d5380 db_parameter="WH-ODB-PROF" output_file=/home/era/JSON/create_pdb.json
+
+{
+  "provisionInfo": [
+    {
+      "name": "application_type",
+      "description": "The type of the database.",
+      "value": "oracle_database"
+    },
+    {
+      "name": "sys_password",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. The password for the SYS user of the database.",
+      "value": "techX2021!"
+    },
+    {
+      "name": "pre_create_script",
+      "description": "Full OS command that needs to be executed before creating the database. For example: /usr/bin/python /var/oracle/before_clone.py",
+      "value": ""
+    },
+    {
+      "name": "post_create_script",
+      "description": "Full OS command that needs to be executed after creating the database. For example: /usr/bin/python /var/oracle/after_clone.py",
+      "value": ""
+    },
+    {
+      "name": "working_dir",
+      "description": "A temporary directory which will be used to stage scripts and other artifacts. It will be deleted at the end of the provisioning process. Example: /tmp, /var/opt/tmp, C:/Temp, etc",
+      "value": "/tmp"
+    },
+    {
+      "name": "dbserver_timezone",
+      "value": "UTC",
+      "description": "The timezone of the dbserver to be provisioned."
+    },
+    {
+      "name": "provision_type",
+      "value": "pdb"
+    },
+    {
+      "name": "application_id",
+      "value": "a4b818d5-0d5e-4a24-8fdc-57dfb15d5380"
+    }
+  ],
+  "nodes": [
+    {
+      "properties": [],
+      "nxClusterName": null
+    }
+  ],
+  "name": "CDB01"
+}
+
+
+era > database provision engine=oracle_database name=PDB02 input_file=/home/era/JSON/create_pdb.json

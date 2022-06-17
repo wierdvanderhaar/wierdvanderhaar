@@ -1,0 +1,547 @@
+#! /bin/ksh
+#
+# Naam    : AutoArchBackup
+# Gebruik : AutoArchBackup [opties] [databanken]...
+#
+# Omschrijving
+# ------------
+# Archiveer automatisch alle archive-log bestanden die zich op mountpoints
+# bevinden met een te hoge bezettingsgraad.
+#
+# Mutatie-historie
+# ----------------
+# 27-10-2006  JSTEI  Initiele versie
+# 22-10-2007  JSTEI  Gebruik ssh in plaats van rsh
+# 22-10-2007  JSTEI  Aangepast voor gebruik onder SuSe
+# 31-10-2007  JSTEI  Default waarden voor thresholds worden nu uit
+#                    orasettings gehaald.
+# 31-10-2007  JSTEI  Archive log lokatie(s) worden uit de alert-log
+#                    gehaald.
+# 11-01-2010  JSTEI  Optie -f gewijzigd in -a
+# 11-01-2010  JSTEI  Optie -m toegevoegd
+# 11-01-2010  JSTEI  Mail functionaliteit toegevoegd
+
+
+# ------------------------------------------------------------
+# Naam       : InitialiseerVariabelen
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Initialiseer de benodigde variabelen
+# ------------------------------------------------------------
+
+InitialiseerVariabelen()
+{
+   if [ -z "${SSH_CLIENT}" ]; then
+      . /usr/local/bin/start_ssh_agent.sh
+   fi
+
+   for SEARCHDIR in /usr/local/bin ${HOME}/bin; do
+      echo ':'${PATH}':' | grep ${SEARCHDIR} >/dev/null 2>&1
+      if [ ${?} -ne 0 ]; then
+         export PATH=${SEARCHDIR}:${PATH}
+      fi
+   done
+
+   ORASETTINGS_LOC=/var/opt/oracle/orasettings
+   if [ ! -f ${ORASETTINGS_LOC} ]; then
+      echo ${0}: Configuratiebestand ${ORASETTINGS_LOC} ontbreekt >&2
+      exit 1
+   fi
+
+   RMAN_SERVER=`grep '^RMAN_SERVER=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   if [ -z ''${RMAN_SERVER} ]; then
+      echo ${0}: Variabele RMAN_SERVER is niet gedefinieerd in ${ORASETTINGS_LOC} >&2
+      exit 1
+   fi
+
+   AUTOARCHIVE_ARCH_DELETE=`grep '^AUTOARCHIVE_ARCH_DELETE=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   if [ -z "${AUTOARCHIVE_ARCH_DELETE}" ]; then
+      echo ${0}: Variabele AUTOARCHIVE_ARCH_DELETE is niet gedefinieerd in ${ORASETTINGS_LOC} >&2
+      exit 1
+   fi
+
+   ORATAB_LOC=/var/opt/oracle/oratab
+
+   b_VAL=`grep '^AUTOARCHIVE_FILESYSTEM_THRESHOLD=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   if [ -z "${b_VAL}" ]; then
+      echo ${0}: Variabele AUTOARCHIVE_FILESYSTEM_THRESHOLD is niet gedefinieerd in ${ORASETTINGS_LOC} >&2
+      exit 1
+   fi
+
+   a_VAL=`grep '^AUTOARCHIVE_FILE_THRESHOLD=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   if [ -z "${a_VAL}" ]; then
+      echo ${0}: Variabele AUTOARCHIVE_FILE_THRESHOLD is niet gedefinieerd in ${ORASETTINGS_LOC} >&2
+      exit 1
+   fi
+
+   LOCKFILE=/tmp/`basename ${0}`'.lck'
+   MAILBESTAND=/tmp/`basename ${0}`'.mail'
+
+   Pa=0
+   Pb=0
+   Pf=0
+   Pm=0
+   PF=0
+
+   AWK_EXEC=`which nawk 2>/dev/null`
+   if [ -z "${AWK_EXEC}" ]; then
+      AWK_EXEC=`which awk`
+   fi
+}
+
+MailRegel() {
+   (
+      if [ ${#} -eq 0 ]; then
+         echo
+      else
+         echo  ${1} | ${AWK_EXEC} '
+	      BEGIN 	{ FS="@" }  
+		      { printf("%-31s : ",$1 ) }'
+      
+         shift
+         echo ${*}
+      fi
+   ) | tee -a ${MAILBESTAND}
+}
+
+# ------------------------------------------------------------
+# Naam       : Help_Aanroep
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Omschrijving
+# ------------
+# Toon hoe het script aangeroepen moet worden.
+# ------------------------------------------------------------
+
+Help_Aanroep() {
+   (
+   echo "Gebruik :" ${0} [opties]... [instance]...
+   echo
+   echo Geldige opties
+   echo --------------
+   echo "-a Aantal"
+   echo "   Minimaal aantal bestanden in de archive log locatie (standaard 5)"
+   echo "-b Bezettingsgraad"
+   echo "   Minimale bezettingsgraad voor een mountpoint (standaard 90)"
+   echo "-f"
+   echo "   Voer back-up geforceerd uit ongeacht bezettingsgraad"
+   echo "-F"
+   echo "   Voer back-up geforceerd uit ongeacht bezettingsgraad en minimum aantal archiefbestanden"
+   echo "-h"
+   echo "   Toont help informatie"
+   echo "-m Mountpoint"
+   echo "   Voer alleen uit voor dit mountpoint"
+   ) >&2
+}
+
+# ------------------------------------------------------------
+# Naam       : MpBijDirectory
+# Parameters : directory
+#
+# Omschrijving
+# ------------
+# Bepaal het mountpoint dat hoort bij de opgegeven directory.
+# ------------------------------------------------------------
+
+MpBijDirectory() {
+   if [ ${#} -ge 1 ]; then
+      for MP in `df -h | ${AWK_EXEC} '{ print $6 }' | sort -r`; do
+         if [ `echo ${1} | grep '^'${MP} | wc -l` -gt 0 ]; then
+            break;
+         fi
+      done
+      echo ${MP}
+   fi
+}
+
+
+# ------------------------------------------------------------
+# Naam       : MpUsedPerc
+# Parameters : mountpoint
+#
+# Omschrijving
+# ------------
+# Retourneer de bezettingsgraad van het opgegeven mountpoint.
+# ------------------------------------------------------------
+
+MpUsedPerc() {
+   if [ ${#} -ge 1 ]; then
+      df -h | 
+         ${AWK_EXEC} '	{ offset=match($6,"^'${1}'$")
+                  if ( offset == 1 )
+                     print $5 
+                }' |
+         tr -d '%'
+   fi
+}
+
+# ------------------------------------------------------------
+# Naam       : ParseParams
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Parse de opgegeven parameters.
+# ------------------------------------------------------------
+
+ParseParams() {
+   while getopts a:b:fFhm: name 2>/dev/null
+   do
+      case ${name} in
+      f)	Pf=1
+		;;
+      F)	PF=1
+		;;
+      b)        b_VAL="${OPTARG}"
+                if [ -z ''${b_VAL} ]; then
+                   echo ${0}: Bezettingsgraad waarde ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                expr ${b_VAL} + 1 >/dev/null 2>&1
+                if [ ${?} -ne 0 ]; then
+                   echo ${0}: Bezettingsgraad is niet numeriek >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                if [ ${b_VAL} -lt 1 -o ${b_VAL} -gt 100 ]; then
+                   echo ${0}: De bezettingsgraad moet tussen 1 en 100 liggen >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                Pb=`expr ${Pb} + 1`
+                ;;
+      a)        a_VAL="${OPTARG}"
+                if [ -z ''${a_VAL} ]; then
+                   echo ${0}: Waarde voor minimaal aantal bestanden ontbreekt >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                if [ ${?} -ne 0 ]; then
+                   echo ${0}: Grenswaarde aantal bestanden is niet numeriek >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                if [ ${a_VAL} -lt 1 ]; then
+                   echo ${0}: Grenswaarde aantal bestanden moet tenminste 1 zijn >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                Pa=`expr ${Pa} + 1`
+                ;;
+      h)        Help_Aanroep
+                exit 0
+                ;;
+      m)	Pm=1
+                m_VAL=${OPTARG}
+                if [ -z ''${m_VAL} ]; then
+                   echo ${0}: Waarde voor mountpoint >&2
+                   Help_Aanroep
+                   exit 2
+                fi
+                if [ ! -d ${m_VAL} ]; then
+                   echo ${0}': Mountpoint '${m_VAL}' ontbreekt' >&2
+                   exit 1
+                fi
+		;;
+      ?)   echo Ongeldige optie >&2
+           Help_Aanroep
+           exit 2;;
+      esac
+   done
+
+   shift $((${OPTIND} -1))
+
+   DB_COUNT=${#}
+   DB_LIST=${*}
+
+   if [ ${DB_COUNT} -eq 0 ]; then
+      for DB_LINE in `grep -v '#' ${ORATAB_LOC} | 
+                 grep -v '\*' |
+                 grep -v -i '^agent' |
+                 grep -v -i '^LISTENER'`; do 
+         DB=`echo ${DB_LINE} | cut -d: -f 1`
+         DB_HOME=`echo ${DB_LINE} | cut -d: -f 2`
+         DB_COUNT=`expr ${DB_COUNT} + 1`
+         DB_LIST=${DB_LIST}' '${DB}
+      done
+   fi
+
+   DB_COUNT2=0
+   DB_LIST2=''
+
+   if [ ${DB_COUNT} -gt 0 ]; then
+      for DB in ${DB_LIST}; do
+         OHOME=`grep '^'${DB}':' ${ORATAB_LOC} | cut -d: -f 2`
+         if [ -z "${OHOME}" ]; then
+            echo Database ${DB} komt niet voor in ${ORATAB_LOC} >&2
+            continue
+         fi
+
+         export ORAENV_ASK=NO
+         export ORACLE_SID=${DB}
+         . /usr/local/bin/oraenv
+
+         if [ ! -f ${ORACLE_HOME}/lib/libobk.so ]; then
+            echo ${0}": Instance "${DB}" cannot be back-upped by RMAN" >&2
+            continue
+         fi
+
+         if [ ! -d ${ORACLE_BASE}/admin/${DB}/arch ]; then
+            echo Archive log directory ${ORACLE_BASE}/admin/${DB}/arch bestaat niet >&2
+            continue
+         fi
+
+         if [ ${DB_COUNT2} -gt 0 ]; then
+            echo ${DB_LIST2} | grep ':'${DB}':' >/dev/null 2>&1
+            if [ ${?} -eq 0 ]; then
+               echo Database ${DB} komt meer dan eens voor in de lijst >&2
+               continue
+            fi
+         fi
+
+         if [ `ps -ef | grep ' ora_smon_'${DB}'$' | wc -l` -eq 0 ]; then
+            echo Database ${DB} is niet actief >&2
+            continue
+         fi
+
+         DB_COUNT2=`expr ${DB_COUNT2} + 1`
+         DB_LIST2=${DB_LIST2}':'${DB}':'
+      done
+   fi
+
+   if [ ${#} -gt 0 -a ${DB_COUNT2} -eq 0 ]; then
+      echo Er zijn geen databanken om te controleren >&2
+      exit 1
+   fi
+
+   DB_COUNT=${DB_COUNT2}
+   DB_LIST=`echo ${DB_LIST2} | tr ':' ' '`
+}
+
+# ------------------------------------------------------------
+# Naam       : ControleerLockFile
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Controleer of het lock-bestand bestaat. Indien dit bestand
+# bestaat, controleer dan of het terecht bestaat.
+# ------------------------------------------------------------
+
+ControleerLockFile() {
+   if [ -f ${LOCKFILE} ]; then
+      PID=`cat ${LOCKFILE}`
+      ps -p ${PID} >/dev/null 2>&1
+      if [ ${?} -eq 0 ]; then
+         echo ${0}: Archive logs worden momenteel al naar tape geschreven 
+         MailRegel Archive logs worden momenteel al naar tape geschreven 
+         exit 0
+      else
+         rm ${LOCKFILE}
+      fi
+   fi
+}
+
+# ------------------------------------------------------------
+# Naam       : ListArchDir
+# Parameters : ORACLE_SID
+#
+# Omschrijving
+# ------------
+# Bepaal de archive log lokatie(s) van de opgegeven instance.
+# ------------------------------------------------------------
+
+ListArchDir() {
+   cat ${ORACLE_BASE}/admin/${1}/bdump/alert_${1}.log |
+   ${AWK_EXEC} '
+   BEGIN   { bewaren="N" 
+             FS="@"
+             for (i=0;i<=10;i++)
+                a[i]=""
+           }
+
+           { DATA=tolower($1)
+             OFFSET=match(DATA,"alter system set log_archive_dest_[0-9]")
+             if ( OFFSET >  0) {
+                OFFSET1=match($1,"=")
+                gsub("alter system set log_archive_dest_","",DATA)
+                DEST_N=substr(DATA,1,1)
+                a[DEST_N]=substr($1,OFFSET1+1 )
+             } else {
+                OFFSET=match(DATA,"alter system set log_archive_dest=")
+                if ( OFFSET >  0) {
+                   gsub("alter system set log_archive_dest=","",DATA)
+                   DEST_N=0
+                   a[DEST_N]=substr($1,18)
+                }
+             }
+           }
+
+   /System parameters with non-default values:/	{ bewaren="J"
+                                                  for (i=0;i<=10;i++)
+                                                     a[i]=""
+                                                  next
+                                                }
+
+   /started with pid/	{ bewaren="N" }
+
+   /log_archive_dest/	{ if ( bewaren == "J" ) {
+                             OFFSET1=match($1,"=")
+                             split($1,b,"=")
+                             b[1]=tolower(b[1])
+                             gsub(" ","",b[1])
+                             if ( b[1] == "log_archive_dest" ) {
+                                DEST_N=0
+                                gsub(" ","",b[2])
+                                a[0]="LOCATION="b[2]
+                             } else if ( b[1] == "log_archive_dest_1" || \
+                                         b[1] == "log_archive_dest_2" || \
+                                         b[1] == "log_archive_dest_3" || \
+                                         b[1] == "log_archive_dest_4" || \
+                                         b[1] == "log_archive_dest_5" || \
+                                         b[1] == "log_archive_dest_6" || \
+                                         b[1] == "log_archive_dest_7" || \
+                                         b[1] == "log_archive_dest_8" || \
+                                         b[1] == "log_archive_dest_9" || \
+                                         b[1] == "log_archive_dest_10" \
+                                      ) {
+                                         DEST_N=substr(b[1],18)
+                                         a[DEST_N]=substr($1,OFFSET1+1)
+                                        }
+                          }
+			}
+
+   END	{ for ( i = 0 ; i <= 10 ; i++)
+             if ( length(a[i]) > 0 )
+                print a[i]
+	}
+   '  |
+   sed 's/^[ ] *//' |
+   sed 's/[ ]*=/=/' |
+   tr -d "'" |
+   cut -d= -f 2- | 
+   awk '{print $1}' |
+   uniq | 
+   sort
+}
+
+# ------------------------------------------------------------
+# Naam       : ListMountPoints
+# Parameters : db_list
+#
+# Omschrijving
+# ------------
+# Bepaal de mountpoints waar de archive log directory op staat.
+# ------------------------------------------------------------
+
+ListMountPoints() {
+   if [ ${Pm} -eq 0 ]; then
+      for DB in ${*}; do
+         for ARCHDIR in `ListArchDir ${DB}`; do
+            MOUNTDIR=`MpBijDirectory ${ARCHDIR}`
+            echo ${MOUNTDIR}
+         done
+      done | sort | uniq
+   else
+      echo ${m_VAL}
+   fi
+}
+
+# ------------------------------------------------------------
+# Naam       : FilterMountPoints
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Filter uit een lijst van mountpoints alleen die mountpoints
+# die een te hoge bezettingsgraad kennen.
+# ------------------------------------------------------------
+
+FilterMountPoint() {
+   for MOUNTPOINT in ${*}; do
+      MP_USAGE=`MpUsedPerc ${MOUNTPOINT}`
+      if [ ${MP_USAGE} -ge ${b_VAL} -o ${Pf} -eq 1 -o ${PF} -eq 1 ]; then
+         echo ${MOUNTPOINT}
+      fi
+   done
+}
+
+# ------------------------------------------------------------
+# Naam       : ArchiveMountPoints
+# Parameters : db_list
+#
+# Omschrijving
+# ------------
+# Archiveer de archive-logs van databanken die op een te vol
+# mountpoint staan en waarvan de archive log directory tenminste
+# ${a_VAL} bestanden bevat.
+# ------------------------------------------------------------
+
+ArchiveMountPoint() {
+   for MOUNTPOINT in ${FMPLIST}; do
+      MailRegel
+      MailRegel "Mountpoint" ${MOUNTPOINT}
+      MailRegel "Filesystem bezetting" `MpUsedPerc ${MOUNTPOINT}`
+
+      for DB in ${DB_LIST}; do
+         ARCHDIR=${ORACLE_BASE}/admin/${DB}/arch
+         MOUNTDIR=`MpBijDirectory ${ARCHDIR}`
+         if [ ${MOUNTDIR} == ${MOUNTPOINT} ]; then
+            if [ `ls -l ${ARCHDIR} | wc -l` -ge ${a_VAL} -o ${PF} -eq 1 ]; then
+               MailRegel "Databank" ${DB}
+               MailRegel "Aantal archiefbestanden" `ls -l ${ARCHDIR} | wc -l`
+               ORACLE_SID=${DB}
+               RMAN_CMD=`eval echo "$AUTOARCHIVE_ARCH_DELETE"`
+               echo ${0}": Auto Archiving "${ORACLE_SID}
+               ssh ${RMAN_SERVER} "${RMAN_CMD}"
+               MailRegel "Tijdstip voltooid" `date`
+               MailRegel "Filesystem bezetting" `MpUsedPerc ${MOUNTPOINT}`
+            fi
+         fi
+      done
+   done
+}
+
+# ------------------------------------------------------------------
+#                   H O O F D P R O G R A M M A
+# ------------------------------------------------------------------
+
+   InitialiseerVariabelen
+   ControleerLockFile
+   ParseParams ${*}
+
+   echo ${$} >${LOCKFILE}
+   MailRegel 'Huidige datum' `date`
+   MailRegel 'Server' `hostname`
+
+   if [ ${Pf} -eq 0 -a ${PF} -eq 0 ]; then
+      MailRegel 'Maximale bezettingsgraad' ${b_VAL}
+   else
+      MailRegel 'Maximale bezettingsgraad' geen
+   fi
+
+   if [ ${PF} -eq 0 ]; then
+      MailRegel 'Minimum aantal archiefbestanden' ${a_VAL}
+   else
+      MailRegel 'Minimum aantal archiefbestanden' geen
+   fi
+
+   MPLIST=`ListMountPoints ${DB_LIST}`
+   if [ ! -z "${MPLIST}" ]; then
+       FMPLIST=`FilterMountPoint ${MPLIST}`
+       if [ -z "${FMPLIST}" ]; then
+          echo `date`": Bezettingsgraad is niet te hoog"
+          MailRegel Status "Bezettingsgraad op de filesystems is niet te hoog"
+       else
+          ArchiveMountPoint ${FMPLIST}
+       fi
+   fi
+
+   rm ${LOCKFILE} 2>/dev/null
+   cat ${MAILBESTAND} | ssh ${RMAN_SERVER} bin/VerstuurEmail.sh -s \'Auto Archive Backup`hostname` \'
+   rm ${MAILBESTAND} 2>/dev/null

@@ -1,0 +1,1 @@
+select timestamp_to_scn(to_timestamp('07/07/2010 14:24:54','DD/MM/YYYY HH24:MI:SS')) as scn from dual;

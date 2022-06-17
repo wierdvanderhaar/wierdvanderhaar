@@ -1,0 +1,6 @@
+-- Om de LUN ID te koppelen aan een multipath device. 
+cat /proc/scsi/scsi <-- List LUN ID
+multipath -v3 (of v4) -ll > /tmp/multipath.list
+
+vi /tmp/multipath.list
+Zoek naar de LUN ID. /<nummer> 	<= dit is dan weer te linken met de WWID bijvoorbeeld in OVM.

@@ -1,0 +1,22 @@
+-- Opvragen retention
+select dbms_stats.get_stats_history_retention from dual;
+
+-- Aanpassen retention naar bv 7dagen
+exec dbms_stats.alter_stats_history_retention(7);
+
+-- List of gathered_stats
+select trunc(SAVTIME),count(1) from WRI$_OPTSTAT_HISTHEAD_HISTORY group by  trunc(SAVTIME) order by 1;
+
+-- purge alle stats ouder dan xx
+exec dbms_stats.purge_stats(to_date('10-JUL-11','DD-MON-YY'));PL/SQL procedure successfully completed.
+
+-- List of gathered_stats
+select trunc(SAVTIME),count(1) from WRI$_OPTSTAT_HISTHEAD_HISTORY group by  trunc(SAVTIME) order by 1;
+
+-- rebuild tables and indexes SYSAUX
+select 'alter table ' || owner || '."'||segment_name||'" move tablespace SYSAUX;' FROM dba_segments where tablespace_name = 'SYSAUX' AND segment_type = 'TABLE';
+
+select 'alter index ' || owner || '."'||segment_name||'" rebuild;' FROM dba_segments where tablespace_name = 'SYSAUX' AND segment_type = 'INDEX';
+
+
+

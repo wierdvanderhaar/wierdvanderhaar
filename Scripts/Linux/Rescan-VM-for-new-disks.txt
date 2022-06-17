@@ -1,0 +1,9 @@
+# http://wingloon.com/2013/05/07/how-to-detect-a-new-hard-disk-without-rebooting-vmware-linux-guest/
+
+partprobe /dev/sdb
+
+ls /sys/class/scsi_host/ | while read host ; do echo "- - -" > /sys/class/scsi_host/$host/scan ; done
+
+https://kerneltalks.com/disk-management/how-to-rescan-disk-in-linux-after-extending-vmware-disk/
+
+[root@DNP-STBV83 util]# echo 1 > /sys/class/block/sdc/device/rescan

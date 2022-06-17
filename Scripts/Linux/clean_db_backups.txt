@@ -1,0 +1,51 @@
+#!/bin/bash
+# Uncomment onderstaande om debugging aan te zetten
+# set -x
+
+# Waar staat de backup data
+sourcedir="/backupdatatemp/2CLOUD/PROD"
+movefrom="/backup/PROD"
+
+# Extra zekerheid dat we enkel de bedoelde data raken
+string="PROD_"
+
+# Verwijder dat wat ouder is dan 'x' aantal dagen
+remove_days=31
+# Move files ouder dan 'x' aantal dagen
+move_days=14
+
+# Check of 'find' wel in het PATH gevonden kan worden.
+cmd=$(which find)
+
+usage()
+{
+  printf "Usage %s:\n" $(basename ${1})
+  printf "%s [-lm] List files to be moved from: %s\n\t\t\tto: %s\n" $(basename ${1}) ${movefrom} ${sourcedir}
+  printf "%s [-lx] List files to be deleted from: %s\n" $(basename ${1}) ${sourcedir}
+  printf "%s [-m]  Actual move of files listed with: \"-lm\" option\n" $(basename ${1})
+  printf "%s [-x]  Actual removal of files listed with: \"-lx\" option\n" $(basename ${1})
+}
+
+if [ -z ${cmd} ]; then
+  printf "%s: not present in the current PATH!\n" ${cmd}
+  exit 1
+fi
+
+if [ ${1} ]; then
+  case ${1} in
+    -lm )
+      echo "List file to be moved:" ; ${cmd} ${movefrom} -name ${string}\* -mtime +${move_days} -ls ; exit 0;;
+    -lx )
+      echo "list file to be removed:" ; ${cmd} ${sourcedir} -name ${string}\* -mtime +${remove_days} -ls ; exit 0;;
+    -m )
+      echo "Move section" ; ${cmd} ${movefrom} -name ${string}\* -mtime +${move_days} -ls;;
+      #${cmd} ${movefrom} -name ${string}\* -mtime +${move_days} -exec mv {} ${sourcedir} \; exit 0;;
+    -x )
+      echo "Remove section" ; ${cmd} ${sourcedir} -name ${string}\* -mtime +${remove_days} -ls ;;
+      #${cmd} ${sourcedir} -name ${string}\* -mtime +${remove_days} -exec rm {} \; exit 0;;
+    * )
+      usage ${0}; exit 1;;
+  esac
+else
+  usage ${0}
+fi

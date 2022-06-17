@@ -1,0 +1,47 @@
+#! /bin/bash
+# 
+# Name           : AgentCtl
+# Parameters     : { start | stop | status }
+ 
+
+InitVars() {
+   ORATAB_LOC=/var/opt/oracle/oratab
+   if [ ! -f ${ORATAB_LOC} ]; then
+      echo ${0}': File '${ORATAB_LOC}' does not exist' >&2
+      exit 1
+   fi
+}
+
+SetListenerEnvironment() {
+#  export ORACLE_SID=LISTENER
+   export ORACLE_SID=agent
+   export ORAENV_ASK=NO
+   . /usr/local/bin/oraenv
+   unset ORACLE_SID
+   unset ORAENV_ASK
+}
+
+SetEMenvironment() {
+   export EMDROOT=${ORACLE_BASE}/product/agent10g
+   if [ ! -d ${EMDROOT} ]; then
+      echo ${0}': Expected Oracle Home '${EMDROOT}' is missing' 2>&1
+      exit
+   fi
+   export EMROOT=${EMDROOT}
+   export ORACLE_HOME=${EMDROOT}
+   export PATH=${ORACLE_HOME}/bin:$PATH
+}
+
+InitVars
+SetListenerEnvironment
+SetEMenvironment
+case ${1:-'status'} in
+   'status')    ${ORACLE_HOME}/bin/emctl status agent
+		;;
+   'start')     ${ORACLE_HOME}/bin/emctl start agent
+		;;
+   'stop')      ${ORACLE_HOME}/bin/emctl stop agent
+		;;
+   *)		echo 'Aanroep : '${0}' {start|stop|status}'
+		;;
+esac

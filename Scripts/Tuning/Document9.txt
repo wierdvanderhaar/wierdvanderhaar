@@ -1,0 +1,3 @@
+SELECT 	MAX(nr.notaregseq) cnotaregseq, 
+	nr.notaseq 
+FROM 	vta.decl d INNER JOIN vta.notavobj nv ON d.declseq = nv.declseq INNER JOIN vta.notareg nr ON nv.notavobjseq = nr.notavobjseq WHERE d.polsseq = :p_polsseq AND nv.mvobjseq = :p_vobjseq AND nv.preslystnr = :p_preslystnr AND nr.presnr = :p_presnr AND nr.bedr = :p_bedr AND nr.schadat = :p_schadat AND NOT EXISTS (SELECT prevnotaregseq FROM vta.notareg nn WHERE nn.prevnotaregseq = nr.notaregseq) AND NOT nr.tegenboeking = :"SYS_B_0" AND nr.notaregkoppseq IS NULL GROUP BY nr.notaseq

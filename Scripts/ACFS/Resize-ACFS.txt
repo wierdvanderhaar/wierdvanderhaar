@@ -1,0 +1,32 @@
+[grid@bdoh-oda-02 ~]$ mount | grep asm
+/dev/asm/datcgist-133 on /u02/app/oracle/oradata/CGIST type acfs (rw)
+
+[grid@bdoh-oda-02 ~]$ /sbin/advmutil volinfo /dev/asm/datcgist-133
+Device: /dev/asm/datcgist-133
+Size (MB): 143360
+Resize Increment (MB): 512
+Redundancy: mirror
+Stripe Columns: 8
+Stripe Width (KB): 1024
+Disk Group: DATA
+Volume: DATCGIST
+Compatible.advm: 18.0.0.0.0
+
+[grid@bdoh-oda-02 ~]$ acfsutil size +50G /u02/app/oracle/oradata/CGIST
+acfsutil size: Resizing file system in steps
+acfsutil size: Resizing file system to 0.1523 TB
+acfsutil size: Resizing file system to 0.1680 TB
+acfsutil size: Resizing file system to 0.1836 TB
+acfsutil size: Resizing file system to 0.1855 TB
+acfsutil size: new file system size: 204010946560 (194560MB)
+
+[grid@bdoh-oda-02 ~]$ /sbin/advmutil volinfo /dev/asm/datcgist-133
+Device: /dev/asm/datcgist-133
+Size (MB): 194560
+Resize Increment (MB): 512
+Redundancy: mirror
+Stripe Columns: 8
+Stripe Width (KB): 1024
+Disk Group: DATA
+Volume: DATCGIST
+Compatible.advm: 18.0.0.0.0

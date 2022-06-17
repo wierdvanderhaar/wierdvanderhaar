@@ -1,0 +1,2 @@
+Mount ISO
+mount -o loop xxx.iso /mnt/disk

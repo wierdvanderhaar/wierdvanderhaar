@@ -1,0 +1,11 @@
+API:
+CURL:
+curl -k -X GET \
+	https://10.68.101.32/era/v0.9/tms \
+	-H 'Content-Type: application/json' \
+	-H 'Authorization: Basic d2llcmQudmFuZGVyaGFhcjp0ZWNoWDIwMjEh' \
+	-d \	'{"name":""}' 
+
+
+
+

@@ -1,0 +1,259 @@
+era -c 'database create_standby generate_input_file type=oracle_database software="ORACLE19c" compute="DEFAULT_OOB_COMPUTE" network="Oracle" db_parameter="DEFAULT_ORACLE_PARAMS" create_dbserver=true use_software_profile=true output_file=standby.json'
+
+era > database create_standby generate_input_file type=oracle_database single_instance create_dbserver=true use_software_profile=true software="Oracle19c" compute="Medium" network="Oracle-SI" nx_cluster_name="EraCluster" db_parameter="WH-ODB-PROF" output_file=create_standby.json
+{
+  "createInfo": [
+    {
+      "name": "application_type",
+      "description": "The type of the database.",
+      "value": "oracle_database"
+    },
+    {
+      "name": "sys_asm_password",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. The password for the SYS user of ASM.",
+      "value": "techX2021!"
+    },
+    {
+      "name": "dbserver_name",
+      "description": "Name of the VM to be created in Prism",
+      "value": "WH-STODB-002"
+    },
+    {
+      "name": "dbserver_description",
+      "description": "Description of the VM to be created in Prism",
+      "value": "Standby database server"
+    },
+    {
+      "name": "global_database_name",
+      "description": "The global name of the database.",
+      "value": "stodb2"
+    },
+    {
+      "name": "oracle_sid",
+      "description": "The SID of the new database that will be created as a result of the clone operation. The SID can have a maximum of 12 alphanumeric characters. The first character of the SID should be an alphabet.",
+      "value": "todb2"
+    },
+    {
+      "name": "listener_port",
+      "description": "The port which the listener will use.",
+      "value": "1521"
+    },
+    {
+      "name": "working_dir",
+      "description": "A temporary directory which will be used to stage scripts and other artifacts. It will be deleted at the end of the create process. Example: /tmp, /var/opt/tmp, C:/Temp, etc",
+      "value": "/tmp"
+    },
+    {
+      "name": "auto_tune_staging_drive",
+      "description": "Autoextend the Staging Drive.",
+      "value": "true"
+    },
+    {
+      "name": "primary_host_ip",
+      "description": "The IP address of the Primary Database Host.",
+      "value": "10.68.101.90"
+    },
+    {
+      "name": "primary_username",
+      "description": "Host Username of the Primary Database. A privileged user with sudo access.",
+      "value": "oracle"
+    },
+    {
+      "name": "primary_password",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. Host Password for the Primary Database. Either the password or the SSH private/public keys have to be provided.",
+      "value": "techX2021!"
+    },
+    {
+      "name": "primary_ssh_private_key",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. Host SSH private key for the Primary Database. Either the password or the SSH private/public keys have to be provided.",
+      "value": ""
+    },
+    {
+      "name": "primary_oracle_home",
+      "description": "Location of the directory where the Oracle Database software is installed.",
+      "value": "/u02/app/oracle/product/19.0.0/dbhome_1"
+    },
+    {
+      "name": "primary_oracle_sid",
+      "description": "The SID of the Primary Database.",
+      "value": "todb2"
+    },
+    {
+      "name": "primary_grid_home",
+      "description": "Location of the directory where the Oracle Grid Infrastructure software is installed. This is an optional parameter.",
+      "value": "/u01/app/19.0.0/grid"
+    },
+    {
+      "name": "primary_listener_port",
+      "description": "The Listener Port used by Primary Database.",
+      "value": "1521"
+    },
+    {
+      "name": "primary_sys_password",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. The password for the SYS user of the primary database.",
+      "value": "techX2021!"
+    },
+    {
+      "name": "protection_mode",
+      "description": "The Protection Mode for Dataguard Configuration.",
+      "value": "maxperformance"
+    },
+    {
+      "name": "mount_mode",
+      "description": "The Mount Mode for Standby Database.",
+      "value": "mount"
+    },
+    {
+      "name": "primary_other_host_ips",
+      "description": "The IP addresses of all other Primary Database Hosts.",
+      "value": ""
+    },
+    {
+      "name": "backup_location",
+      "description": "Location of backup on Primary Database Host.",
+      "value": "/u02/app/backup"
+    },
+    {
+      "name": "dataguard_properties",
+      "description": "Dataguard properties to be set in dgmgrl for primary and standby database in semi-colon separated format.For example: logxptmode=SYNC;DelayMins=120",
+      "value": "logxptmode=SYNC"
+    },
+    {
+      "name": "scan_name",
+      "description": "The SCAN name for the RAC.",
+      "value": ""
+    },
+    {
+      "name": "cluster_name",
+      "description": "Name of the RAC Cluster.",
+      "value": ""
+    },
+    {
+      "name": "dbserver_timezone",
+      "value": "UTC",
+      "description": "The timezone of the dbserver to be provisioned."
+    },
+    {
+      "name": "softwareProfileId",
+      "value": "5c8d9140-9cef-4e03-a37b-f1d76303539c"
+    },
+    {
+      "name": "computeProfileId",
+      "value": "15fc122d-fe32-414d-8b22-c98022f9d6ba"
+    },
+    {
+      "name": "networkProfileId",
+      "value": "41d1cd75-0927-4393-b8fd-06b91b1dff76"
+    },
+    {
+      "name": "dbParameterProfileId",
+      "value": "24b8d498-7951-4610-8df1-4bfff6fde785"
+    },
+    {
+      "name": "createDbserver",
+      "value": "true"
+    },
+    {
+      "name": "nodeCount",
+      "value": 1
+    },
+    {
+      "name": "clustered",
+      "value": "false"
+    },
+    {
+      "name": "client_public_key",
+      "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6cfJhudXh/KrHz3PVFbS8eTJN/EsDrJS2A4SwAdkxI/cy+y6s+DeO9/pJXkfP5kNsxzUzmaprMQic0i3SZ38n2wQk4KRKHdedxdxgE+BNGUyKLf5ZbjctoZOuPoskkoMtXv5IUOLbaxpYXnVLa+xgwMO7PwXHvQLBW5Sr6uYVQYPsU59DO3bILo3Op0yFL7YJAmHLX0krpXtTJ5kqtGLxLvJhaSrc6cOvK5Rl9kfWrxaeNFjzPF8v3SYvzddSl2TLe1mARsHJlxRIefd3VCCdOpp6HvtGA7LUit+GtKsFhxp2SQ7zIocefWltOf8sH9II0MAT04rKd6iwkol9Rh3kMtNSIoFdfjb93j6JxE9Tc8Q+nKsPTNTFr8otciF5lQ/SJamG/EHMxA34rHwzA1XhH3ryP16IjBmhcz4VLHL9x1EdKGMls2xrxfVI1sxpgQOWAdwb+lC2mXPNjAWEPjoZ0FNSLAHxREl6NW1kFRO/MFtPdkp+ivLvxFw+XlkRxis= wierdvanderhaar@C02C74VYLVDL
+"
+    },
+    {
+      "name": "nxClusterName",
+      "value": "EraCluster"
+    }
+  ],
+  "timeMachineInfo": {
+    "schedule": {
+      "snapshotTimeOfDay": {
+        "hours": 1,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "continuousSchedule": {
+        "enabled": true,
+        "logBackupInterval": 30,
+        "snapshotsPerDay": 2
+      },
+      "weeklySchedule": {
+        "enabled": true,
+        "dayOfWeek": "SUNDAY"
+      },
+      "monthlySchedule": {
+        "enabled": true,
+        "dayOfMonth": 15
+      },
+      "quartelySchedule": {
+        "enabled": true,
+        "startMonth": "JANUARY",
+        "dayOfMonth": 15
+      },
+      "yearlySchedule": {
+        "enabled": false,
+        "dayOfMonth": 31,
+        "month": "DECEMBER"
+      }
+    },
+    "autoTuneLogDrive": true
+  }
+}
+
+
+
+era -c 'database create_standby engine=oracle_database name=ODB02 input_file=create_standby.json sla="DEFAULT_OOB_BRONZE_SLA"'
+
+era -c 'database create_standby engine=oracle_database name=STODB02 input_file=create_standby_todb_standby.json sla="Daily_Only"'
+
+era > operation status id=32e2051f-42bf-45de-a61d-6b6c1281da85
+
+Basic operation details:
+
+                     Name : Create Oracle Standby Database
+              Entity Name : STODB02
+        Owner DBServer Id : 05b59096-3534-11ea-ada9-08002714a10d
+         Display Timezone : UTC
+          Submission Time : 2021-06-02 08:41:34
+               Start Time : 2021-06-02 08:41:43
+                 End Time : N/A
+                   Status : Running
+                 Duration : 6 minutes 28 seconds
+               % Complete : 24
+
+ Steps Details  :
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+| Step No |                   Name                   |     Status      |      Start Time      |       End Time       |    Duration     |
++#########+##########################################+#################+######################+######################+#################+
+|    1    | Pre-processing                           |    Complete     | 2021-06-02 08:41:43  | 2021-06-02 08:42:01  | 18 seconds      |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    2    | Retrieve Primary Host Information        |    Complete     | 2021-06-02 08:42:05  | 2021-06-02 08:43:18  | 1 minutes 13    |
+|         |                                          |                 |                      |                      | seconds         |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    3    | Create Virtual Machines -                |    Complete     | 2021-06-02 08:43:21  | 2021-06-02 08:47:25  | 4 minutes 4     |
+|         | [10.68.101.220]                          |                 |                      |                      | seconds         |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    4    | Restart Network Services                 |    Complete     | 2021-06-02 08:47:27  | 2021-06-02 08:47:29  | 2 seconds       |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    5    | Attach Software Disks To Virtual         |     Running     | 2021-06-02 08:47:36  | N/A                  | 35 seconds      |
+|         | Machines                                 |                 |                      |                      |                 |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    6    | Create and Attach Data Storage           | Not Yet Started | N/A                  | N/A                  | N/A             |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    7    | Perform Oracle Clusterware Configuration | Not Yet Started | N/A                  | N/A                  | N/A             |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    8    | Configure Oracle Database Software       | Not Yet Started | N/A                  | N/A                  | N/A             |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|    9    | Create Oracle Standby Database           | Not Yet Started | N/A                  | N/A                  | N/A             |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|   10    | Enable DataGuard Configuration           | Not Yet Started | N/A                  | N/A                  | N/A             |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+|   11    | Register Database                        | Not Yet Started | N/A                  | N/A                  | N/A             |
++---------+------------------------------------------+-----------------+----------------------+----------------------+-----------------+
+ Total records: 11

@@ -1,0 +1,41 @@
+curl -k -X POST \
+	https://10.99.134.167/era/v0.9/tms/fcf80ecf-c371-4155-8cd6-7aa4a0e6e2ed/snapshots \
+	-H 'Content-Type: application/json' \
+	-H 'Authorization: Basic YWRtaW46TnV0YW5peC80dQ==' \
+	-d '{"name":"APITEST","lcmConfig":{"snapshotLCMConfig":{"expiryDetails":{"expiryDateTimezone":"Europe/Riga","expireInDays":7}}}}' \
+	--insecure
+  
+
+
+    
+curl --request POST \
+  --url https://10.99.134.167/era/v0.8/slas \
+  --header 'authorization: Basic YWRtaW46TnV0YW5peC80dQ==' \
+  --header 'content-type: application/json' \
+  --data '{"id":"string","name":"APISLA","description":"This is an API test","systemSla":"true","dateCreated":"string","dateModified":"string","ownerId":"string","continuousRetention":123,"dailyRetention":123,"weeklyRetention":123,"monthlyRetention":123,"quarterlyRetention":123,"yearlyRetention":123,"referenceCount":123}' \
+  --insecure
+  
+   
+   
+curl --request POST \
+	https://10.99.134.167/era/v0.9/tms/fcf80ecf-c371-4155-8cd6-7aa4a0e6e2ed/snapshots \
+  --header 'authorization: Basic YWRtaW46TnV0YW5peC80dQ==' \
+  --header 'content-type: application/json' \
+  --data '{"name":"APITEST02","expireInDays":10}}' \
+  --insecure    
+    
+    
+    
+    
+   {
+  "name": "Snapshot1",
+  "lcmConfig": {
+    "snapshotLCMConfig": {
+      "expiryDetails": {"expiryDateTimezone": "Asia/Calcutta","expireInDays": 10}
+    }
+  }
+} 
+
+
+
+"name":"snapshotName","value":"APITEST","name":"snapshotName","value":"APITEST"

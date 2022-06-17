@@ -1,0 +1,47 @@
+vi /etc/sysconfig/env.oracledb
+# define environment variables
+ORACLE_BASE=/u01/app/oracle
+ORACLE_HOME=/u01/app/oracle/product/12.2.0/dbhome_1
+ORACLE_SID=none
+
+
+vi /usr/lib/systemd/system/oracle_network.service
+[Unit]
+Description=Oracle listener
+After=network.target
+ 
+[Service]
+Type=forking
+EnvironmentFile=/etc/sysconfig/env.oracledb
+ExecStart=/u01/app/oracle/product/12.2.0/dbhome_1/bin/lsnrctl start
+ExecStop=/u01/app/oracle/product/12.2.0/dbhome_1/bin/lsnrctl stop
+User=oracle
+ 
+[Install]
+WantedBy=multi-user.target
+
+vi /usr/lib/systemd/system/oracledb.service
+[Unit]
+Description=Oracle databases service
+After=network.target oracle_network.service
+ 
+[Service]
+Type=forking
+EnvironmentFile=/etc/sysconfig/env.oracledb
+ExecStart=/u01/app/oracle/product/12.2.0/dbhome_1/bin/dbstart ${ORACLE_HOME}
+ExecStop=/u01/app/oracle/product/12.2.0/dbhome_1/bin/dbshut ${ORACLE_HOME}
+User=oracle
+LimitMEMLOCK=infinity
+LimitNOFILE=65535
+
+ 
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl list-unit-files --type service|grep oracle
+
+
+
+--- Na duplicate: 
+systemctl enable oracle_network.service oracledb.service

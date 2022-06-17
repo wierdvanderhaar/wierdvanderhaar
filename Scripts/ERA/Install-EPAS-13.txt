@@ -1,0 +1,130 @@
+# Install the repository configuration
+yum -y install https://yum.enterprisedb.com/edbrepos/edb-repo-latest.noarch.rpm
+
+# Replace 'USERNAME:PASSWORD' below with your username and password for the EDB repositories
+# Visit https://www.enterprisedb.com/user to get your username and password
+sed -i "s@<username>:<password>@wierd.vanderhaar@nutanix.com:%jYQZJ8TkH&9ZShGwy@" /etc/yum.repos.d/edb.repo
+
+
+# Install EPEL repository
+yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+# Enable the optional, extras, and HA repositories since EPEL packages may depend on packages from these repositories
+subscription-manager repos --enable "rhel-*-optional-rpms" --enable "rhel-*-extras-rpms"  --enable "rhel-ha-for-rhel-*-server-rpms"
+
+# Install selected packages
+yum -y install edb-as13-server 
+
+# Initialize Database cluster
+mkdir <data_dir>
+chmod 0700 <data_dir>
+chown postgres:postgres <data_dir>
+sudo su - postgres
+/usr/edb/as13/bin/initdb -D <data_dir> -U postgres
+
+# Change systemctl
+[root@WH-EPAS-SRC pgsql]# cat /etc/systemd/system/multi-user.target.wants/edb-as-13.service
+# It's not recommended to modify this file in-place, because it will be
+# overwritten during package upgrades.  If you want to customize, the
+# best way is to create a file "/etc/systemd/system/edb-as-13.service",
+# containing
+#       .include /lib/systemd/system/edb-as-13.service
+#       ...make your changes here...
+# For more info about custom unit files, see
+# http://fedoraproject.org/wiki/Systemd#How_do_I_customize_a_unit_file.2F_add_a_custom_unit_file.3F
+
+# Note: changing PGDATA will typically require adjusting SELinux
+# configuration as well.
+
+[Unit]
+Description=EDB Postgres Advanced Server 13
+After=syslog.target network.target
+
+[Service]
+Type=notify
+
+User=postgres
+Group=postgres
+
+# Location of database directory
+Environment=PGDATA=/pgsql/epas13
+PIDFile=/pgsql/epas13/postmaster.pid
+
+# Where to send early-startup messages from the server (before the logging
+# options of postgresql.conf take effect)
+# This is normally controlled by the global default set by systemd
+# StandardOutput=syslog
+
+# Disable OOM kill on the postmaster
+OOMScoreAdjust=-1000
+
+ExecStartPre=/usr/edb/as13/bin/edb-as-13-check-db-dir ${PGDATA}
+ExecStart=/usr/edb/as13/bin/edb-postmaster -D ${PGDATA}
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGINT
+
+# Give a reasonable amount of time for the server to start up/shut down
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target
+
+# Start Database server
+systemctl start edb-as-13
+
+# Connect to the database server
+# sudo su - enterprisedb
+# psql postgres
+
+
+
+
+
+
+[root@WH-EPAS-SRC pgsql]# cat /etc/systemd/system/multi-user.target.wants/edb-as-13.service
+# It's not recommended to modify this file in-place, because it will be
+# overwritten during package upgrades.  If you want to customize, the
+# best way is to create a file "/etc/systemd/system/edb-as-13.service",
+# containing
+#       .include /lib/systemd/system/edb-as-13.service
+#       ...make your changes here...
+# For more info about custom unit files, see
+# http://fedoraproject.org/wiki/Systemd#How_do_I_customize_a_unit_file.2F_add_a_custom_unit_file.3F
+
+# Note: changing PGDATA will typically require adjusting SELinux
+# configuration as well.
+
+[Unit]
+Description=EDB Postgres Advanced Server 13
+After=syslog.target network.target
+
+[Service]
+Type=notify
+
+User=postgres
+Group=postgres
+
+# Location of database directory
+Environment=PGDATA=/pgsql/epas13
+PIDFile=/pgsql/epas13/postmaster.pid
+
+# Where to send early-startup messages from the server (before the logging
+# options of postgresql.conf take effect)
+# This is normally controlled by the global default set by systemd
+# StandardOutput=syslog
+
+# Disable OOM kill on the postmaster
+OOMScoreAdjust=-1000
+
+ExecStartPre=/usr/edb/as13/bin/edb-as-13-check-db-dir ${PGDATA}
+ExecStart=/usr/edb/as13/bin/edb-postmaster -D ${PGDATA}
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGINT
+
+# Give a reasonable amount of time for the server to start up/shut down
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target

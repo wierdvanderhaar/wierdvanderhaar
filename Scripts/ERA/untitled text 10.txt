@@ -1,0 +1,215 @@
+era -c 'database create_standby generate_input_file type=oracle_database single_instance create_dbserver=true use_software_profile=true software="Oracle19" software_version="Oracle19-SI (19.12.0)" compute="Medium" network="Oracle-SI" nx_cluster_name="EraCluster" db_parameter="8g" output_file=/home/era/JSON/create_standby_DEMO.json'
+era -c 'database create_standby engine=oracle_database name=TESTDBS input_file=create_standby_DEMO_edited.json sla="Daily-Only" description="Standby database for TESTDB"'
+
+{
+  "createInfo": [
+    {
+      "name": "application_type",
+      "description": "The type of the database.",
+      "value": "oracle_database"
+    },
+    {
+      "name": "sys_asm_password",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. The password for the SYS user of ASM.",
+      "value": ""
+    },
+    {
+      "name": "dbserver_name",
+      "description": "Name of the VM to be created in Prism",
+      "value": "WH-CFL-S01"
+    },
+    {
+      "name": "dbserver_description",
+      "description": "Description of the VM to be created in Prism",
+      "value": "Standby Server for TESTDB"
+    },
+    {
+      "name": "global_database_name",
+      "description": "The global name of the database.",
+      "value": "TESTDBS"
+    },
+    {
+      "name": "oracle_sid",
+      "description": "The SID of the new database that will be created as a result of the clone operation. The SID can have a maximum of 12 alphanumeric characters. The first character of the SID should be an alphabet.",
+      "value": "TESTDB"
+    },
+    {
+      "name": "listener_port",
+      "description": "The port which the listener will use.",
+      "value": "1521"
+    },
+    {
+      "name": "working_dir",
+      "description": "A temporary directory which will be used to stage scripts and other artifacts. It will be deleted at the end of the create process. Example: /tmp, /var/opt/tmp, C:/Temp, etc",
+      "value": "/tmp"
+    },
+    {
+      "name": "auto_tune_staging_drive",
+      "description": "Autoextend the Staging Drive.",
+      "value": "true"
+    },
+    {
+      "name": "primary_host_ip",
+      "description": "The IP address of the Primary Database Host.",
+      "value": "10.68.101.180"
+    },
+    {
+      "name": "primary_username",
+      "description": "Host Username of the Primary Database. A privileged user with sudo access.",
+      "value": "oracle"
+    },
+    {
+      "name": "primary_password",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. Host Password for the Primary Database. Either the password or the SSH private/public keys have to be provided.",
+      "value": "Nutanix_4u"
+    },
+    {
+      "name": "primary_ssh_private_key",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. Host SSH private key for the Primary Database. Either the password or the SSH private/public keys have to be provided.",
+      "value": ""
+    },
+    {
+      "name": "primary_oracle_home",
+      "description": "Location of the directory where the Oracle Database software is installed.",
+      "value": "/u02/app/oracle/product/19.0.0/dbhome_1"
+    },
+    {
+      "name": "primary_oracle_sid",
+      "description": "The SID of the Primary Database.",
+      "value": "TESTDB"
+    },
+    {
+      "name": "primary_grid_home",
+      "description": "Location of the directory where the Oracle Grid Infrastructure software is installed. This is an optional parameter.",
+      "value": ""
+    },
+    {
+      "name": "primary_listener_port",
+      "description": "The Listener Port used by Primary Database.",
+      "value": "1521"
+    },
+    {
+      "name": "primary_sys_password",
+      "description": "THIS IS A SENSITIVE FIELD. If left blank, you would be prompted for input during command execution. The password for the SYS user of the primary database.",
+      "value": ""
+    },
+    {
+      "name": "protection_mode",
+      "description": "The Protection Mode for Dataguard Configuration.",
+      "value": "maxperformance"
+    },
+    {
+      "name": "mount_mode",
+      "description": "The Mount Mode for Standby Database.",
+      "value": "mount"
+    },
+    {
+      "name": "primary_other_host_ips",
+      "description": "The IP addresses of all other Primary Database Hosts.",
+      "value": ""
+    },
+    {
+      "name": "backup_location",
+      "description": "Location of backup on Primary Database Host.",
+      "value": ""
+    },
+    {
+      "name": "dataguard_properties",
+      "description": "Dataguard properties to be set in dgmgrl for primary and standby database in semi-colon separated format.For example: logxptmode=SYNC;DelayMins=120",
+      "value": "logxptmode=SYNC"
+    },
+    {
+      "name": "scan_name",
+      "description": "The SCAN name for the RAC.",
+      "value": ""
+    },
+    {
+      "name": "cluster_name",
+      "description": "Name of the RAC Cluster.",
+      "value": ""
+    },
+    {
+      "name": "dbserver_timezone",
+      "value": "UTC",
+      "description": "The timezone of the dbserver to be provisioned."
+    },
+    {
+      "name": "softwareProfileId",
+      "value": "fd3c33a7-f98c-4493-a7f0-bc3ded24ad8b"
+    },
+    {
+      "name": "softwareProfileVersionId",
+      "value": "198d5eda-a7c7-4ac3-85ca-f1265c521bd6"
+    },
+    {
+      "name": "vm_password",
+      "value": ""
+    },
+    {
+      "name": "computeProfileId",
+      "value": "15fc122d-fe32-414d-8b22-c98022f9d6ba"
+    },
+    {
+      "name": "networkProfileId",
+      "value": "41d1cd75-0927-4393-b8fd-06b91b1dff76"
+    },
+    {
+      "name": "dbParameterProfileId",
+      "value": "fd36b31a-d7e7-41dc-a618-530dcf9b6437"
+    },
+    {
+      "name": "createDbserver",
+      "value": "true"
+    },
+    {
+      "name": "nodeCount",
+      "value": 1
+    },
+    {
+      "name": "clustered",
+      "value": "false"
+    },
+    {
+      "name": "client_public_key",
+      "value": "/home/era/id_rsa.pub"
+    },
+    {
+      "name": "nxClusterName",
+      "value": "EraCluster"
+    }
+  ],
+  "timeMachineInfo": {
+    "schedule": {
+      "snapshotTimeOfDay": {
+        "hours": 1,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "continuousSchedule": {
+        "enabled": true,
+        "logBackupInterval": 30,
+        "snapshotsPerDay": 2
+      },
+      "weeklySchedule": {
+        "enabled": true,
+        "dayOfWeek": "SUNDAY"
+      },
+      "monthlySchedule": {
+        "enabled": true,
+        "dayOfMonth": 15
+      },
+      "quartelySchedule": {
+        "enabled": true,
+        "startMonth": "JANUARY",
+        "dayOfMonth": 15
+      },
+      "yearlySchedule": {
+        "enabled": false,
+        "dayOfMonth": 31,
+        "month": "DECEMBER"
+      }
+    },
+    "autoTuneLogDrive": true
+  }
+
+era -c 'database create_standby engine=oracle_database name=TESTDBS input_file=create_standby_DEMO_edited.json sla="Daily-Only" description="Standby database for TESTDB"'

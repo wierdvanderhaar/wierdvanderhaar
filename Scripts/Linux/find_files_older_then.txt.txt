@@ -1,0 +1,9 @@
+find /path/to/files* -mtime +5 -exec rm {} \;
+
+
+find /tmp -name tmp.* -type f -mmin +360 -delete
+
+for f in *.dat; do echo "Processing $f file ... " ; cat $f | sed 's/|/ /' | awk '{print $1,$14}' | grep "100.00"; done > /tmp/IOSTAT-PODA1-N1.log
+
+
+

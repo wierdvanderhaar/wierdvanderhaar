@@ -1,0 +1,55 @@
+find /vmbackup/*.tgz -mtime +31 -exec rm {} \;
+
+
+export SCRIPTDIR=/root/backup
+export LOGDIR=${SCRIPTDIR}/logging
+export BACKUPDIR=/vmbackup
+export DATE=`date +%Y%m%d`
+# List alle actieve VM's op deze OVS Server.
+/root/backup/listvms.sh
+for file in /root/backup/logging/000*
+do
+# do something on "$file"
+# echo $file
+filename=$file
+IFS=$'\n'
+old_IFS=$IFS
+IFS=$'\n'
+lines=($(cat $file)) # array
+export vmname=${lines[0]}
+echo $vmname
+export vmuuid=${lines[1]}
+echo $vmuuid
+export vmconfig=${lines[2]}
+echo $vmconfig
+IFS=$old_IFS
+###########################
+# Stop VM in kwestie
+###########################
+echo "`date`" 														> ${LOGDIR}/${DATE}_${vmname}.log
+echo "$vmname wordt NU Gestopt!!!!"									>> ${LOGDIR}/${DATE}_${vmname}.log
+xm shutdown $vmuuid													>> ${LOGDIR}/${DATE}_${vmname}.log
+##########################################################
+# Check of de NFS share beschikbaar is. Zo niet mount deze.			>> ${LOGDIR}/${DATE}_${vmname}.log
+##########################################################
+if [ $(mount | grep -c ${BACKUPDIR}) != 1 ]
+then
+        /bin/mount ${BACKUPDIR} || exit 1
+        echo "${BACKUPDIR} is now mounted"							>> ${LOGDIR}/${DATE}_${vmname}.log
+else
+        echo "${BACKUPDIR} already mounted"							>> ${LOGDIR}/${DATE}_${vmname}.log
+fi
+###########################
+# Start backup van de VM											
+###########################
+echo "Start backup van $vmname | `date`" 							>> ${LOGDIR}/${DATE}_${vmname}.log
+${SCRIPTDIR}/backup-vm-as-template.sh $vmuuid $BACKUPDIR			>> ${LOGDIR}/${DATE}_${vmname}.log
+###########################
+# Start VM in kwestie
+###########################
+echo "Start VM $vmname | `date`" 							>> ${LOGDIR}/${DATE}_${vmname}.log
+xm create ${vmconfig}
+done
+
+
+

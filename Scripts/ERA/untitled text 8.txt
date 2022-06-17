@@ -1,0 +1,81 @@
+ Bader Florence
+ Baker Anne
+ Baker Timothy
+ Boothe Tim
+ Butters Gerald
+ Coplin Joan
+ Crumpet Erica
+ Dare Nancy
+ Genting Matthew
+ Hunt John
+ Jones David
+ Jones Douglas
+ Joplette Janice
+ Mackenzie Anna
+ Owen Charles
+ Pinker David
+ Purview Millicent
+ Rumney Henrietta
+ Sarwin Ramnaresh
+ Smith Jack
+ Stibbons Ponder
+ Worthington-Smyth Henry
+
+
+ Bader             | Florence
+ Baker             | Anne
+ Baker             | Timothy
+ Boothe            | Tim
+ Butters           | Gerald
+ Coplin            | Joan
+ Crumpet           | Erica
+ Dare              | Nancy
+ Farrell           | David
+ Farrell           | Jemima
+ GUEST             | GUEST
+ Genting           | Matthew
+ Hunt              | John
+ Jones             | David
+ Jones             | Douglas
+ Joplette          | Janice
+ Mackenzie         | Anna
+ Owen              | Charles
+ Pinker            | David
+ Purview           | Millicent
+ Rownam            | Tim
+ Rumney            | Henrietta
+ Sarwin            | Ramnaresh
+ Smith             | Darren
+ Smith             | Jack
+ Smith             | Tracy
+ Stibbons          | Ponder
+ Tracy             | Burton
+ Tupperware        | Hyacinth
+ Worthington-Smyth | Henry
+ 
+ 
+ 
+select m.surname, m.firstname
+from cd.members m
+where 1=1
+and m.recommendedby is not null
+and m.memid in (select recommendedby from members) 
+order by m.surname, m.firstname;
+
+
+update cd.facilities set 
+membercost = (select membercost * 1.1 from cd.facilities where name = 'Tennis Court 1'),
+guestcost = (select guestcost * 1.1 from cd.facilities where name = 'Tennis Court 1')
+where name = 'Tennis Court 2';
+
+INSERT INTO sample
+  (id, age,sport)
+VALUES (
+  (SELECT max(id)+1 FROM sample)                 /* id */,
+  (select max(age)+1 from sample),
+  'Basketball'
+);
+
+
+
+insert into sample 

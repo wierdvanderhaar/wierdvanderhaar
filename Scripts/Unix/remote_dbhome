@@ -1,0 +1,91 @@
+#! /bin/ksh
+#
+# Naam       : remote_dbhome
+# Aanroep    : remote_dbhome database
+#
+# Omschrijving
+# ------------
+# Bepaal de ORACLE_HOME van de opgegeven database.
+# De opgegeven database kan ook remote zijn.
+#
+# Mutatie historie
+# ----------------
+
+ORATAB_LOC=/var/opt/oracle/oratab
+ORASETTINGS_LOC=/var/opt/oracle/orasettings
+
+# ------------------------------------------------------------ 
+# Naam       : Help_Aanroep
+# Parameters : -
+#
+# Omschrijving
+# ------------
+# Toon hoe het script aangeroepen moet worden.
+# ------------------------------------------------------------ 
+
+Help_Aanroep() {
+   (
+   echo "Gebruik :" ${0} Database...
+   ) >&2
+}
+
+# ------------------------------------------------------------ 
+# Naam       : Get_DB_OH
+# Parameters : DB
+#
+# Omschrijving
+# ------------
+# Bepaal de Oracle Home die bij de database hoort (DB_OH)
+# ------------------------------------------------------------ 
+
+Get_DB_OH()
+{
+   # Bepaal de hoogste ORACLE_HOME versie
+
+   OH=`grep ':' ${ORATAB_LOC} | grep -v '^#' | grep -v '^*' | cut -d: -f 2 | sort | tail -1`
+   if [ ! -x ${OH}/bin/oraenv ]; then
+      echo ${0}: Initialisatiescript ${OH}/bin/oraenv ontbreekt voor database ${1}
+      exit 1
+   fi
+
+   # Selecteer een willekeurige ORACLE_SID voor de gevonden ORACLE_HOME
+
+   ORACLE_SID=`grep ':'${OH}':' ${ORATAB_LOC} | grep -v '^#' | grep -v '^*'  | head -1 | cut -d: -f 1`
+
+   # Stel de omgeving in
+
+   ORAENV_ASK=NO
+   . ${OH}/bin/oraenv
+
+   # Initialiseer TWO_TASK
+
+   export TWO_TASK=${1}
+   unset ORACLE_SID
+
+   # Bepaal aanmeld credentials
+
+   EXPORT_USER=`grep '^EXPORT_USER=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+   EXPORT_PWD=`grep '^EXPORT_PWD=' ${ORASETTINGS_LOC} | cut -d= -f 2`
+
+   # Bepaal ORACLE_HOME
+   DB_OH=` (
+               echo whenever oserror exit
+               echo whenever sqlerror exit
+               echo connect ${EXPORT_USER}/${EXPORT_PWD}
+               echo set heading off
+               echo set feedback off
+               echo set heading off
+               echo "SELECT '#'||MY_ORACLE_HOME||'#' FROM DUAL;"
+               echo exit
+           ) | ${ORACLE_HOME}/bin/sqlplus -S /nolog 2>/dev/null |
+           grep '#' | cut -d: -f 2`
+}
+
+for DB_NAME in ${*}; do
+   DB_OH=`grep '^'${DB_NAME}':' ${ORATAB_LOC} | cut -d: -f 2`
+   if [ -z ${DB_OH} ]; then
+      Get_DB_OH ${DB_NAME}
+   fi
+   echo ${DB_OH}
+done
+

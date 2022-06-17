@@ -1,0 +1,36 @@
+create tablespace node1_ts 
+with (replica_placement='{"num_replicas": 1, "placement_blocks": [{"cloud":"local","region":"europe","zone":"gorinchem","min_num_replicas":1}]}');
+create tablespace node2_ts 
+with (replica_placement='{"num_replicas": 1, "placement_blocks": [{"cloud":"local","region":"europe","zone":"dalem","min_num_replicas":1}]}');
+create tablespace node3_ts 
+with (replica_placement='{"num_replicas": 1, "placement_blocks": [{"cloud":"local","region":"europe","zone":"vuren","min_num_replicas":1}]}');
+
+
+create table transactions (
+user_id INTEGER NOT NULL,
+account_id INTEGER NOT NULL,
+geo_partition VARCHAR,
+account_type VARCHAR NOT NULL,
+amount NUMERIC NOT NULL,
+txn_type VARCHAR NOT NULL,
+created_at TIMESTAMP DEFAULT NOW())
+
+
+
+create table transactions_gorinchem 
+PARTITION OF transactions 
+(user_id,account_id,geo_partition,account_type,amount,txn_type,created_at,
+PRIMARY KEY (user_id HASH, account_id, geo_partition))
+FOR VALUES IN ('gorinchem') tablespace node1_ts;
+ 
+create table transactions_dalem
+PARTITION OF transactions 
+(user_id,account_id,geo_partition,account_type,amount,txn_type,created_at,
+PRIMARY KEY (user_id HASH, account_id, geo_partition))
+FOR VALUES IN ('dalem') tablespace node2_ts;
+ 
+create table transactions_vuren
+PARTITION OF transactions 
+(user_id,account_id,geo_partition,account_type,amount,txn_type,created_at
+PRIMARY KEY (user_id HASH, account_id, geo_partition))
+FOR VALUES IN ('vuren') tablespace node3_ts;

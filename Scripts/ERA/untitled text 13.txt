@@ -1,0 +1,41 @@
+admin@NTNX-19SM5A490063-A-CVM:10.68.101.31:~$ acli vg.get 32f9d239-cdf4-41b4-9d9b-4fbeb3259730
+ERA_ODB01_DATADG_VG_c66794e8 {
+  attachment_list {
+    vm_uuid: "5a2dc802-4c09-41df-bd8d-d20cecd6acd2"
+  }
+  created_by: "ERA"
+  disk_list {
+    container_id: 127744
+    container_uuid: "c5f986fc-a314-403a-a83b-e1292f811894"
+    index: 0
+    vmdisk_size: 53687091200
+    vmdisk_uuid: "f80388ae-6d9d-4ff8-becc-c41485f02351"
+  }
+  disk_list {
+    container_id: 127744
+    container_uuid: "c5f986fc-a314-403a-a83b-e1292f811894"
+    index: 1
+    vmdisk_size: 53687091200
+    vmdisk_uuid: "db6650a0-ed6b-4077-91b4-f1e518058584"
+  }
+  disk_list {
+    container_id: 127744
+    container_uuid: "c5f986fc-a314-403a-a83b-e1292f811894"
+    index: 2
+    vmdisk_size: 53687091200
+    vmdisk_uuid: "ce4245d0-5f17-4218-a2bd-b30ad7add2ac"
+  }
+  disk_list {
+    container_id: 127744
+    container_uuid: "c5f986fc-a314-403a-a83b-e1292f811894"
+    index: 3
+    vmdisk_size: 53687091200
+    vmdisk_uuid: "744dd87e-4ba0-4a9c-a996-cfc6460095f3"
+  }
+  iscsi_target_name: "volumegroup-32f9d239-cdf4-41b4-9d9b-4fbeb3259730"
+  load_balance_vm_attachments: True
+  logical_timestamp: 3
+  name: "ERA_ODB01_DATADG_VG_c66794e8"
+  shared: True
+  uuid: "32f9d239-cdf4-41b4-9d9b-4fbeb3259730"
+}

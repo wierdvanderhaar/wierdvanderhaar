@@ -1,0 +1,51 @@
+Oracle 10 install op OEL 6
+yum install libXp
+yum install libXtst
+yum install libXp.i686
+yum install libXtst.i686
+yum install glibc.i686
+yum install libgcc.i686
+
+
+
+
+glibc-devel
+•compat-db-4.2.52-5.1.i386.rpm 
+•compat-libstdc++-33-3.2.3-61.i386.rpm 
+•libXp-1.0.0-8.i386.rpm 
+
+
+yum install glibc
+yum install glibc-common
+yum install gcc
+yum install gcc-c++
+yum install libstdc++
+yum install libstdc++-devel
+yum install libaio
+yum install binutils
+yum install make
+yum install compat-db
+yum install gnome-libs
+yum install pdksh
+yum install sysstat
+
+yum install glibc.i686
+yum install glibc-common.i686
+yum install gcc.i686
+yum install gcc-c++.i686
+yum install libstdc++.i686
+yum install libstdc++-devel.i686
+yum install libaio.i686
+yum install binutils.i686
+yum install make.i686
+yum install compat-db.i686
+yum install gnome-libs.i686
+yum install pdksh.i686
+yum install sysstat.i686
+
+compat-db-4.1.25-9cpp-3.4.6-8.0.1gcc-3.4.6-8.0.1gcc-c++-3.4.6-8.0.1gcc-g77-3.4.6-8.0.1gcc-java-3.4.6-8.0.1glibc-2.3.4-2.36glibc-common-2.3.4-2.36glibc-devel-2.3.4-2.36java-1.4.2-gcj-compat-1.4.2.0-27jpplibgcc-3.4.6-8.0.1libstdc++-3.4.6-8.0.1
+export LD_LIBRARY_PATH=$ORACLE_HOME/lib 
+ln ­-s /usr/bin/basename /bin/basename 
+ln ­-s $ORACLE_HOME/lib/libclient10.a $ORACLE_HOME/lib/libagtsh.a 
+$ORACLE_HOME/bin/genagtsh $ORACLE_HOME/lib/libagtsh.so 1.0 
+

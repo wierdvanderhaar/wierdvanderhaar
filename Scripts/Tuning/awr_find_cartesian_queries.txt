@@ -1,0 +1,12 @@
+select 	sql_id,
+	cost, 
+	cpu_cost, 
+	io_cost, 
+	temp_space
+-- to_char(timestamp,'YYYY-MON-DD HH24:MI:SS')
+from dba_hist_sql_plan 
+where operation = 'MERGE JOIN' 
+and options = 'CARTESIAN' 
+and object_owner <> 'SYS' 
+order by 2,3,4,5
+/

@@ -1,0 +1,84 @@
+SELECT 	cv.recseq, NVL(cv.bsn, :"SYS_B_0") AS bsn, 
+	TO_CHAR(cv.gebdat, :"SYS_B_1") AS gebdat, 
+	cv.geslachtnr, 
+	cv.naam, 
+	cv.voorl, 
+	cv.voorv, 
+	cv.mnaam, 
+	cv.mvoorv, 
+	cv.afwadres, 
+	cv.afwhuisnr, 
+	cv.afwpc1, 
+	cv.afwpc2, 
+	cv.afwwoonpl, 
+	cp.dpolsseq, 
+	cp.mutseq, 
+	cp.agentnr, 
+	cp.hfdwijznr, 
+	cp.clientnr, 
+	NVL(a.agnt_combinatiecode, :"SYS_B_2") AS agnt_combinatiecode 
+FROM 	vta.cvobjzorgdetail cv 
+	INNER JOIN vta.cpolsdetail cp ON (cp.dpolsseq = cv.dpolsseq AND cp.mutseq = cv.mutseq) 
+	INNER JOIN vta.agnt a ON (a.agnt_nr = cp.agentnr) 
+	WHERE cv.mutseq = (SELECT MAX(cv2.mutseq) 
+				FROM vta.cvobjzorgdetail cv2 
+				WHERE cv2.dpolsseq = cv.dpolsseq 
+				AND cv2.dvobjseq = cv.dvobjseq 
+				AND cv2.mutseq IN (SELECT cp.mutseq 
+						FROM vta.cpolsdetail cp 
+						WHERE cp.dpolsseq = cv2.dpolsseq 
+						AND cp.hfdwijznr IN (SELECT h.hfdwijznr FROM vta.hfdwijz h WHERE h.meenemen_in_selectie = :"SYS_B_3"))) 
+						AND (cv.einddat IS NULL OR cv.einddat > TO_DATE(:"SYS_B_4", :"SYS_B_5")) 
+						AND NVL(a.agnt_combinatiecode, :"SYS_B_6") <> :"SYS_B_7" 
+						AND NVL(cv.bsn, :"SYS_B_8") = :p_bsn 
+ORDER BY cv.gebdat, cv.geslachtnr, cv.naam, cv.voorl
+
+
+
+Plan hash value: 2437093227
+
+--------------------------------------------------------------------------------
+-------------------------------------
+| Id  | Operation                           | Name                  | Rows  | Bytes |TempSpc| Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                       |     1 |126 |       |   121K  (2)| 00:24:14 |
+|   1 |  SORT ORDER BY                      |                       |     1 |126 |       |   121K  (2)| 00:24:14 |
+|   2 |   NESTED LOOPS                      |                       |     1 |126 |       |   121K  (2)| 00:24:14 |
+|   3 |    NESTED LOOPS                     |                       |     1 |120 |       |   121K  (2)| 00:24:14 |
+|*  4 |     HASH JOIN                       |                       |     1 | 97 |       |   121K  (2)| 00:24:14 |
+|*  5 |      TABLE ACCESS FULL              | CVOBJZORGDETAIL       |    28 |  2016 |       | 43616   (2)| 00:08:44 |
+|   6 |      VIEW                           | VW_SQ_1               |   414K|  9M|       | 77486   (2)| 00:15:30 |
+|*  7 |       FILTER                        |                       |       |    |       |            |          |
+|   8 |        HASH GROUP BY                |                       |   414K| 18M|   468M| 77486   (2)| 00:15:30 |
+|*  9 |         HASH JOIN                   |                       |  8284K|371M|       | 39675   (1)| 00:07:57 |
+|  10 |          TABLE ACCESS BY INDEX ROWID| HFDWIJZ               |     7 | 35 |       |     2   (0)| 00:00:01 |
+|* 11 |           INDEX RANGE SCAN          | HFDWIJZ_MEENEMIS_IDX  |     7 |    |       |     1   (0)| 00:00:01 |
+|* 12 |          HASH JOIN                  |                       |  9467K|379M|   120M| 39612   (1)| 00:07:56 |
+|  13 |           INDEX FAST FULL SCAN      | CPOLSDETAIL_IDX150    |  4866K| 64M|       |  6689   (1)| 00:01:21 |
+|  14 |           INDEX FAST FULL SCAN      | CVOBJZORGDETAIL_IDX07 |  9193K|245M|       |  9383   (1)| 00:01:53 |
+|  15 |     TABLE ACCESS BY INDEX ROWID     | CPOLSDETAIL           |     1 | 23 |       |     1   (0)| 00:00:01 |
+|* 16 |      INDEX UNIQUE SCAN              | CPOLSDETAIL_UQ        |     1 |    |       |     1   (0)| 00:00:01 |
+|* 17 |    TABLE ACCESS BY INDEX ROWID      | AGNT                  |     1 |  6 |       |     2   (0)| 00:00:01 |
+|* 18 |     INDEX UNIQUE SCAN               | AGNT_NR_PK            |     1 |    |       |     1   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   4 - access("CV"."MUTSEQ"="VW_COL_1" AND SYS_OP_DESCEND("CV"."MUTSEQ")=SYS_OP_
+DESCEND("VW_COL_1") AND
+              "DPOLSSEQ"="CV"."DPOLSSEQ" AND "DVOBJSEQ"="CV"."DVOBJSEQ")
+   5 - filter(NVL("CV"."BSN",:SYS_B_8)=TO_NUMBER(:P_BSN) AND ("CV"."EINDDAT" IS
+NULL OR
+              "CV"."EINDDAT">TO_DATE(:SYS_B_4,:SYS_B_5)))
+   7 - filter(MAX(SYS_OP_UNDESCEND(SYS_OP_DESCEND("MUTSEQ")))>=1)
+   9 - access("CP"."HFDWIJZNR"="H"."HFDWIJZNR")
+  11 - access("H"."MEENEMEN_IN_SELECTIE"=:SYS_B_3)
+  12 - access(SYS_OP_UNDESCEND(SYS_OP_DESCEND("MUTSEQ"))="CP"."MUTSEQ" AND
+              SYS_OP_DESCEND("MUTSEQ")=SYS_OP_DESCEND("CP"."MUTSEQ") AND "CP"."D
+POLSSEQ"="CV2"."DPOLSSEQ")
+  16 - access("CP"."DPOLSSEQ"="CV"."DPOLSSEQ" AND "CP"."MUTSEQ"="CV"."MUTSEQ")
+  17 - filter(NVL("A"."AGNT_COMBINATIECODE",:SYS_B_6)<>TO_NUMBER(:SYS_B_7))
+  18 - access("A"."AGNT_NR"="CP"."AGENTNR")
+
+41 rows selected.

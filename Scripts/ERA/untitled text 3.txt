@@ -1,0 +1,9 @@
+Customer name: Systematic A/S 
+Subscription Type(POC/Paid) : POC (HPOC)
+
+Description: 
+Trying to provision a Postgres 13 VM based upon a created SW Profile (CentOS7). The creation of the VM fails with error:
+Message:
+Failed to create DBServer VM. Reason : "'Failed to get the IP.'"
+
+See diag-bundle.

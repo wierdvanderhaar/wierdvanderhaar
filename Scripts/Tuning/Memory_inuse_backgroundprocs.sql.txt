@@ -1,0 +1,34 @@
+SELECT PROGRAM, PGA_USED_MEM, PGA_ALLOC_MEM/(1024*1024) "ALLOCATION(MB)", PGA_FREEABLE_MEM FREEABLE, PGA_MAX_MEM FROM V$PROCESS ORDER BY PGA_ALLOC_MEM ASC;
+
+SELECT round(sum(PGA_ALLOC_MEM/(1024*1024)),0) FROM V$PROCESS;
+
+TOTAAL GEHEUGEN. SGA + PGA
+select round(sum(sga.sgasum+pga.pgasum),0) as "Geheugen Totaal" from
+(SELECT sum(PGA_ALLOC_MEM/(1024*1024)) as pgasum FROM V$PROCESS) pga,
+(select sum(value)/1024/1024 as sgasum from v$sga) sga;
+
+select pid, spid, substr(username,1,20) "USER" , substr(program,1,30) "Program",
+PGA_USED_MEM, PGA_ALLOC_MEM, PGA_FREEABLE_MEM, PGA_MAX_MEM
+from v$process where pga_alloc_mem=
+(select max(pga_alloc_mem) from v$process
+where program not like '%LGWR%');
+
+set pages500 lines110 trims on 
+clear col 
+col name format a30  
+col username format a20 
+break on username nodup skip 1 
+
+select vses.username||':'||vsst.sid||','||vses.serial# username, vstt.name, max(vsst.value) value  
+from v$sesstat vsst, v$statname vstt, v$session vses 
+where vstt.statistic# = vsst.statistic# and vsst.sid = vses.sid and vstt.name in  
+('session pga memory','session pga memory max','session uga memory','session uga memory max',  
+'session cursor cache count','session cursor cache hits','session stored procedure space', 
+'opened cursors current','opened cursors cumulative') and vses.username is not null 
+group by vses.username, vsst.sid, vses.serial#, vstt.name order by vses.username, vsst.sid, vses.serial#, vstt.name; 
+
+SELECT sid, to_char(sysdate,'mi:ss') time,
+round(work_area_size/1048576, 1) work_area_size_mb,
+round(max_mem_used/1048576, 1) max_mem_used_mb, number_passes, nvl(tempseg_size/1048576, 0) tempseg_size_mb
+FROM v$sql_workarea_active
+ORDER BY sid;

@@ -1,0 +1,16 @@
+#!/bin/bash
+network_etc="/etc/sysconfig/network-scripts"
+if [ "$1" == "eth0" ] ; then
+        cp /etc/sysconfig/network-scripts/ifcfg-eth* /tmp
+        cat /tmp/ifcfg-eth0 | sed s/ONBOOT\=no/ONBOOT\=yes/g > $network_etc/ifcfg-eth0
+        cat /tmp/ifcfg-eth1 | sed s/ONBOOT\=yes/ONBOOT\=no/g > $network_etc/ifcfg-eth1
+else
+ if [ "$1" == "eth1" ] ; then
+        cp /etc/sysconfig/network-scripts/ifcfg-eth* /tmp
+        cat /tmp/ifcfg-eth1 | sed s/ONBOOT\=no/ONBOOT\=yes/g > $network_etc/ifcfg-eth1
+        cat /tmp/ifcfg-eth0 | sed s/ONBOOT\=yes/ONBOOT\=no/g > $network_etc/ifcfg-eth0
+else
+        echo "Geef ethernet adapter mee als argument."
+        echo "  vb ./switch-primary eth0"
+fi
+fi

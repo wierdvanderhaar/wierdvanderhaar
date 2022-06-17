@@ -1,0 +1,4 @@
+SELECT disk_reads, executions, disk_reads/executions, address, hash_value, sql_text FROM v$sqlarea 
+WHERE disk_reads > 10000 ORDER BY disk_reads,executions;
+
+

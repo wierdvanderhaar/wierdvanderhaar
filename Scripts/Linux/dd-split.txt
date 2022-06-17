@@ -1,0 +1,224 @@
+NGDW => Moet => 
+DSP => ACFS => 
+- 
+- 
+
+
+rsync --ignore-existing /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/datafile/* /u03/app/oracle/NGDW-HERSTEL/
+
+nohup for i in {1..1000}; "rsync --ignore-existing /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/datafile/* /u03/app/oracle/NGDW-HERSTEL/"; done &
+
+
+[grid@oda01 trace]$ asmcmd lsdg
+State    Type    Rebal  Sector  Logical_Sector  Block       AU  Total_MB  Free_MB  Req_mir_free_MB  Usable_file_MB  Offline_disks  Voting_files  Name
+MOUNTED  NORMAL  N         512             512   4096  4194304   9778176  5819612                0         2904708              1             Y  DATA/
+MOUNTED  NORMAL  N         512             512   4096  4194304   1230848   860180                0          424976              1             N  RECO/
+
+
+rsync -avz --ignore-existing /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/* /u03/app/oracle/NGDW-HERSTEL/
+
+
+SQL>  !asmcmd lsdg
+State    Type    Rebal  Sector  Logical_Sector  Block       AU  Total_MB  Free_MB  Req_mir_free_MB  Usable_file_MB  Offline_disks  Voting_files  Name
+MOUNTED  NORMAL  N         512             512   4096  4194304   9778176  5819612                0         2904708              1             Y  DATA/
+MOUNTED  NORMAL  N         512             512   4096  4194304   1230848   860164                0          424968              1             N  RECO/
+
+
+
+[root@oda01 ~]# du -h /u03/app/oracle/NGDW-HERSTELz/
+52K     /u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile
+104K    /u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9
+52K     /u03/app/oracle/NGDW-HERSTEL/datafile
+3.0G    /u03/app/oracle/NGDW-HERSTEL/
+
+[root@oda01 ~]# du -h /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/
+3.0G    /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/datafile
+38G     /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile
+38G     /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9
+41G     /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/
+
+[root@oda01 ~]# du -h /u03/app/oracle/NGDW-HERSTEL/
+23G     /u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile
+23G     /u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9
+52K     /u03/app/oracle/NGDW-HERSTEL/datafile
+26G     /u03/app/oracle/NGDW-HERSTEL/
+
+
+202-AM.dbf": Input/output error (5)
+WARNING: 8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf failed verification -- update discarded (will try again).
+rsync: send_files failed to open "/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf": Input/output error (5)
+
+sent 180,719,577 bytes  received 952 bytes  2,759,092.05 bytes/sec
+total size is 43,660,156,928  speedup is 241.59
+rsync error: some files/attrs were not transferred (see previo
+
+
+SQL> /
+
+GROUP_NUMBER DISK_NUMBER COMPOUND_INDEX INCARNATION MOUNT_S HEADER_STATU MODE_ST STATE    REDUNDA LIBRARY             OS_MB    TOTAL_MB    FREE_MB HOT_USED_MB COLD_USED_MB NAME                           FAILGROUP
+------------ ----------- -------------- ----------- ------- ------------ ------- -------- ------- ---------------------------------------------------------------- ---------- ---------- ---------- ----------- ------------ ------------------------------ ------------------------------
+LABEL                           PATH
+------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+UDID                                                             PRODUCT                          CREATE_DA MOUNT_DAT REPAIR_TIMER     READS     WRITES  READ_ERRS WRITE_ERRS READ_TIMEOUT WRITE_TIMEOUT  READ_TIME WRITE_TIME BYTES_READ BYTES_WRITTEN P HASH_VALUE  HOT_READS HOT_WRITES HOT_BYTES_READ
+---------------------------------------------------------------- -------------------------------- --------- --------- ------------ ---------- ---------- ---------- ---------- ------------ ------------- ---------- ---------- ---------- ------------- - ---------- ---------- ---------- --------------
+HOT_BYTES_WRITTEN COLD_READS COLD_WRITES COLD_BYTES_READ COLD_BYTES_WRITTEN V SECTOR_SIZE LOGICAL_SECTOR_SIZE FAILGRO   CON_ID T D SITE_NAME                       SITE_GUID                         FAILGROUP_LABEL                SITE_LABEL                    SITE_STATUS
+----------------- ---------- ----------- --------------- ------------------ - ----------- ------------------- ------- ---------- - - ------------------------------ --------------------------------- ------------------------------ ------------------------------ -----------
+           1           0       16777216  4038088143 MISSING UNKNOWN      OFFLINE NORMAL   UNKNOWN System                  0     4883968    2904708           0      1979260 NVD_S01_PHLE837500CDP1         NVD_S01_PHLE837500CDP1
+
+                                                                                                  22-JAN-19 09-NOV-20      36651                                                                                                              U           0
+                                                                            N           0                   1 REGULAR        0 N N                                 00000000000000000000000000000000
+
+           1           2       16777218  4038088142 CACHED  MEMBER       ONLINE  NORMAL   UNKNOWN AFD Library - Generic , version 3 (KABI_V3)                          10240      10240      10196           0           44 SSD_QRMDSK_P1        SSD_QRMDSK_P1
+SSD_QRMDSK_P1                   AFD:SSD_QRMDSK_P1
+                                                                                                  22-JAN-19 09-NOV-20  0           5          3          0          0            0             0       .002          0      20480         12288 U 1526112705         0          0              0
+                0          0           0               0                  0 Y        4096                 512 QUORUM         0 N N                                 00000000000000000000000000000000
+
+           1           4       16777220  4038088144 CACHED  MEMBER       ONLINE  NORMAL   UNKNOWN AFD Library - Generic , version 3 (KABI_V3)                        4883968    4883968    2904708           0      1979260 NVD_S00_PHLE837600NNP1        NVD_S00_PHLE837600NNP1
+NVD_S00_PHLE837600NNP1          AFD:NVD_S00_PHLE837600NNP1
+                                                                                                  08-NOV-20 09-NOV-20  0          97         12          0          0            0             0       .015       .002    1862656         49152 U 2984871939         0          0              0
+                0          2           0            3072                  0 Y         512                 512 REGULAR        0 N N                                 00000000000000000000000000000000
+
+
+
+dd if=/dev/shm/test of=/data/sdb/test bs=1G conv=notrunc
+
+
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf bs=1G conv=notrunc
+
+
+
+start=12345678901
+end=19876543212
+block_size=4096
+
+copy_size=$(( $end - $start ))
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf iflag=skip_bytes,count_bytes,fullblock bs=1G skip="$start" count="$copy_size"
+========================
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_1.dbf bs=4096 skip=0 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_2.dbf bs=4096 skip=1048576000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_3.dbf bs=4096 skip=2097152000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_4.dbf bs=4096 skip=3145728000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_5.dbf  bs=4096 skip=4194304000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_6.dbf  bs=4096 skip=5242880000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_7.dbf bs=4096 skip=6291456000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_8.dbf bs=4096 skip=7340032000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_9.dbf bs=4096 skip=8388608000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+
+[root@oda01 ~]# dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_9.dbf bs=4096 skip=8388608000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+dd: ‘/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf’: cannot skip to specified offset
+0+0 records in
+0+0 records out
+0 bytes (0 B) copied, 0.000240121 s, 0.0 kB/s
+[root@oda01 ~]# dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_2.dbf bs=4096 skip=1048576000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+
+256000+0 records in
+256000+0 records out
+1048576000 bytes (1.0 GB) copied, 5.171 s, 203 MB/s
+[root@oda01 ~]#
+[root@oda01 ~]# dd if=/u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf of=/u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs_3.dbf bs=4096 skip=2097152000 count=1048576000 iflag=skip_bytes,count_bytes conv=notrunc
+192002+0 records in
+192002+0 records out
+786440192 bytes (786 MB) copied, 3.72336 s, 211 MB/s
+
+
+
+10485760
+20971520
+31457280
+41943040
+52428800
+62914560
+73400320
+83886080
+94371840
+104857600
+115343360
+125829120
+
+2.7G    /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf
+
+dd if=RO_tbs_1.dbf of=RO_tbs.dbf oflag=append conv=notrunc
+dd if=RO_tbs_2.dbf of=RO_tbs.dbf oflag=append conv=notrunc
+dd if=RO_tbs_3.dbf of=RO_tbs.dbf oflag=append conv=notrunc
+dd if=RO_tbs_4.dbf
+dd if=RO_tbs_5.dbf
+dd if=RO_tbs_6.dbf
+dd if=RO_tbs_7.dbf
+RO_tbs_8.dbf
+
+
+
+[root@oda01 datafile]# md5sum RO_tbs.dbf
+17a31bf5529983a48d6534b4d97fe0a5  RO_tbs.dbf
+
+[root@oda01 datafile]# du RO_tbs.dbf
+2818048 RO_tbs.dbf
+
+
+[root@oda01 datafile]# du -h RO_tbs.dbf
+2.7G    RO_tbs.dbf
+
+du -h /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/
+md5sum /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf
+du -h /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf
+
+
+[root@oda01 ~]# du -h /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/
+3.0G    /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/datafile
+38G     /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile
+38G     /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9
+41G     /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/
+
+[root@oda01 datafile]# du -h /u03/app/oracle/NGDW-HERSTEL/
+41G     /u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9/datafile
+41G     /u03/app/oracle/NGDW-HERSTEL/8D79B11B2D676DC1E05309011BACFFE9
+3.0G    /u03/app/oracle/NGDW-HERSTEL/datafile
+47G     /u03/app/oracle/NGDW-HERSTEL/
+
+
+[root@oda01 ~]# md5sum /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf
+17a31bf5529983a48d6534b4d97fe0a5  /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf
+[root@oda01 ~]# du -h /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf
+2.7G    /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/8D79B11B2D676DC1E05309011BACFFE9/datafile/RO_tbs.dbf
+
+for i in `seq 1 5000`;
+do
+rsync -avz --append /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/* /u03/app/oracle/NGDW-HERSTEL/
+done  
+
+for i in {1..1000}; "rsync -avz --ignore-existing /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/* /u03/app/oracle/NGDW-HERSTEL/";  done;
+rsync -avz --ignore-existing /u02/app/oracle/oradata/cpngdw_oda01/CPNGDW_ODA01/* /u03/app/oracle/NGDW-HERSTEL/
+
+
+
+
+SQL> show parameter control
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+_fix_control                         string      18960760:on
+control_file_record_keep_time        integer     7
+control_files                        string      /u03/app/oracle/redo/CPNGDW_OD
+                                                 A02/controlfile/o1_mf_glrrhqhw
+                                                 _.ctl
+control_management_pack_access       string      DIAGNOSTIC+TUNING
+SQL>
+
+
+
+again
+
+
+
+alter database backup controlfile to trace;

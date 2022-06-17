@@ -1,0 +1,5 @@
+select 'alter user ' || a.username || ' identified by values '  || '''' || b.password || '''' || ' account unlock;' 
+from dba_users a,
+sys.user$ b
+where a.account_status = 'OPEN'
+and a.user_id = b.user#;

@@ -1,0 +1,12 @@
+ps -ef|grep -v grep|grep arc0|awk '{printf(substr($8,10)"\n")}' | while read DBSID
+do
+    echo $DBSID
+    export ORACLE_SID=$DBSID
+    export ORAENV_ASK=NO; . oraenv
+    export DBNAME="`echo ${ORACLE_SID} | sed 's/.$//'`"
+    export DBNAME="`echo ${DBNAME} | awk '{print toupper($0)}'`"
+    echo ${DBNAME}
+    mkdir -p /u01/app/grid/acfsmounts/reco_rman/${DBNAME}
+    find /home/oracle/backupscr/rman/* -mtime +7 |xargs rm -fr
+    rman target / cmdfile=/home/oracle/backupscr/level0.rcv log=/home/oracle/backupscr/rman/level0-$i-`date +%Y-%m-%d`.log
+done

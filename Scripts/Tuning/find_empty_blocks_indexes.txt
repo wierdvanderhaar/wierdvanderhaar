@@ -1,0 +1,7 @@
+SQL> var free_blocks numberSQL> 
+exec dbms_space.free_blocks(segment_owner=> user, 
+segment_name=> 'RADIOHEAD_ID_I', 
+segment_type=> 'INDEX', 
+freelist_group_id=> 0, 
+free_blks=> :free_blocks) 
+SQL> print free_blocks FREE_BLOCKS-----------

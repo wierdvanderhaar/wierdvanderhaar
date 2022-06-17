@@ -1,0 +1,15 @@
+col OS_USERNAME format a35
+col username format a25
+col actio_name format a25
+select OS_USERNAME, username, returncode, ACTION_NAME, to_char(timestamp, 'YYYY-MM-DD HH:MI:SS') from dba_audit_trail 
+where returncode = 0
+and timestamp > to_date('2020-09-11', 'YYYY-MM-DD') 
+and username !='DBSNMP'
+order by  5,1,2;
+
+
+SQL> select username, returncode, to_char(timestamp, 'YYYY-MM-DD HH:MI:SS') from dba_audit_trail
+where returncode <> 0
+and timestamp > to_date('2020-09-10', 'YYYY-MM-DD')
+and username !='DBSNMP';  2    3    4
+no rows selected

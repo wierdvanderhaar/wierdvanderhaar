@@ -1,0 +1,269 @@
+[oracle@kvm1 bin]$ . oraenv
+ORACLE_SID = [CBD1] ? CDB1
+The Oracle base has been changed from /home/oracle to /u01/app/oracle
+[oracle@kvm1 bin]$ sqlplus / as sysdba
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu Mar 26 12:52:42 2020
+Version 19.3.0.0.0
+
+Copyright (c) 1982, 2019, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 19c Standard Edition 2 Release 19.0.0.0.0 - Production
+Version 19.3.0.0.0
+
+SQL> show pdbs
+
+    CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+---------- ------------------------------ ---------- ----------
+         2 PDB$SEED                       READ ONLY  NO
+
+SQL> CREATE PLUGGABLE DATABASE RED
+  ADMIN USER PDBADM IDENTIFIED BY DBAm62047a
+        CREATE_FILE_DEST='/u01/app/oracle/oradata';  2    3
+
+Pluggable database created.
+
+SQL> alter pluggable database RED open read write;
+
+Maak db_link
+- Primaire
+grant create session, sysoper to C##SYSOPER identified by DBAm62047a container=all;
+create database link CDB2 connect to C##SYSOPER identified by DBAm62047a using '(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=192.168.16.196)(PORT=1521))(CONNECT_DATA=(SERVER=dedicated)(SERVICE_NAME=CDB2)))';
+-- Standby
+grant create session, sysoper to C##SYSOPER identified by DBAm62047a container=all;
+create database link CDB1 connect to C##SYSOPER identified by DBAm62047a using '(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=192.168.16.195)(PORT=1521))(CONNECT_DATA=(SERVER=dedicated)(SERVICE_NAME=CDB1)))';
+
+SQL> create pluggable database RED from RED@CDB1
+CREATE_FILE_DEST='/u01/app/oracle/oradata'
+refresh mode every 1 minutes;  2    3
+
+Pluggable database created.
+
+-- Op primaire
+@?/demo/schema/human_resources/hr_main.sql 
+
+
+- Op standbt 
+SQL> alter pluggable database RED open read only;
+
+Pluggable database altered.
+
+SQL> alter session set container=RED;
+
+Session altered.
+
+SQL> select owner, count(*) from dba_objects where owner='HR' group by owner;
+
+
+-- Styandby 
+SQL> alter pluggable database RED refresh mode manual;
+
+
+-- Op primaire. 
+SQL> exec for i in 1..150 loop update hr.employees set hire_date=sysdate, salary=salary+1; dbms_lock.sleep(1); commit; end loop
+
+
+
+PL/SQL procedure successfully completed.
+select max(to_char(hire_date,'DD-MM-YYYY HH24:MI:SS')) from hr.employees;
+26-03-2020 14:29:01
+
+
+SQL> shutdown abort
+Pluggable Database closed.
+
+-- Standby 
+SQL> alter pluggable database RED refresh mode manual;
+
+Pluggable database altered.
+
+SQL>
+SQL> alter pluggable database RED refresh;
+
+Pluggable database altered.
+
+SQL> alter pluggable database RED refresh mode none;
+
+Pluggable database altered.
+
+SQL> alter pluggable database RED open read write;
+
+Pluggable database altered.
+
+SQL> show pdbs
+
+    CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+---------- ------------------------------ ---------- ----------
+         2 PDB$SEED                       READ ONLY  NO
+         3 RED                            READ WRITE NO
+
+SQL> alter session set container=RED;
+
+SQL> select max(to_char(hire_date,'DD-MM-YYYY HH24:MI:SS')) from hr.employees;
+
+MAX(TO_CHAR(HIRE_DA
+-------------------
+26-03-2020 14:29:01
+
+
+
+
+
+
+
+
+
+[oracle@kvm2 bin]$ . oraenv
+ORACLE_SID = [oracle] ? CDB2
+The Oracle base has been set to /u01/app/oracle
+[oracle@kvm2 bin]$ sqlplus / as sysdba
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu Mar 26 12:53:03 2020
+Version 19.3.0.0.0
+
+Copyright (c) 1982, 2019, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 19c Standard Edition 2 Release 19.0.0.0.0 - Production
+Version 19.3.0.0.0
+
+SQL> show pdbs
+
+    CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+---------- ------------------------------ ---------- ----------
+         2 PDB$SEED                       READ ONLY  NO
+
+
+
+
+
+create pluggable database RED from RED@CDB2
+CREATE_FILE_DEST='/u01/app/oracle/oradata'
+refresh mode every 1 minutes; 
+
+
+/u01/app/oracle/fast_recovery_area/CDB2/foreign_archivelog/RED/2020_03_26/o1_mf_1_12_1315987322_.arc
+
+
+2020-03-26T16:22:22.018451+01:00
+RED(4):alter pluggable database refresh
+2020-03-26T16:22:23.498997+01:00
+Applying media recovery for pdb-4099 from SCN 1123592 to SCN 1123625
+Remote log information: count-1
+thr-1, seq-13, logfile-/u01/app/oracle/fast_recovery_area/CDB2/foreign_archivelog/RED/2020_03_26/o1_mf_1_13_1315987322_.arc, los-1123139, nxs-18446744073709551615
+RED(4):Media Recovery Start
+
+
+
+
+----------- 
+-- Primaire (CDB2/RED)
+SQL> alter session set container=RED;
+
+Session altered.
+
+SQL> exec for i in 1..150 loop update hr.employees set hire_date=sysdate, salary=salary+1; dbms_lock.sleep(1); commit; end loop
+
+
+PL/SQL procedure successfully completed.
+
+SQL> select max(to_char(hire_date,'DD-MM-YYYY HH24:MI:SS')) from hr.employees;
+MAX(TO_CHAR(HIRE_DA
+-------------------
+27-03-2020 11:50:16
+
+CDB2> shutdown abort
+
+==== In alertlog van CDB1/RED
+2020-03-27T11:50:33.898050+01:00
+RED(4):alter pluggable database refresh
+***********************************************************************
+
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=192.168.16.196)(PORT=1521))(CONNECT_DATA=(SERVER=dedicated)(SERVICE_NAME=CDB2)(CID=(PROGRAM=oracle@kvm1)(HOST=kvm1)(USER=oracle))))
+
+  VERSION INFORMATION:
+        TNS for Linux: Version 19.0.0.0.0 - Production
+        TCP/IP NT Protocol Adapter for Linux: Version 19.0.0.0.0 - Production
+  Version 19.3.0.0.0
+  Time: 27-MAR-2020 11:50:33
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+
+TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+    nt OS err code: 0
+***********************************************************************
+
+In de database zie je verder geen meldingen die duiden op een probleem behalve het feit dat de LAST_REFRESH_SCN niet meer oploopt.
+format CON_NAME a30
+select 	con_id,
+		name con_name,
+		open_mode,
+		restricted,
+		status,
+		foreign_cdb_dbid,
+		foreign_pdb_id,
+		to_char(creation_time, 'hh24:mi:ss') creation_time,
+		refresh_mode,
+		refresh_interval,
+		last_refresh_scn,
+		current_scn,
+		cdb_dbid
+from 	v$pdbs 
+		right join dba_pdbs using(con_id,creation_time,dbid) 
+		cross join (select dbid cdb_dbid,current_scn from v$database) 
+where	status = 'REFRESHING'
+order by pdb_id;
+
+-- Manual refresh lukt nu niet doordat de CDB niet bereikbaar is. 
+SQL> alter pluggable database RED refresh;
+alter pluggable database RED refresh
+*
+ERROR at line 1:
+ORA-17627: ORA-12514: TNS:listener does not currently know of serv
+
+
+
+alter pluggable database RED open read only;
+alter session set container=RED;
+exec dbms_pdb.describe('/tmp/RED.xml');
+alter pluggable database RED close immediate;
+alter session set container=cdb$root;
+drop pluggable database RED keep datafiles;
+create pluggable database RED using '/tmp/RED.xml' NOCOPY;
+alter pluggable database RED open;
+SQL> alter session set container=RED;
+
+Session altered.
+
+SQL> select max(to_char(hire_date,'DD-MM-YYYY HH24:MI:SS')) from hr.employees;
+
+MAX(TO_CHAR(HIRE_DA
+-------------------
+27-03-2020 11:49:32
+
+
+
+
+SQL> /
+
+JOB_ACTION
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+declare
+cur integer := sys.dbms_sql.open_cursor(security_level => 2);              
+begin
+	sys.dbms_sql.parse(	c   => cur, 
+						statement  => 'alter pluggable database refresh', 
+						language_flag => sys.dbms_sql.native,
+						container => 'RED');    
+	sys.dbms_sql.close_cursor(c=>cur);
+end;
+
+

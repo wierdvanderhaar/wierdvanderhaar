@@ -1,0 +1,45 @@
+SELECT
+0                     ||',"' ||
+DBID                  ||'","'||
+NAME                  ||'","'||
+VERSION               ||'","'||
+DETECTED_USAGES       ||'","'||
+TOTAL_SAMPLES         ||'","'||
+CURRENTLY_USED        ||'","'||
+FIRST_USAGE_DATE      ||'","'||
+LAST_USAGE_DATE       ||'","'||
+AUX_COUNT             ||'","'||
+''                    ||'","'|| -- skip FEATURE_INFO clob
+LAST_SAMPLE_DATE      ||'","'||
+LAST_SAMPLE_PERIOD    ||'","'||
+SAMPLE_INTERVAL       ||'","'||
+DESCRIPTION
+from DBA_FEATURE_USAGE_STATISTICS
+where  detected_usages > 0 and
+( name like '%ADDM%'
+or name like '%Automatic Database Diagnostic Monitor%'
+or name like '%Automatic Workload Repository%'
+or name like '%AWR%'
+or name like '%Baseline%'
+or name like '%Compression%'
+or name like '%Data Guard%'
+or name like '%Data Mining%'
+or name like '%Database Replay%'
+or name like '%EM%'
+or name like '%Encrypt%'
+or name like '%Exadata%'
+or name like '%Flashback Data Archive%'
+or name like '%Label Security%'
+or name like '%OLAP%'
+or name like '%Pack%'
+or name like '%Partitioning%'
+or name like '%Real Application Clusters%'
+or name like '%SecureFile%'
+or name like '%Spatial%'
+or name like '%SQL Monitoring%'
+or name like '%SQL Performance%'
+or name like '%SQL Profile%'
+or name like '%SQL Tuning%'
+or name like '%SQL Access Advisor%'
+or name like '%Vault%')
+order by name;

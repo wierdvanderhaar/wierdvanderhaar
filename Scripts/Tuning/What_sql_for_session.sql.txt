@@ -1,0 +1,14 @@
+set long 10000
+select ses.username
+,           ses.osuser
+,           ses.program
+,           ses.machine
+,	    sql.sql_text
+FROM 	    gv$session ses
+,           gv$process proc
+,           gv$sqlarea sql
+WHERE 	    proc.spid = &process
+AND	    ses.paddr = proc.addr
+AND	    ses.sql_id = sql.sql_id;
+
+

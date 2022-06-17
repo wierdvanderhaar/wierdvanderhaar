@@ -1,0 +1,10 @@
+select distinct
+       a.pack_display_label as OEM_PACK,
+       decode(b.pack_name, null, 'NO', 'YES') as PACK_ACCESS_GRANTED,
+       PACK_ACCESS_AGREED
+  from &&OEMOWNER..MGMT_LICENSE_DEFINITIONS a,
+       &&OEMOWNER..MGMT_ADMIN_LICENSES      b,
+      (select decode(count(*), 0, 'NO', 'YES') as PACK_ACCESS_AGREED
+        from &&OEMOWNER..MGMT_LICENSES where upper(I_AGREE)='YES') c
+  where a.pack_label = b.pack_name   (+)
+  order by 1, 2;

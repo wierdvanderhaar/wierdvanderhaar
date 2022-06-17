@@ -1,0 +1,79 @@
+psql -U postgres era_repos
+
+	
+10.55.24.98
+
+select id,name, vm_uuid, ip_addresses, status from era_dbservers;
+                  id                  |                  name                   |                              vm_uuid                              |      ip_addresses       |        status        
+--------------------------------------+-----------------------------------------+-------------------------------------------------------------------+-------------------------+----------------------
+ d6b218a5-66a2-4426-a78a-d81e7e68e432 | ERA Server                              | 941e1372-fc97-46b4-aecf-eabb4e5a8930                              | {10.55.24.22,127.0.0.1} | UP
+ 1ac60062-4fbc-40ec-bedf-5cf04f9ee79f | MSSQLSource                             | 7238f01f-fddd-4234-a370-49d252327dcb                              | {10.55.24.63}           | UP
+ e6c996a3-4e67-4087-9ed1-a9b5b4a609f6 | User02-MSSQLSource_2                    | fd8f579b-5bcb-4a40-8823-7029cfee8125                              | {10.55.24.51}           | UP
+ 1fccf41c-a654-4191-a158-a9947e86116c | User01-MSSQLSource_2                    | f58a32a3-334c-4965-8acd-6b1fb7b8c6d2                              | {10.55.24.87}           | UP
+ 04494593-6d9b-4767-bb4f-d10597d32a18 | User03-MSSQLSource_2                    | 001bc269-bf03-4db3-a6e7-4d9bcc77a5c1                              | {10.55.24.108}          | UP
+ 73c0ee8e-7efb-4768-b8a9-843db80da4bc | CFL-SDB-01_DELETED__2021-10-18 10:00:47 | a0cf3a0f-c39f-412b-bad6-ddceb263e241_DELETED__2021-10-18 10:00:47 | {10.55.24.72}           | DELETED
+ cae15e72-3674-4ef0-a367-2da06a3371bc | Oracle19cSource                         | 839f68ba-b401-46cb-a641-9f323e5ada5e                              | {10.55.24.84}           | UP
+ 169f715d-0999-41f3-a461-b9acda2c18e5 | CFL-SDB-01                              | 2d6381aa-4867-4f06-a330-462bb1cdf7e4                              | {10.55.24.66}           | DELETED_FROM_CLUSTER
+ 11dd4dfd-e0ff-4ce6-acbe-bb1f24e5a29d | CFL-ODB-01                              | 0c89972e-0cd8-4d91-95dd-767a66fddf56                              | {10.55.24.98}           | UP
+(9 rows)
+
+update era_dbservers set status = 'UP', ip_addresses='{10.55.24.98}' where id='11dd4dfd-e0ff-4ce6-acbe-bb1f24e5a29d';
+
+
+era_repos=# select id,name, vm_uuid, ip_addresses, status from era_dbservers;
+                  id                  |                  name                   | status  
+--------------------------------------+-----------------------------------------+---------
+ d6b218a5-66a2-4426-a78a-d81e7e68e432 | ERA Server                              | UP
+ 1ac60062-4fbc-40ec-bedf-5cf04f9ee79f | MSSQLSource                             | UP
+ e6c996a3-4e67-4087-9ed1-a9b5b4a609f6 | User02-MSSQLSource_2                    | UP
+ 1fccf41c-a654-4191-a158-a9947e86116c | User01-MSSQLSource_2                    | UP
+ 04494593-6d9b-4767-bb4f-d10597d32a18 | User03-MSSQLSource_2                    | UP
+ cae15e72-3674-4ef0-a367-2da06a3371bc | Oracle19cSource                         | UP
+ 73c0ee8e-7efb-4768-b8a9-843db80da4bc | CFL-SDB-01_DELETED__2021-10-18 10:00:47 | DELETED
+ 169f715d-0999-41f3-a461-b9acda2c18e5 | CFL-SDB-01                              | UP
+
+
+2d6381aa-4867-4f06-a330-462bb1cdf7e4
+
+era_repos=# select id, name, database_name, era_created from era_databases 
+era_repos=# select id, name, database_name, status, era_created from era_databases;
+                  id                  |                    name                     |         database_name         | status  | era_created 
+--------------------------------------+---------------------------------------------+-------------------------------+---------+-------------
+ f1c19deb-4b04-4fdd-932f-cfba1998134e | User02-MSSQLSource-SampleDB_2               | User02-MSSQLSource-SampleDB_2 | READY   | t
+ 16c6692b-1352-4350-b859-2128a224f85c | MSSQLSource-SampleDB                        | SampleDB                      | READY   | f
+ 0ac0d7ba-b713-4f04-8698-54b1c431ebf8 | User01-MSSQLSource-SampleDB_2               | User01-MSSQLSource-SampleDB_2 | READY   | t
+ 21b117be-5b0f-4974-a2e1-2cc22654951d | SDB01 (deleted at:2021-10-18 10:01:54UTC)   | SDB01                         | DELETED | t
+ 5cd02d92-9178-474f-95f9-0c72db0b8d95 | User03-MSSQLSource-SampleDB_2               | User03-MSSQLSource-SampleDB_2 | READY   | t
+ e748982c-6809-405c-be2b-c4600c04778d | orcl19c (deleted at:2021-10-18 10:50:34UTC) | orcl19c                       | DELETED | t
+ e39ed7f4-da92-4d22-87ae-e32ee8c14433 | ORCL19 (deleted at:2021-10-18 10:54:21UTC)  | ORCL19                        | DELETED | f
+ eae0b387-7af0-4111-8780-5762131b48b4 | SDB01                                       | SDB01                         | READY   | t
+
+update era_dbservers set status = 'UP', ip_addresses='{IP}' where id='169f715d-0999-41f3-a461-b9acda2c18e5';
+
+
+era_repos=# select id,name, status from era_dbservers;
+                  id                  |                  name                   |        status        
+--------------------------------------+-----------------------------------------+----------------------
+ d6b218a5-66a2-4426-a78a-d81e7e68e432 | ERA Server                              | UP
+ 1ac60062-4fbc-40ec-bedf-5cf04f9ee79f | MSSQLSource                             | UP
+ e6c996a3-4e67-4087-9ed1-a9b5b4a609f6 | User02-MSSQLSource_2                    | UP
+ 1fccf41c-a654-4191-a158-a9947e86116c | User01-MSSQLSource_2                    | UP
+ 04494593-6d9b-4767-bb4f-d10597d32a18 | User03-MSSQLSource_2                    | UP
+ 73c0ee8e-7efb-4768-b8a9-843db80da4bc | CFL-SDB-01_DELETED__2021-10-18 10:00:47 | DELETED
+ cae15e72-3674-4ef0-a367-2da06a3371bc | Oracle19cSource                         | UP
+ 169f715d-0999-41f3-a461-b9acda2c18e5 | CFL-SDB-01                              | DELETED_FROM_CLUSTER
+ 11dd4dfd-e0ff-4ce6-acbe-bb1f24e5a29d | CFL-ODB-01                              | UP
+ 
+ 
+ 
+ 
+ 
+ {“storage_info”:{“attachedVm”:“”,“vgName”:“ERA_CFL-SDB-01_d4f85515”,“vgUuid”:“d6892e5f-8246-49b9-b8bf-7031dd13514d”,“pdName”:“ERA_DRIVE_169f715d-0999-41f3-a461-b9acda2c18e5_PD”,“software”:{“storage_profile”:{“disk_list”:[],“vg_list”:
+[{“name”:“ERA_CFL-SDB-01_d4f85515”,“vg_id”:“d6892e5f-8246-49b9-b8bf-7031dd13514d”,“vg_type”:“scsi”,“vg_iscsi_target”:“iqn.2010-06.com.nutanix:volumegroup-d6892e5f-8246-49b9-b8bf-7031dd13514d”,“disk_list”:[{“device_name”:“C:\\NTNX\\ERA_BASE\\era_engine”,“local_mapping”:”
+NFS_3_0_458_9979b843_37b1_4823_8ad1_8a13d7c5160a”,“disk_index”:“0",“path”:“/Default/.acropolis/vmdisk/9979b843-37b1-4823-8ad1-8a13d7c5160a”,“disk_id”:“9979b843-37b1-4823-8ad1-8a13d7c5160a”,“scsi_disk_index”:“scsi.1",“hypervisor”:“AHV”,“mount_point”:“C:\\NTNX\\ERA_BASE\\
+era_engine”,“disk_uuid”:“94D6F5F0D6F5D30A”,“disk_type”:“DATA”,“is_encrypted”:false,“virtual_disk_id”:“9979b843-37b1-4823-8ad1-8a13d7c5160a”,“fs_type”:“ntfs”,“size”:“10240”,“date_created”:“2021-10-18 10:29:42”}]}],“lv_path”:[“/dev/ntnx_era_agent_vg_169f715d099941f3a461b9
+acda2c18e5/ntnx_era_agent_lv_era_software_169f715d099941f3a461b9acda2c18e5”,“/dev/ntnx_era_agent_vg_169f715d099941f3a461b9acda2c18e5/ntnx_era_agent_lv_era_logs_169f715d099941f3a461b9acda2c18e5",“/dev/ntnx_era_agent_vg_169f715d099941f3a461b9acda2c18e5/ntnx_era_agent_lv_e
+ra_config_169f715d099941f3a461b9acda2c18e5”],“host_os_type”:“WIN”,“hypervisor”:“AHV”,“lvm_based”:true}},“eae0b387-7af0-4111-8780-5762131b48b4”:{“storage_profile”:{“vg_list”:[{“name”:“ERA_CFL-SDB-01_d4f85515”,“vg_id”:“d6892e5f-8246-49b9-b8bf-7031dd13514d”,“vg_type”:“scsi
+“,”vg_iscsi_target”:“iqn.2010-06.com.nutanix:volumegroup-d6892e5f-8246-49b9-b8bf-7031dd13514d”,“disk_list”:[{“device_name”:“C:\\NTNX\\ERA_BASE\\dblogs”,“local_mapping”:“NFS_3_0_480_57fde624_2a29_4eb6_a757_c9d04f94ec01",“disk_index”:“1",“path”:“/Default/.acropolis/vmdisk
+/57fde624-2a29-4eb6-a757-c9d04f94ec01",“disk_id”:“57fde624-2a29-4eb6-a757-c9d04f94ec01",“scsi_disk_index”:“scsi.10",“hypervisor”:“AHV”,“mount_point”:“C:\\NTNX\\ERA_BASE\\dblogs”,“disk_uuid”:“FA08926608922225",“disk_type”:“DATA”,“is_encrypted”:false,“virtual_disk_id”:“57
+fde624-2a29-4eb6-a757-c9d04f94ec01”,“fs_type”:“ntfs”,“size”:“512000”,“date_created”:“2021-10-18 10:49:00”}]}],“disk_list”:[],“lvm_based”:true,“lv_path”:[],“host_os_type”:“WIN”}}},“source_era_path”:“C:\\NTNX\\ERA_BASE”}

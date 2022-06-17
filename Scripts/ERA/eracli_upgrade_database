@@ -1,0 +1,1 @@
+dbserver cluster upgrade id=9d78433e-0c54-4ff5-a2c6-b09052071272 software_profile_id=fd3c33a7-f98c-4493-a7f0-bc3ded24ad8b software_profile_version_id=53a9d8d4-b5cd-442b-a6f1-89a571d56650 input_file=/home/era/JSON/upgrade-dbserver.json

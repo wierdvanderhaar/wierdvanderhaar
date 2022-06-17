@@ -1,0 +1,23 @@
+select 
+   r.name owner, 
+   o.name table , 
+   c.name column,
+   equality_preds, 
+   equijoin_preds, 
+   nonequijoin_preds, 
+   range_preds,
+   like_preds, 
+   null_preds, 
+   timestamp
+from 
+   sys.col_usage$ u, 
+   sys.obj$ o, 
+   sys.col$ c, 
+   sys.user$ r
+where 
+   o.obj# = u.obj# 
+and c.obj# = u.obj# 
+and c.col# = u.intcol#
+and o.owner# = r.user# 
+and (u.equijoin_preds > 0 
+or u.nonequijoin_preds > 0);

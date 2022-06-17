@@ -1,0 +1,17 @@
+#!/bin/bash
+OUSER="oracle"
+OHPATH="/var/opt/oracle/product/11.2.0/observer_1"
+SCRIPTDIR="/home/oracle/fsfo-observer"
+LOGDIR=${SCRIPTDIR}/logging
+
+ps cax | grep dgmgrl > /dev/null
+if [ $? -eq 0 ]; then
+        echo "FSFO Observer is running."
+else
+        echo "================== ERROR =================="      >> ${LOGDIR}/logbook_fsfo_observer.log
+        echo "Detected that FSFO Observer is not running."      >> ${LOGDIR}/logbook_fsfo_observer.log
+        echo "Starting FSFO Observer."  >> ${LOGDIR}/logbook_fsfo_observer.log
+        $SCRIPTDIR/bin/manage_observer.sh START
+        echo "${DATE} | FSFO Observer is NOW started!"          >> ${LOGDIR}/logbook_fsfo_observer.log
+        echo "==========================================="      >> ${LOGDIR}/logbook_fsfo_observer.log
+fi

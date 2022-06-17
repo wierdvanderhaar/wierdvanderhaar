@@ -1,0 +1,62 @@
+ipmitool -I open sunoem cli 'show /SP/network'
+
+ipmitool -I open sunoem cli 'reset /SP'
+
+-- PAS OP RESET HELE SYSTEEM
+ipmitool -I open sunoem cli 'reset /SYS'
+
+RAC01:
+ipmitool -I open sunoem cli "set /SP/network pendingipdiscovery=static pendingipaddress=172.16.162.192 pendingipgateway=172.16.161.1 pendingipnetmask=255.255.240.0 commitpending=true"
+RAC02
+ipmitool -I open sunoem cli "set /SP/network pendingipdiscovery=static pendingipaddress=172.16.162.192 pendingipgateway=172.16.161.1 pendingipnetmask=255.255.240.0 commitpending=true"
+
+modprobe ipmi_devintf 
+modprobe ipmi_msghandler
+modprobe ipmi_si
+
+ipmitool -I open sunoem cli "set /SP/network pendingipdiscovery=static pendingipaddress=172.17.254.32 pendingipgateway=172.17.254.1 pendingipnetmask=255.255.255.0 commitpending=true state=enable"
+
+
+CLEAR MESSAGES
+ssh naar ILOM adres
+
+ERROR: could not acquit 2e491b33-be80-6af7-ddf4-f6e01e55b9bf
+faultmgmtsp> fmdump
+TIMESTAMP           UUID                                 MSGID
+2016-06-27/09:19:51 2e491b33-be80-6af7-ddf4-f6e01e55b9bf SPX86A-8003-EL
+2016-12-05/15:11:03 40f1e456-b93e-cdfd-b861-d7e03326ad35 SPX86A-8004-67
+
+-> start /SP/faultmgmt/shell
+faultmgmtsp> fmdump
+TIMESTAMP           UUID                                 MSGID
+2017-02-20/07:53:07 d51d1db5-4030-68b3-ff02-93bc571e5626 SPX86A-8002-RK
+faultmgmtsp> fmadm
+Usage: fmadm <subcommand>
+  where <subcommand> is one of the following:
+    faulty [-asv] [-u <uuid>]      : display list of problems
+    faulty -f [-a] [<FRU>]         : display FRUs with problems
+    faulty -r [-a]                 : display ASRUs with problems
+    list [-asv] [-u <uuid>]        : display list of problems
+    list -f [-a] [<FRU>]           : display FRUs with problems
+    list -r [-a]                   : display ASRUs with problems
+    list-fault [-asv] [-u <uuid>]  : display list of faults
+    list-defect [-asv] [-u <uuid>] : display list of defects
+    list-alert [-asv] [-u <uuid>]  : display list of alerts
+    acquit <FRU>                   : acquit problems on a FRU
+    acquit <UUID>                  : acquit problems associated with UUID
+    acquit <FRU> <UUID>            : acquit problems specified by
+                                     (FRU, UUID) combination
+    clear class@path               : clear an event
+    clear <UUID>                   : clear a UUID
+    replaced <FRU>                 : fixed problems via FRU replacement
+    repaired <FRU>                 : repaired a FRU
+    repair <FRU>                   : repaired a FRU
+    reset -s all|FRU1[:FRU2...]    : reset SERD counters for all
+                                     or some FRUs
+    rotate errlog                  : rotate error log
+    rotate infolog                 : rotate ireport log
+    rotate fltlog                  : rotate fault log
+
+faultmgmtsp> fmadm clear d51d1db5-4030-68b3-ff02-93bc571e5626
+
+

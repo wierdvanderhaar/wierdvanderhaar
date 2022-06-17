@@ -1,0 +1,6 @@
+PURGETARGET=60
+for f in $( adrci exec="show homes" | grep -v "ADR Homes:" );
+do
+echo "Purging ${f}:";
+adrci exec="set home $f; purge -age $PURGETARGET ;" ;
+done

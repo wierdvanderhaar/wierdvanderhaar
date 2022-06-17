@@ -1,0 +1,22 @@
+yum install isciadm 
+chkconfig iscsid on
+service iscsid start
+chkconfig iscsi on
+service iscsi start
+
+#Discovery
+iscsiadm -m discovery -t st -p 172.26.130.20
+# Login SAN
+iscsiadm -m node –l    
+# Koppel LUN's
+iscsiadm -m node -T iqn.2001-05.com.equallogic:0-8a0906-b16ab1308-c3e0000043f51c43-oracle1 -p 172.26.130.20 -l
+iscsiadm -m node -T iqn.2001-05.com.equallogic:0-8a0906-b35ab1308-3640000044151c43-oracle2 -p 172.26.130.20 -l
+iscsiadm -m node -T iqn.2001-05.com.equallogic:0-8a0906-b51ab1308-e460000044351c43-oracle3 -p 172.26.130.20 -l
+# Automatic login
+iscsiadm -m node -T iqn.2001-05.com.equallogic:0-8a0906-b16ab1308-c3e0000043f51c43-oracle1 -p 172.26.130.20 --op update -n node.startup -v automatic
+iscsiadm -m node -T iqn.2001-05.com.equallogic:0-8a0906-b35ab1308-3640000044151c43-oracle2 -p 172.26.130.20 --op update -n node.startup -v automatic
+iscsiadm -m node -T iqn.2001-05.com.equallogic:0-8a0906-b51ab1308-e460000044351c43-oracle3 -p 172.26.130.20 --op update -n node.startup -v automatic
+
+iscsiadm -m session --rescan
+
+iscsiadm --mode node -T targetname -o update -n node.startup -v manual|automatic

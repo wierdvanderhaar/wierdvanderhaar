@@ -1,0 +1,17 @@
+Mount Windows shares on Linux:
+
+yum install cifs-utils
+
+edit /etc/request-key.conf	voeg toe:
+#OPERATION  TYPE           D C PROGRAM ARG1 ARG2...
+#=========  =============  = = ================================
+create      cifs.spnego    * * /usr/local/sbin/cifs.upcall -t %k
+create      dns_resolver   * * /usr/local/sbin/cifs.upcall %k
+
+
+
+-- Werkt niet ...---
+create  cifs.spnego *           *               /usr/sbin/cifs.upcall -c %k
+create  dns_resolver *          *               /usr/sbin/cifs.upcall %k
+
+

@@ -1,0 +1,19 @@
+[root@]# fdisk /dev/devnaam
+n
+p
+1
+enter
+enter
+p
+w
+[root@]# pvreate /dev/devnaam1
+[root@]# vgextend -v vg_template /dev/sdb1
+[root@]# lvextend -v -l +100%FREE /dev/mapper/vg_template-lv_root
+[root@]# resize2fs /dev/mapper/vg_template-lv_root
+
+
+
+tar -cvzf /u01/app/backup.tgz -–one-file-system /
+tar -–exclude=/lost+found -–exclude=/u01/ -cvzf /u01/app/backup.tgz -–one-file-system /
+
+tar -zcvf /u01/app/backup.tar.gz -one-file-system –exclude=/lost+found –exclude=/backup.tgz /

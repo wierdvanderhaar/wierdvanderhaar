@@ -1,0 +1,74 @@
+What kind of workload do you have in OracleAre you running Oracle 10gR2?
+Well, What kind or workload / application mix do you have running?
+Is it OLTP, OLAP or something in between?
+
+The application mix is highly coupled to an Oracle workload and is paramount in developing a proper load profile that can be used for tunning your storage system. Below is a simple SQL statement that will interrogate a current Oracle database and assist in this determination.
+
+
+set linesize 100
+set head off
+
+select to_char(sysdate,'DD-MON-YYYY HH24:mi:ss') from dual;
+SELECT 'Number of Small Reads :'|| 
+       sum(decode(name,'physical read total IO requests',value,0)-
+           decode(name,'physical read total multi block requests',value,0)),
+       'Number of Small Writes:'|| 
+       sum(decode(name,'physical write total IO requests',value,0)-
+           decode(name,'physical write total multi block requests',value,0)),
+       'Number of Large Reads :'|| 
+       sum(decode(name,'physical read total multi block requests',value,0)),
+       'Number of Large Writes:'|| 
+       sum(decode(name,'physical write total multi block requests',value,0)),
+       'Total Bytes Read      :'|| 
+       sum(decode(name,'physical read total bytes',value,0)),
+       'Total Bytes Written   :'|| 
+       sum(decode(name,'physical write total bytes',value,0))
+  FROM gv$sysstat
+/
+
+
+
+Your results might look something like:
+
+
+Number of Small Reads :106883
+Number of Small Writes:205903
+Number of Large Reads :2791
+Number of Large Writes:40298
+Total Bytes Read      :2009381888
+Total Bytes Written   :4188587008
+
+
+
+Remember that statistics contained in the GV$ views are cumulative and therefore should be sampled at the beginning and then end of a peak I/O cycle. The beginning statistics can then be subtracted from the ending statistics to give the true reads and writes that have occurred. Use this to determine the read to write ratios and also to classify the database as an OLTP or OLAP application.
+
+For instance if the above SQL was issued again in 10 minutes and had the following statistics.
+
+
+Number of Small Reads :333474
+Number of Small Writes:500211
+Number of Large Reads :8010
+Number of Large Writes:142981
+Total Bytes Read      :5586081648
+Total Bytes Written   :22232604961
+
+
+It is now easy to calculate the IOPS for small and large I/O and also MBPS. The following calculations will assist in determining the workload for the current database system.
+
+
+Small Read IOPS  =(333474-106883)/(10*60) = 377 IOPS
+Small Write IOPS =(500211-205903)/(10*60) = 490 IOPS 
+Total Small IOPS =(226591+294308)/(10*60) = 868 IOPS
+I/O Percentage of Reads to Writes = 44:56
+
+Large Read IOPS  =(8010-2791)   /(10*60) =   8 IOPS
+Large Write IOPS =(142981-40298)/(10*60) = 171 IOPS 
+Total Large IOPS =(5219+102683) /(10*60) = 179 IOPS
+I/O Percentage of Reads to Writes = 4:96
+
+Total MBPS Read    =((5586081648-2009381888) /(10*60))/1048576=  5 MBPS
+Total MBPS Written =((22232604961-4188587008)/(10*60))/1048576= 28 MBPS
+Total MBPS         =((3576699760+18044017953)/(10*60))/1048576= 34 MBPS
+
+
+These numbers show that this particular system is very much an OLTP system with many small I/Os. Also the percentage of reads to writes is in favor of writes by 12%. This information is very important when trying to match actual workloads to a potential storage array.

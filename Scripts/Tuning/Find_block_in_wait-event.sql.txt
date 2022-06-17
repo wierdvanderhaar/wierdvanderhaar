@@ -1,0 +1,6 @@
+select segment_name,segment_type,partition_name 
+from dba_extents 
+where
+file_id=&p1
+and
+&p2 between block_id and (block_id+blocks-1);

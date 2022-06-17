@@ -1,0 +1,5 @@
+exec dbms_xdb_config.sethttpport(&poort);
+alter system register;
+alter system set shared_servers=5 scope=both;
+
+-- Nu kun je connecten naar host:poort/em

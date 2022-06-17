@@ -1,0 +1,27 @@
+! /bin/bash
+if [ $(mount | grep -c /mnt/backup2tape) != 1 ]
+then
+        /bin/mount /mnt/backup2tape || exit 1
+        echo "/mnt/backup2tape is now mounted"
+else
+        echo "/mnt/backup2tape already mounted"
+fi
+
+# Verwijder eerst de eventueel eerder gemaakte backup.
+rm /mnt/backup2tape/servers/${HOSTNAME}.tar.gz
+
+echo Start backup of OS:
+echo Excluded dirs zijn:    
+echo            /proc
+echo            /sys
+echo            /dev
+echo            /tmp
+echo            /mnt
+echo            /u01/app/oracle/acfsmounts
+echo            /u01/app/oracle/admin
+echo            /u01/app/oracle/install
+echo            /u01/app/oracle/diag
+echo            /u01/app/oracle/product/12.1.0/agent12c
+echo Start tarzipping .................................
+#
+tar --directory "/" --exclude "./proc" --exclude "./sys" --exclude "./dev" --exclude "./u01/app/oracle/oradata" --exclude "./u01/app/oracle/install" --exclude "./u01/app/oracle/acfsmounts" --exclude "./u01/app/oracle/admin"  --exclude "./u01/app/oracle/diag" --exclude "./u01/app/oracle/product/12.1.0" --exclude="./mnt" --exclude="./tmp" -zcvpf /mnt/backup2tape/servers/${HOSTNAME}.tar.gz .

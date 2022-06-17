@@ -1,0 +1,79 @@
+-- SMALL Database (200 GB Data + 200 FRA)
+bash-4.2$ oracleasm listdisks
+CRSDG_00001
+CRSDG_00002
+CRSDG_00003
+DATADG_OSMALL_00001 => 50GB a piece
+DATADG_OSMALL_00002
+DATADG_OSMALL_00003
+DATADG_OSMALL_00004
+RECODG_OSMALL_00001 => 100GB a piece
+RECODG_OSMALL_00002
+
+      "Small": {
+        "min_size": "0",
+        "max_size": "500",
+        "data_vdisk_count": "4",
+        "reco_vdisk_count": "2"
+      },
+      
+      
+      
+-- Medium (1000 GB + 1000 GB FRA)
+-bash-4.2$ oracleasm listdisks
+CRSDG_00001
+CRSDG_00002
+CRSDG_00003
+DATADG_OMEDI_00001 => 125GB a piece
+DATADG_OMEDI_00002
+DATADG_OMEDI_00003
+DATADG_OMEDI_00004
+DATADG_OMEDI_00005
+DATADG_OMEDI_00006
+DATADG_OMEDI_00007
+DATADG_OMEDI_00008
+RECODG_OMEDI_00001 => 250 GB a piece
+RECODG_OMEDI_00002
+RECODG_OMEDI_00003
+RECODG_OMEDI_00004
+      
+      
+      
+Hello Dori,
+
+You where speaking about creating a DB VM using the API. Using Era you are able to create a database VM but you are not able to control the 
+amount of disks that are created that way. Basically there are two flavours:
+ - small (Smaller then 500GB)
+ - Large (Larger then 500GB)
+ 
+ Small will allocate 4 vdisks for the DATA DG and 2 for FRA. Large will double both amounts. It does not matter if you create a 4TB or a 20TB database. 
+ We can control the amount of disks that are created on a era-server level, meaning that all [oracle] databases that are provioned will get that 
+ same amount of vdisks.
+ 
+ Steps to change this storage_config file:
+ - Login into the Era VM (same IP as UI url) as user era (default pwd is Nutanix.1)
+ - start era-server (cli)
+ - config driver_config list name=storage_config output_file=/tmp/storage-config.conf #This create a json file which you can edit. Maybe needless to say but maybe good to keep a copy of the original.
+ - Edit the json file to your liking. For instance if you want change the amount of vdisks you can edit that portion of the file.
+     "fixed_vdisks": {
+      "Small": {
+        "min_size": "0",
+        "max_size": "500",
+        "data_vdisk_count": "6", #Default is 4
+        "reco_vdisk_count": "3" #Default is 2
+      },
+      "Large": {
+        "min_size": "501",
+        "max_size": "99999999",
+        "data_vdisk_count": "9", #default is 8
+        "reco_vdisk_count": "6"  #default is 4
+      }
+    },
+ - After saving the file go back to era-server and execute the following to update this storage part:
+ era-server > config driver_config update name=storage_config input_file=/tmp/storage-config.conf
+ - Double check the made changes are active. 
+ era-server > config driver_config list name=storage_config 
+ 
+ 
+ In regards to creating a database using the API. You can always go into the UI and click through the provisioning of a database. Before clicking to create the database you can click the "API Equivilant" button. This will expose the API in different languaes. Attached you will find and example. Note that the UUID's for the different profiles are unique in every environment so you need to change those to match you environment. 
+ 

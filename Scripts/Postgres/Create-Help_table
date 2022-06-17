@@ -1,0 +1,30 @@
+postgres=# \d
+                 List of relations
+ Schema |        Name        |   Type   |  Owner   
+--------+--------------------+----------+----------
+ public | t_check            | table    | postgres
+ public | t_check_c_step_seq | sequence | postgres
+(2 rows)
+
+postgres=# \l
+                                  List of databases
+   Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges   
+-----------+----------+----------+-------------+-------------+-----------------------
+ postgres  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ template0 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
+(3 rows)
+
+postgres=# \c postgres
+
+
+CREATE TABLE IF NOT EXISTS t_check (
+   c_step serial PRIMARY KEY,
+   c_when VARCHAR (20));
+   
+insert into t_check(c_when) values (to_char(current_timestamp, 'YYYY-MM-DD HH24:MI:SS'));
+
+
+

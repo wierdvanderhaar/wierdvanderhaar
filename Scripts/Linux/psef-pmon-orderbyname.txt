@@ -1,0 +1,1 @@
+ps -ef|grep -v grep|grep pmon|awk '{printf(substr($8,10)"\n")}' 

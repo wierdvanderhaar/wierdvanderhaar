@@ -1,0 +1,97 @@
+oakcli clone vm DBANL -vmtemplate OL6U7_PVM -repo dbatest -node 0
+oakcli create vdisk dbanl_dsk01 -repo dbatest -size 20G -type local -sparse
+oakcli modify vm DBANL -attachvdisk dbanl_dsk01
+oakcli create vdisk dbanl_dsk02 -repo dbatest -size 20G -type local -sparse
+oakcli modify vm DBANL -attachvdisk dbanl_dsk02
+
+[root@dbanl ~]# df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/xvda2             11G  1.8G  8.0G  18% /
+tmpfs                 997M     0  997M   0% /dev/shm
+/dev/xvda1            479M   51M  399M  12% /boot
+/dev/mapper/vgoracle-lvoracle
+                       20G   44M   19G   1% /u01
+/dev/xvdc1             20G   44M   19G   1% /lun
+
+# Create files of 8G
+dd if=/dev/zero of=/luns/lun1 bs=8k count=1000000
+dd if=/dev/zero of=/luns/lun1 bs=8k count=1000000
+
+installed Oracle EE 12.1.0.2.0 in dir /u01/app/oracle/product/12.1.0/dbhome_1
+
+Created file dbanl-test.lun in /home/oracle
+/luns/lun1
+/luns/lun2
+
+$ORACLE_HOME/bin/orion -run normal -testname dbanl-test
+
+
+
+
+
+
+[root@odarac1a VirtualMachines]# oakcli show repo ebsotarep -node 0
+Resource: ebsotarep_0
+        AutoStart       :       restore
+        DG              :       DATA
+        Device          :       /dev/asm/ebsotarep-498
+        ExpectedState   :       Online
+        FreeSpace       :       74736.1M
+        MountPoint      :       /u01/app/sharedrepo/ebsotarep
+        Name            :       ebsotarep_0
+        PFreeSpace      :       12.16%
+        RepoType        :       shared
+        Size            :       614400.0M
+        State           :       Online
+        Version         :       2
+
+
+[root@odarac1a VirtualMachines]#
+[root@odarac1a VirtualMachines]# oakcli show repo ebsprodrep -node 0
+Resource: ebsprodrep_0
+        AutoStart       :       restore
+        DG              :       DATA
+        Device          :       /dev/asm/ebsprodrep-498
+        ExpectedState   :       Online
+        FreeSpace       :       20286.8M
+        MountPoint      :       /u01/app/sharedrepo/ebsprodrep
+        Name            :       ebsprodrep_0
+        PFreeSpace      :       0.99%
+        RepoType        :       shared
+        Size            :       2048000.0M
+        State           :       Online
+        Version         :       2
+
+
+[root@odarac1a VirtualMachines]#
+[root@odarac1a VirtualMachines]# oakcli show repo installrep -node 0
+Resource: installrep_0
+        AutoStart       :       restore
+        DG              :       DATA
+        Device          :       /dev/asm/installrep-498
+        ExpectedState   :       Online
+        FreeSpace       :       45757.2M
+        MountPoint      :       /u01/app/sharedrepo/installrep
+        Name            :       installrep_0
+        PFreeSpace      :       89.37%
+        RepoType        :       shared
+        Size            :       51200.0M
+        State           :       Online
+        Version         :       2
+
+
+[root@odarac1a VirtualMachines]# oakcli show repo dbatest -node 0
+Resource: dbatest_0
+        AutoStart       :       restore
+        DG              :       RECO
+        Device          :       /dev/asm/dbatest-390
+        ExpectedState   :       Online
+        FreeSpace       :       183333.9M
+        MountPoint      :       /u01/app/sharedrepo/dbatest
+        Name            :       dbatest_0
+        PFreeSpace      :       59.68%
+        RepoType        :       shared
+        Size            :       307200.0M
+        State           :       Online
+        Version         :       2
+

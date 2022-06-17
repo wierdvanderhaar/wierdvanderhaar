@@ -1,0 +1,26 @@
+#!/bin/bash
+export TMP=/tmp
+export TMPDIR=$TMP
+export PATH=/usr/sbin:/usr/local/bin:$PATH
+export ORACLE_HOSTNAME=$HOSTNAME
+export ORACLE_HOME=/u01/app/oracle/product/12.1.0/dbhome_1
+export PATH=${ORACLE_HOME}/bin:$PATH
+
+# Start Listener
+# lsnrctl start
+# Start alle databases m.b.v. dbstart
+$ORACLE_HOME/bin/dbstart ${ORACLE_HOME}
+
+
+#!/bin/bash
+export TMP=/tmp
+export TMPDIR=$TMP
+export PATH=/usr/sbin:/usr/local/bin:$PATH
+export ORACLE_HOSTNAME=$HOSTNAME
+export ORACLE_HOME=/u01/app/oracle/product/12.1.0/dbhome_1
+export PATH=${ORACLE_HOME}/bin:$PATH
+
+# Stop Listener
+$ORACLE_HOME/bin/lsnrctl stop
+# Stop alle databases m.b.v. dbshut
+$ORACLE_HOME/bin/dbshut ${ORACLE_HOME}

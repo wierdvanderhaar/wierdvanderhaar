@@ -1,0 +1,1137 @@
+ServeralNines => Clustercontrol
+
+-- install
+wget -O install-cc https://severalnines.com/scripts/install-cc?GIhwN096ERXrJjkOfm3IwkjAd3ifTisohX_aRVwEZP0,
+chmod +x install-cc
+-- Please change S9S_CMON_PASSWORD or S9S_ROOT_PASSWORD values or remove the environment variables to interactively set to your own passwords.
+S9S_CMON_PASSWORD=0jfXTNb6 S9S_ROOT_PASSWORD=0GmUiZI8 ./install-cc
+
+S9S_CMON_PASSWORD=0jfXTNb6 S9S_ROOT_PASSWORD=0GmUiZI8 HOST=192.168.1.10 ./install-cc
+
+-- Open your web browser to http://[ClusterControl_host]/clustercontrol and create the default Admin user by entering a valid email address and password.
+
+ssh-keygen -t rsa
+ssh-copy-id -i ~/.ssh/id_rsa [ClusterControl IP address]
+ssh-copy-id -i ~/.ssh/id_rsa [Database nodes IP address]
+
+
+
+
+
+root@centos79-minimal ~]# ./install-cc 
+!!
+Only RHEL/Centos 7|8, Debian 8|9|10|11, Ubuntu 18.04|20.04 LTS versions are supported
+System RAM is > 1.5G
+Setting MySQL innodb_buffer_pool_size to 50% of system RAM
+MySQL innodb_buffer_pool_size set to 7924M
+
+Severalnines would like your help improving our installation process.
+Information such as OS, memory and install success helps us improve how we onboard our users.
+None of the collected information identifies you personally.
+!!
+=> Would you like to help us by sending diagnostics data for the installation? (Y/n): n
+
+This script will add Severalnines repository server for deb and rpm packages and 
+install the ClusterControl Web Applicaiton and Controller. 
+An Apache and MySQL server will also be installed. An existing MySQL Server on this host can be used.
+
+=> Installing required packages ...
+Failed to set locale, defaulting to C
+Loaded plugins: fastestmirror
+Ignored option -q, -v, -d or -e (probably due to merging: -yq != -y -q)
+Loading mirror speeds from cached hostfile
+ * base: mirror.freethought-internet.co.uk
+ * extras: mirror.freethought-internet.co.uk
+ * updates: mirrors.coreix.net
+Package wget-1.14-18.el7_6.1.x86_64 already installed and latest version
+Package 1:dmidecode-3.2-5.el7_9.1.x86_64 already installed and latest version
+Package hostname-3.13-3.el7_7.1.x86_64 already installed and latest version
+Nothing to do
+=> Installing python ...
+Failed to set locale, defaulting to C
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.freethought-internet.co.uk
+ * extras: mirror.freethought-internet.co.uk
+ * updates: mirrors.coreix.net
+Package python-2.7.5-90.el7.x86_64 already installed and latest version
+Nothing to do
+Python 2.7.5
+=> Added /etc/yum.repos.d/s9s-tools.repo
+=> Added /etc/yum.repos.d/s9s-repo.repo
+=> Installing the ClusterControl package ...
+Failed to set locale, defaulting to C
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.freethought-internet.co.uk
+ * extras: mirror.freethought-internet.co.uk
+ * updates: mirrors.coreix.net
+s9s-repo                                                                                                                                                                                                                             | 2.9 kB  00:00:00     
+s9s-tools                                                                                                                                                                                                                            | 1.3 kB  00:00:00     
+(1/2): s9s-tools/primary                                                                                                                                                                                                             | 1.1 kB  00:00:00     
+(2/2): s9s-repo/primary_db                                                                                                                                                                                                           | 142 kB  00:00:00     
+s9s-tools                                                                                                                                                                                                                                               2/2
+Resolving Dependencies
+--> Running transaction check
+---> Package clustercontrol.x86_64 0:1.9.2-8273 will be installed
+--> Processing Dependency: clustercontrol-cloud for package: clustercontrol-1.9.2-8273.x86_64
+--> Processing Dependency: clustercontrol-ssh for package: clustercontrol-1.9.2-8273.x86_64
+--> Processing Dependency: clustercontrol-notifications for package: clustercontrol-1.9.2-8273.x86_64
+--> Processing Dependency: clustercontrol-clud for package: clustercontrol-1.9.2-8273.x86_64
+--> Running transaction check
+---> Package clustercontrol-cloud.x86_64 0:1.9.2-332 will be installed
+---> Package clustercontrol-clud.x86_64 0:1.9.2-332 will be installed
+---> Package clustercontrol-notifications.x86_64 0:1.9.2-306 will be installed
+---> Package clustercontrol-ssh.x86_64 0:1.9.2-118 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================================================================================================================================================================================================
+ Package                                                                     Arch                                                  Version                                                    Repository                                               Size
+============================================================================================================================================================================================================================================================
+Installing:
+ clustercontrol                                                              x86_64                                                1.9.2-8273                                                 s9s-repo                                                 16 M
+Installing for dependencies:
+ clustercontrol-cloud                                                        x86_64                                                1.9.2-332                                                  s9s-repo                                                 11 M
+ clustercontrol-clud                                                         x86_64                                                1.9.2-332                                                  s9s-repo                                                8.8 M
+ clustercontrol-notifications                                                x86_64                                                1.9.2-306                                                  s9s-repo                                                3.7 M
+ clustercontrol-ssh                                                          x86_64                                                1.9.2-118                                                  s9s-repo                                                3.1 M
+
+Transaction Summary
+============================================================================================================================================================================================================================================================
+Install  1 Package (+4 Dependent packages)
+
+Total download size: 43 M
+Installed size: 179 M
+Downloading packages:
+warning: /var/cache/yum/x86_64/7/s9s-repo/packages/clustercontrol-1.9.2-8273-x86_64.rpm: Header V4 RSA/SHA1 Signature, key ID aef699e8: NOKEY=                                                                            ]  0.0 B/s |  11 MB  --:--:-- ETA 
+Public key for clustercontrol-1.9.2-8273-x86_64.rpm is not installed
+(1/5): clustercontrol-1.9.2-8273-x86_64.rpm                                                                                                                                                                                          |  16 MB  00:00:00     
+(2/5): clustercontrol-cloud-1.9.2-332-x86_64.rpm                                                                                                                                                                                     |  11 MB  00:00:00     
+(3/5): clustercontrol-notifications-1.9.2-306-x86_64.rpm                                                                                                                                                                             | 3.7 MB  00:00:00     
+(4/5): clustercontrol-clud-1.9.2-332-x86_64.rpm                                                                                                                                                                                      | 8.8 MB  00:00:00     
+(5/5): clustercontrol-ssh-1.9.2-118-x86_64.rpm                                                                                                                                                                                       | 3.1 MB  00:00:00     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                                                                        54 MB/s |  43 MB  00:00:00     
+Retrieving key from http://repo.severalnines.com/severalnines-repos.asc
+Importing GPG key 0xAEF699E8:
+ Userid     : "Severalnines Repositories <repos@severalnines.com>"
+ Fingerprint: 6ecd ba7b 8989 015b 300a 1a0d 0a68 edce aef6 99e8
+ From       : http://repo.severalnines.com/severalnines-repos.asc
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : clustercontrol-notifications-1.9.2-306.x86_64                                                                                                                                                                                            1/5 
+  Installing : clustercontrol-cloud-1.9.2-332.x86_64                                                                                                                                                                                                    2/5 
+  Installing : clustercontrol-clud-1.9.2-332.x86_64                                                                                                                                                                                                     3/5 
+  Installing : clustercontrol-ssh-1.9.2-118.x86_64                                                                                                                                                                                                      4/5 
+  Installing : clustercontrol-1.9.2-8273.x86_64                                                                                                                                                                                                         5/5 
+  Verifying  : clustercontrol-ssh-1.9.2-118.x86_64                                                                                                                                                                                                      1/5 
+  Verifying  : clustercontrol-clud-1.9.2-332.x86_64                                                                                                                                                                                                     2/5 
+  Verifying  : clustercontrol-cloud-1.9.2-332.x86_64                                                                                                                                                                                                    3/5 
+  Verifying  : clustercontrol-1.9.2-8273.x86_64                                                                                                                                                                                                         4/5 
+  Verifying  : clustercontrol-notifications-1.9.2-306.x86_64                                                                                                                                                                                            5/5 
+
+Installed:
+  clustercontrol.x86_64 0:1.9.2-8273                                                                                                                                                                                                                        
+
+Dependency Installed:
+  clustercontrol-cloud.x86_64 0:1.9.2-332                      clustercontrol-clud.x86_64 0:1.9.2-332                      clustercontrol-notifications.x86_64 0:1.9.2-306                      clustercontrol-ssh.x86_64 0:1.9.2-118                     
+
+Complete!
+Finalizing the ClusterControl Web Application and Controller (CMON process) installation.
+
+
+=> Creating temporary staging dir s9s_tmp
+
+=> Setting up the ClusterControl Web Application ...
+=> Using web document root /var/www/html
+=> Installing the default distro MySQL Server ...
+Failed to set locale, defaulting to C
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.freethought-internet.co.uk
+ * extras: mirror.freethought-internet.co.uk
+ * updates: mirrors.coreix.net
+Package wget-1.14-18.el7_6.1.x86_64 already installed and latest version
+Resolving Dependencies
+--> Running transaction check
+---> Package httpd.x86_64 0:2.4.6-97.el7.centos.5 will be installed
+--> Processing Dependency: httpd-tools = 2.4.6-97.el7.centos.5 for package: httpd-2.4.6-97.el7.centos.5.x86_64
+--> Processing Dependency: /etc/mime.types for package: httpd-2.4.6-97.el7.centos.5.x86_64
+--> Processing Dependency: libaprutil-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.5.x86_64
+--> Processing Dependency: libapr-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.5.x86_64
+---> Package mariadb-server.x86_64 1:5.5.68-1.el7 will be installed
+--> Processing Dependency: mariadb(x86-64) = 1:5.5.68-1.el7 for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl-DBI for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl-DBD-MySQL for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(vars) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(strict) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(Sys::Hostname) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(POSIX) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(Getopt::Long) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(File::Temp) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(File::Path) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(File::Copy) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(File::Basename) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(Data::Dumper) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: perl(DBI) for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+--> Processing Dependency: /usr/bin/perl for package: 1:mariadb-server-5.5.68-1.el7.x86_64
+---> Package mod_ssl.x86_64 1:2.4.6-97.el7.centos.5 will be installed
+---> Package php.x86_64 0:5.4.16-48.el7 will be installed
+--> Processing Dependency: php-cli(x86-64) = 5.4.16-48.el7 for package: php-5.4.16-48.el7.x86_64
+---> Package php-common.x86_64 0:5.4.16-48.el7 will be installed
+--> Processing Dependency: libzip.so.2()(64bit) for package: php-common-5.4.16-48.el7.x86_64
+---> Package php-gd.x86_64 0:5.4.16-48.el7 will be installed
+--> Processing Dependency: libjpeg.so.62(LIBJPEG_6.2)(64bit) for package: php-gd-5.4.16-48.el7.x86_64
+--> Processing Dependency: libt1.so.5()(64bit) for package: php-gd-5.4.16-48.el7.x86_64
+--> Processing Dependency: libjpeg.so.62()(64bit) for package: php-gd-5.4.16-48.el7.x86_64
+--> Processing Dependency: libXpm.so.4()(64bit) for package: php-gd-5.4.16-48.el7.x86_64
+--> Processing Dependency: libX11.so.6()(64bit) for package: php-gd-5.4.16-48.el7.x86_64
+---> Package php-ldap.x86_64 0:5.4.16-48.el7 will be installed
+---> Package php-mysql.x86_64 0:5.4.16-48.el7 will be installed
+--> Processing Dependency: php-pdo(x86-64) = 5.4.16-48.el7 for package: php-mysql-5.4.16-48.el7.x86_64
+---> Package php-xml.x86_64 0:5.4.16-48.el7 will be installed
+--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.24)(64bit) for package: php-xml-5.4.16-48.el7.x86_64
+--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.22)(64bit) for package: php-xml-5.4.16-48.el7.x86_64
+--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.18)(64bit) for package: php-xml-5.4.16-48.el7.x86_64
+--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.13)(64bit) for package: php-xml-5.4.16-48.el7.x86_64
+--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.11)(64bit) for package: php-xml-5.4.16-48.el7.x86_64
+--> Processing Dependency: libxslt.so.1()(64bit) for package: php-xml-5.4.16-48.el7.x86_64
+--> Processing Dependency: libexslt.so.0()(64bit) for package: php-xml-5.4.16-48.el7.x86_64
+--> Running transaction check
+---> Package apr.x86_64 0:1.4.8-7.el7 will be installed
+---> Package apr-util.x86_64 0:1.5.2-6.el7 will be installed
+---> Package httpd-tools.x86_64 0:2.4.6-97.el7.centos.5 will be installed
+---> Package libX11.x86_64 0:1.6.7-4.el7_9 will be installed
+--> Processing Dependency: libX11-common >= 1.6.7-4.el7_9 for package: libX11-1.6.7-4.el7_9.x86_64
+--> Processing Dependency: libxcb.so.1()(64bit) for package: libX11-1.6.7-4.el7_9.x86_64
+---> Package libXpm.x86_64 0:3.5.12-1.el7 will be installed
+---> Package libjpeg-turbo.x86_64 0:1.2.90-8.el7 will be installed
+---> Package libxslt.x86_64 0:1.1.28-6.el7 will be installed
+---> Package libzip.x86_64 0:0.10.1-8.el7 will be installed
+---> Package mailcap.noarch 0:2.1.41-2.el7 will be installed
+---> Package mariadb.x86_64 1:5.5.68-1.el7 will be installed
+--> Processing Dependency: perl(Exporter) for package: 1:mariadb-5.5.68-1.el7.x86_64
+---> Package perl.x86_64 4:5.16.3-299.el7_9 will be installed
+--> Processing Dependency: perl-libs = 4:5.16.3-299.el7_9 for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Socket) >= 1.3 for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Scalar::Util) >= 1.10 for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl-macros for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl-libs for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(threads::shared) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(threads) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(constant) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Time::Local) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Time::HiRes) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Storable) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Socket) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Scalar::Util) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Pod::Simple::XHTML) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Pod::Simple::Search) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Filter::Util::Call) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(File::Spec::Unix) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(File::Spec::Functions) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(File::Spec) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Cwd) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: perl(Carp) for package: 4:perl-5.16.3-299.el7_9.x86_64
+--> Processing Dependency: libperl.so()(64bit) for package: 4:perl-5.16.3-299.el7_9.x86_64
+---> Package perl-DBD-MySQL.x86_64 0:4.023-6.el7 will be installed
+---> Package perl-DBI.x86_64 0:1.627-4.el7 will be installed
+--> Processing Dependency: perl(RPC::PlServer) >= 0.2001 for package: perl-DBI-1.627-4.el7.x86_64
+--> Processing Dependency: perl(RPC::PlClient) >= 0.2000 for package: perl-DBI-1.627-4.el7.x86_64
+---> Package perl-Data-Dumper.x86_64 0:2.145-3.el7 will be installed
+---> Package perl-File-Path.noarch 0:2.09-2.el7 will be installed
+---> Package perl-File-Temp.noarch 0:0.23.01-3.el7 will be installed
+---> Package perl-Getopt-Long.noarch 0:2.40-3.el7 will be installed
+--> Processing Dependency: perl(Pod::Usage) >= 1.14 for package: perl-Getopt-Long-2.40-3.el7.noarch
+--> Processing Dependency: perl(Text::ParseWords) for package: perl-Getopt-Long-2.40-3.el7.noarch
+---> Package php-cli.x86_64 0:5.4.16-48.el7 will be installed
+---> Package php-pdo.x86_64 0:5.4.16-48.el7 will be installed
+---> Package t1lib.x86_64 0:5.1.2-14.el7 will be installed
+--> Running transaction check
+---> Package libX11-common.noarch 0:1.6.7-4.el7_9 will be installed
+---> Package libxcb.x86_64 0:1.13-1.el7 will be installed
+--> Processing Dependency: libXau.so.6()(64bit) for package: libxcb-1.13-1.el7.x86_64
+---> Package perl-Carp.noarch 0:1.26-244.el7 will be installed
+---> Package perl-Exporter.noarch 0:5.68-3.el7 will be installed
+---> Package perl-Filter.x86_64 0:1.49-3.el7 will be installed
+---> Package perl-PathTools.x86_64 0:3.40-5.el7 will be installed
+---> Package perl-PlRPC.noarch 0:0.2020-14.el7 will be installed
+--> Processing Dependency: perl(Net::Daemon) >= 0.13 for package: perl-PlRPC-0.2020-14.el7.noarch
+--> Processing Dependency: perl(Net::Daemon::Test) for package: perl-PlRPC-0.2020-14.el7.noarch
+--> Processing Dependency: perl(Net::Daemon::Log) for package: perl-PlRPC-0.2020-14.el7.noarch
+--> Processing Dependency: perl(Compress::Zlib) for package: perl-PlRPC-0.2020-14.el7.noarch
+---> Package perl-Pod-Simple.noarch 1:3.28-4.el7 will be installed
+--> Processing Dependency: perl(Pod::Escapes) >= 1.04 for package: 1:perl-Pod-Simple-3.28-4.el7.noarch
+--> Processing Dependency: perl(Encode) for package: 1:perl-Pod-Simple-3.28-4.el7.noarch
+---> Package perl-Pod-Usage.noarch 0:1.63-3.el7 will be installed
+--> Processing Dependency: perl(Pod::Text) >= 3.15 for package: perl-Pod-Usage-1.63-3.el7.noarch
+--> Processing Dependency: perl-Pod-Perldoc for package: perl-Pod-Usage-1.63-3.el7.noarch
+---> Package perl-Scalar-List-Utils.x86_64 0:1.27-248.el7 will be installed
+---> Package perl-Socket.x86_64 0:2.010-5.el7 will be installed
+---> Package perl-Storable.x86_64 0:2.45-3.el7 will be installed
+---> Package perl-Text-ParseWords.noarch 0:3.29-4.el7 will be installed
+---> Package perl-Time-HiRes.x86_64 4:1.9725-3.el7 will be installed
+---> Package perl-Time-Local.noarch 0:1.2300-2.el7 will be installed
+---> Package perl-constant.noarch 0:1.27-2.el7 will be installed
+---> Package perl-libs.x86_64 4:5.16.3-299.el7_9 will be installed
+---> Package perl-macros.x86_64 4:5.16.3-299.el7_9 will be installed
+---> Package perl-threads.x86_64 0:1.87-4.el7 will be installed
+---> Package perl-threads-shared.x86_64 0:1.43-6.el7 will be installed
+--> Running transaction check
+---> Package libXau.x86_64 0:1.0.8-2.1.el7 will be installed
+---> Package perl-Encode.x86_64 0:2.51-7.el7 will be installed
+---> Package perl-IO-Compress.noarch 0:2.061-2.el7 will be installed
+--> Processing Dependency: perl(Compress::Raw::Zlib) >= 2.061 for package: perl-IO-Compress-2.061-2.el7.noarch
+--> Processing Dependency: perl(Compress::Raw::Bzip2) >= 2.061 for package: perl-IO-Compress-2.061-2.el7.noarch
+---> Package perl-Net-Daemon.noarch 0:0.48-5.el7 will be installed
+---> Package perl-Pod-Escapes.noarch 1:1.04-299.el7_9 will be installed
+---> Package perl-Pod-Perldoc.noarch 0:3.20-4.el7 will be installed
+--> Processing Dependency: perl(parent) for package: perl-Pod-Perldoc-3.20-4.el7.noarch
+--> Processing Dependency: perl(HTTP::Tiny) for package: perl-Pod-Perldoc-3.20-4.el7.noarch
+---> Package perl-podlators.noarch 0:2.5.1-3.el7 will be installed
+--> Running transaction check
+---> Package perl-Compress-Raw-Bzip2.x86_64 0:2.061-3.el7 will be installed
+---> Package perl-Compress-Raw-Zlib.x86_64 1:2.061-4.el7 will be installed
+---> Package perl-HTTP-Tiny.noarch 0:0.033-3.el7 will be installed
+---> Package perl-parent.noarch 1:0.225-244.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================================================================================================================================================================================================
+ Package                                                              Arch                                                Version                                                                Repository                                            Size
+============================================================================================================================================================================================================================================================
+Installing:
+ httpd                                                                x86_64                                              2.4.6-97.el7.centos.5                                                  updates                                              2.7 M
+ mariadb-server                                                       x86_64                                              1:5.5.68-1.el7                                                         base                                                  11 M
+ mod_ssl                                                              x86_64                                              1:2.4.6-97.el7.centos.5                                                updates                                              115 k
+ php                                                                  x86_64                                              5.4.16-48.el7                                                          base                                                 1.4 M
+ php-common                                                           x86_64                                              5.4.16-48.el7                                                          base                                                 565 k
+ php-gd                                                               x86_64                                              5.4.16-48.el7                                                          base                                                 128 k
+ php-ldap                                                             x86_64                                              5.4.16-48.el7                                                          base                                                  53 k
+ php-mysql                                                            x86_64                                              5.4.16-48.el7                                                          base                                                 102 k
+ php-xml                                                              x86_64                                              5.4.16-48.el7                                                          base                                                 126 k
+Installing for dependencies:
+ apr                                                                  x86_64                                              1.4.8-7.el7                                                            base                                                 104 k
+ apr-util                                                             x86_64                                              1.5.2-6.el7                                                            base                                                  92 k
+ httpd-tools                                                          x86_64                                              2.4.6-97.el7.centos.5                                                  updates                                               94 k
+ libX11                                                               x86_64                                              1.6.7-4.el7_9                                                          updates                                              607 k
+ libX11-common                                                        noarch                                              1.6.7-4.el7_9                                                          updates                                              164 k
+ libXau                                                               x86_64                                              1.0.8-2.1.el7                                                          base                                                  29 k
+ libXpm                                                               x86_64                                              3.5.12-1.el7                                                           base                                                  55 k
+ libjpeg-turbo                                                        x86_64                                              1.2.90-8.el7                                                           base                                                 135 k
+ libxcb                                                               x86_64                                              1.13-1.el7                                                             base                                                 214 k
+ libxslt                                                              x86_64                                              1.1.28-6.el7                                                           base                                                 242 k
+ libzip                                                               x86_64                                              0.10.1-8.el7                                                           base                                                  48 k
+ mailcap                                                              noarch                                              2.1.41-2.el7                                                           base                                                  31 k
+ mariadb                                                              x86_64                                              1:5.5.68-1.el7                                                         base                                                 8.8 M
+ perl                                                                 x86_64                                              4:5.16.3-299.el7_9                                                     updates                                              8.0 M
+ perl-Carp                                                            noarch                                              1.26-244.el7                                                           base                                                  19 k
+ perl-Compress-Raw-Bzip2                                              x86_64                                              2.061-3.el7                                                            base                                                  32 k
+ perl-Compress-Raw-Zlib                                               x86_64                                              1:2.061-4.el7                                                          base                                                  57 k
+ perl-DBD-MySQL                                                       x86_64                                              4.023-6.el7                                                            base                                                 140 k
+ perl-DBI                                                             x86_64                                              1.627-4.el7                                                            base                                                 802 k
+ perl-Data-Dumper                                                     x86_64                                              2.145-3.el7                                                            base                                                  47 k
+ perl-Encode                                                          x86_64                                              2.51-7.el7                                                             base                                                 1.5 M
+ perl-Exporter                                                        noarch                                              5.68-3.el7                                                             base                                                  28 k
+ perl-File-Path                                                       noarch                                              2.09-2.el7                                                             base                                                  26 k
+ perl-File-Temp                                                       noarch                                              0.23.01-3.el7                                                          base                                                  56 k
+ perl-Filter                                                          x86_64                                              1.49-3.el7                                                             base                                                  76 k
+ perl-Getopt-Long                                                     noarch                                              2.40-3.el7                                                             base                                                  56 k
+ perl-HTTP-Tiny                                                       noarch                                              0.033-3.el7                                                            base                                                  38 k
+ perl-IO-Compress                                                     noarch                                              2.061-2.el7                                                            base                                                 260 k
+ perl-Net-Daemon                                                      noarch                                              0.48-5.el7                                                             base                                                  51 k
+ perl-PathTools                                                       x86_64                                              3.40-5.el7                                                             base                                                  82 k
+ perl-PlRPC                                                           noarch                                              0.2020-14.el7                                                          base                                                  36 k
+ perl-Pod-Escapes                                                     noarch                                              1:1.04-299.el7_9                                                       updates                                               52 k
+ perl-Pod-Perldoc                                                     noarch                                              3.20-4.el7                                                             base                                                  87 k
+ perl-Pod-Simple                                                      noarch                                              1:3.28-4.el7                                                           base                                                 216 k
+ perl-Pod-Usage                                                       noarch                                              1.63-3.el7                                                             base                                                  27 k
+ perl-Scalar-List-Utils                                               x86_64                                              1.27-248.el7                                                           base                                                  36 k
+ perl-Socket                                                          x86_64                                              2.010-5.el7                                                            base                                                  49 k
+ perl-Storable                                                        x86_64                                              2.45-3.el7                                                             base                                                  77 k
+ perl-Text-ParseWords                                                 noarch                                              3.29-4.el7                                                             base                                                  14 k
+ perl-Time-HiRes                                                      x86_64                                              4:1.9725-3.el7                                                         base                                                  45 k
+ perl-Time-Local                                                      noarch                                              1.2300-2.el7                                                           base                                                  24 k
+ perl-constant                                                        noarch                                              1.27-2.el7                                                             base                                                  19 k
+ perl-libs                                                            x86_64                                              4:5.16.3-299.el7_9                                                     updates                                              690 k
+ perl-macros                                                          x86_64                                              4:5.16.3-299.el7_9                                                     updates                                               44 k
+ perl-parent                                                          noarch                                              1:0.225-244.el7                                                        base                                                  12 k
+ perl-podlators                                                       noarch                                              2.5.1-3.el7                                                            base                                                 112 k
+ perl-threads                                                         x86_64                                              1.87-4.el7                                                             base                                                  49 k
+ perl-threads-shared                                                  x86_64                                              1.43-6.el7                                                             base                                                  39 k
+ php-cli                                                              x86_64                                              5.4.16-48.el7                                                          base                                                 2.7 M
+ php-pdo                                                              x86_64                                              5.4.16-48.el7                                                          base                                                  99 k
+ t1lib                                                                x86_64                                              5.1.2-14.el7                                                           base                                                 166 k
+
+Transaction Summary
+============================================================================================================================================================================================================================================================
+Install  9 Packages (+51 Dependent packages)
+
+Total download size: 43 M
+Installed size: 180 M
+Downloading packages:
+(1/60): apr-util-1.5.2-6.el7.x86_64.rpm                                                                                                                                                                                              |  92 kB  00:00:00     
+(2/60): apr-1.4.8-7.el7.x86_64.rpm                                                                                                                                                                                                   | 104 kB  00:00:00     
+(3/60): httpd-tools-2.4.6-97.el7.centos.5.x86_64.rpm                                                                                                                                                                                 |  94 kB  00:00:00     
+(4/60): libX11-1.6.7-4.el7_9.x86_64.rpm                                                                                                                                                                                              | 607 kB  00:00:00     
+(5/60): libXpm-3.5.12-1.el7.x86_64.rpm                                                                                                                                                                                               |  55 kB  00:00:00     
+(6/60): libXau-1.0.8-2.1.el7.x86_64.rpm                                                                                                                                                                                              |  29 kB  00:00:00     
+(7/60): libxcb-1.13-1.el7.x86_64.rpm                                                                                                                                                                                                 | 214 kB  00:00:00     
+(8/60): libzip-0.10.1-8.el7.x86_64.rpm                                                                                                                                                                                               |  48 kB  00:00:00     
+(9/60): libxslt-1.1.28-6.el7.x86_64.rpm                                                                                                                                                                                              | 242 kB  00:00:00     
+(10/60): libX11-common-1.6.7-4.el7_9.noarch.rpm                                                                                                                                                                                      | 164 kB  00:00:00     
+(11/60): mailcap-2.1.41-2.el7.noarch.rpm                                                                                                                                                                                             |  31 kB  00:00:00     
+(12/60): mod_ssl-2.4.6-97.el7.centos.5.x86_64.rpm                                                                                                                                                                                    | 115 kB  00:00:00     
+(13/60): libjpeg-turbo-1.2.90-8.el7.x86_64.rpm                                                                                                                                                                                       | 135 kB  00:00:00     
+(14/60): httpd-2.4.6-97.el7.centos.5.x86_64.rpm                                                                                                                                                                                      | 2.7 MB  00:00:00     
+(15/60): perl-Carp-1.26-244.el7.noarch.rpm                                                                                                                                                                                           |  19 kB  00:00:00     
+(16/60): perl-Compress-Raw-Zlib-2.061-4.el7.x86_64.rpm                                                                                                                                                                               |  57 kB  00:00:00     
+(17/60): perl-Compress-Raw-Bzip2-2.061-3.el7.x86_64.rpm                                                                                                                                                                              |  32 kB  00:00:00     
+(18/60): perl-DBD-MySQL-4.023-6.el7.x86_64.rpm                                                                                                                                                                                       | 140 kB  00:00:00     
+(19/60): perl-Data-Dumper-2.145-3.el7.x86_64.rpm                                                                                                                                                                                     |  47 kB  00:00:00     
+(20/60): perl-DBI-1.627-4.el7.x86_64.rpm                                                                                                                                                                                             | 802 kB  00:00:00     
+(21/60): perl-Exporter-5.68-3.el7.noarch.rpm                                                                                                                                                                                         |  28 kB  00:00:00     
+(22/60): perl-Encode-2.51-7.el7.x86_64.rpm                                                                                                                                                                                           | 1.5 MB  00:00:00     
+(23/60): perl-File-Temp-0.23.01-3.el7.noarch.rpm                                                                                                                                                                                     |  56 kB  00:00:00     
+(24/60): perl-File-Path-2.09-2.el7.noarch.rpm                                                                                                                                                                                        |  26 kB  00:00:00     
+(25/60): perl-Filter-1.49-3.el7.x86_64.rpm                                                                                                                                                                                           |  76 kB  00:00:00     
+(26/60): perl-HTTP-Tiny-0.033-3.el7.noarch.rpm                                                                                                                                                                                       |  38 kB  00:00:00     
+(27/60): mariadb-5.5.68-1.el7.x86_64.rpm                                                                                                                                                                                             | 8.8 MB  00:00:00     
+(28/60): perl-IO-Compress-2.061-2.el7.noarch.rpm                                                                                                                                                                                     | 260 kB  00:00:00     
+(29/60): perl-5.16.3-299.el7_9.x86_64.rpm                                                                                                                                                                                            | 8.0 MB  00:00:00     
+(30/60): perl-Getopt-Long-2.40-3.el7.noarch.rpm                                                                                                                                                                                      |  56 kB  00:00:00     
+(31/60): perl-Net-Daemon-0.48-5.el7.noarch.rpm                                                                                                                                                                                       |  51 kB  00:00:00     
+(32/60): perl-Pod-Escapes-1.04-299.el7_9.noarch.rpm                                                                                                                                                                                  |  52 kB  00:00:00     
+(33/60): perl-PlRPC-0.2020-14.el7.noarch.rpm                                                                                                                                                                                         |  36 kB  00:00:00     
+(34/60): perl-PathTools-3.40-5.el7.x86_64.rpm                                                                                                                                                                                        |  82 kB  00:00:00     
+(35/60): perl-Pod-Simple-3.28-4.el7.noarch.rpm                                                                                                                                                                                       | 216 kB  00:00:00     
+(36/60): perl-Pod-Perldoc-3.20-4.el7.noarch.rpm                                                                                                                                                                                      |  87 kB  00:00:00     
+(37/60): perl-Scalar-List-Utils-1.27-248.el7.x86_64.rpm                                                                                                                                                                              |  36 kB  00:00:00     
+(38/60): perl-Pod-Usage-1.63-3.el7.noarch.rpm                                                                                                                                                                                        |  27 kB  00:00:00     
+(39/60): perl-Socket-2.010-5.el7.x86_64.rpm                                                                                                                                                                                          |  49 kB  00:00:00     
+(40/60): perl-Text-ParseWords-3.29-4.el7.noarch.rpm                                                                                                                                                                                  |  14 kB  00:00:00     
+(41/60): perl-Storable-2.45-3.el7.x86_64.rpm                                                                                                                                                                                         |  77 kB  00:00:00     
+(42/60): perl-Time-HiRes-1.9725-3.el7.x86_64.rpm                                                                                                                                                                                     |  45 kB  00:00:00     
+(43/60): perl-Time-Local-1.2300-2.el7.noarch.rpm                                                                                                                                                                                     |  24 kB  00:00:00     
+(44/60): perl-constant-1.27-2.el7.noarch.rpm                                                                                                                                                                                         |  19 kB  00:00:00     
+(45/60): perl-macros-5.16.3-299.el7_9.x86_64.rpm                                                                                                                                                                                     |  44 kB  00:00:00     
+(46/60): perl-parent-0.225-244.el7.noarch.rpm                                                                                                                                                                                        |  12 kB  00:00:00     
+(47/60): perl-podlators-2.5.1-3.el7.noarch.rpm                                                                                                                                                                                       | 112 kB  00:00:00     
+(48/60): perl-libs-5.16.3-299.el7_9.x86_64.rpm                                                                                                                                                                                       | 690 kB  00:00:00     
+(49/60): perl-threads-1.87-4.el7.x86_64.rpm                                                                                                                                                                                          |  49 kB  00:00:00     
+(50/60): perl-threads-shared-1.43-6.el7.x86_64.rpm                                                                                                                                                                                   |  39 kB  00:00:00     
+(51/60): php-common-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                         | 565 kB  00:00:00     
+(52/60): php-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                                | 1.4 MB  00:00:00     
+(53/60): php-ldap-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                           |  53 kB  00:00:00     
+(54/60): php-gd-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                             | 128 kB  00:00:00     
+(55/60): php-pdo-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                            |  99 kB  00:00:00     
+(56/60): php-mysql-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                          | 102 kB  00:00:00     
+(57/60): t1lib-5.1.2-14.el7.x86_64.rpm                                                                                                                                                                                               | 166 kB  00:00:00     
+(58/60): php-xml-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                            | 126 kB  00:00:00     
+(59/60): php-cli-5.4.16-48.el7.x86_64.rpm                                                                                                                                                                                            | 2.7 MB  00:00:00     
+(60/60): mariadb-server-5.5.68-1.el7.x86_64.rpm                                                                                                                                                                                      |  11 MB  00:00:01     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                                                                        22 MB/s |  43 MB  00:00:01     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : apr-1.4.8-7.el7.x86_64                                                                                                                                                                                                                  1/60 
+  Installing : apr-util-1.5.2-6.el7.x86_64                                                                                                                                                                                                             2/60 
+  Installing : httpd-tools-2.4.6-97.el7.centos.5.x86_64                                                                                                                                                                                                3/60 
+  Installing : 1:perl-parent-0.225-244.el7.noarch                                                                                                                                                                                                      4/60 
+  Installing : perl-HTTP-Tiny-0.033-3.el7.noarch                                                                                                                                                                                                       5/60 
+  Installing : perl-podlators-2.5.1-3.el7.noarch                                                                                                                                                                                                       6/60 
+  Installing : perl-Pod-Perldoc-3.20-4.el7.noarch                                                                                                                                                                                                      7/60 
+  Installing : perl-Text-ParseWords-3.29-4.el7.noarch                                                                                                                                                                                                  8/60 
+  Installing : 1:perl-Pod-Escapes-1.04-299.el7_9.noarch                                                                                                                                                                                                9/60 
+  Installing : perl-Encode-2.51-7.el7.x86_64                                                                                                                                                                                                          10/60 
+  Installing : perl-Pod-Usage-1.63-3.el7.noarch                                                                                                                                                                                                       11/60 
+  Installing : 4:perl-macros-5.16.3-299.el7_9.x86_64                                                                                                                                                                                                  12/60 
+  Installing : perl-threads-1.87-4.el7.x86_64                                                                                                                                                                                                         13/60 
+  Installing : 4:perl-Time-HiRes-1.9725-3.el7.x86_64                                                                                                                                                                                                  14/60 
+  Installing : perl-Exporter-5.68-3.el7.noarch                                                                                                                                                                                                        15/60 
+  Installing : perl-constant-1.27-2.el7.noarch                                                                                                                                                                                                        16/60 
+  Installing : perl-Socket-2.010-5.el7.x86_64                                                                                                                                                                                                         17/60 
+  Installing : perl-Time-Local-1.2300-2.el7.noarch                                                                                                                                                                                                    18/60 
+  Installing : perl-Carp-1.26-244.el7.noarch                                                                                                                                                                                                          19/60 
+  Installing : perl-threads-shared-1.43-6.el7.x86_64                                                                                                                                                                                                  20/60 
+  Installing : perl-PathTools-3.40-5.el7.x86_64                                                                                                                                                                                                       21/60 
+  Installing : perl-Scalar-List-Utils-1.27-248.el7.x86_64                                                                                                                                                                                             22/60 
+  Installing : 1:perl-Pod-Simple-3.28-4.el7.noarch                                                                                                                                                                                                    23/60 
+  Installing : perl-Storable-2.45-3.el7.x86_64                                                                                                                                                                                                        24/60 
+  Installing : perl-File-Temp-0.23.01-3.el7.noarch                                                                                                                                                                                                    25/60 
+  Installing : perl-File-Path-2.09-2.el7.noarch                                                                                                                                                                                                       26/60 
+  Installing : perl-Filter-1.49-3.el7.x86_64                                                                                                                                                                                                          27/60 
+  Installing : 4:perl-libs-5.16.3-299.el7_9.x86_64                                                                                                                                                                                                    28/60 
+  Installing : perl-Getopt-Long-2.40-3.el7.noarch                                                                                                                                                                                                     29/60 
+  Installing : 4:perl-5.16.3-299.el7_9.x86_64                                                                                                                                                                                                         30/60 
+  Installing : perl-Data-Dumper-2.145-3.el7.x86_64                                                                                                                                                                                                    31/60 
+  Installing : perl-Compress-Raw-Bzip2-2.061-3.el7.x86_64                                                                                                                                                                                             32/60 
+  Installing : perl-Net-Daemon-0.48-5.el7.noarch                                                                                                                                                                                                      33/60 
+  Installing : 1:perl-Compress-Raw-Zlib-2.061-4.el7.x86_64                                                                                                                                                                                            34/60 
+  Installing : perl-IO-Compress-2.061-2.el7.noarch                                                                                                                                                                                                    35/60 
+  Installing : perl-PlRPC-0.2020-14.el7.noarch                                                                                                                                                                                                        36/60 
+  Installing : perl-DBI-1.627-4.el7.x86_64                                                                                                                                                                                                            37/60 
+  Installing : perl-DBD-MySQL-4.023-6.el7.x86_64                                                                                                                                                                                                      38/60 
+  Installing : 1:mariadb-5.5.68-1.el7.x86_64                                                                                                                                                                                                          39/60 
+  Installing : libX11-common-1.6.7-4.el7_9.noarch                                                                                                                                                                                                     40/60 
+  Installing : libzip-0.10.1-8.el7.x86_64                                                                                                                                                                                                             41/60 
+  Installing : php-common-5.4.16-48.el7.x86_64                                                                                                                                                                                                        42/60 
+  Installing : php-cli-5.4.16-48.el7.x86_64                                                                                                                                                                                                           43/60 
+  Installing : php-pdo-5.4.16-48.el7.x86_64                                                                                                                                                                                                           44/60 
+  Installing : libxslt-1.1.28-6.el7.x86_64                                                                                                                                                                                                            45/60 
+  Installing : libjpeg-turbo-1.2.90-8.el7.x86_64                                                                                                                                                                                                      46/60 
+  Installing : mailcap-2.1.41-2.el7.noarch                                                                                                                                                                                                            47/60 
+  Installing : httpd-2.4.6-97.el7.centos.5.x86_64                                                                                                                                                                                                     48/60 
+  Installing : libXau-1.0.8-2.1.el7.x86_64                                                                                                                                                                                                            49/60 
+  Installing : libxcb-1.13-1.el7.x86_64                                                                                                                                                                                                               50/60 
+  Installing : libX11-1.6.7-4.el7_9.x86_64                                                                                                                                                                                                            51/60 
+  Installing : t1lib-5.1.2-14.el7.x86_64                                                                                                                                                                                                              52/60 
+  Installing : libXpm-3.5.12-1.el7.x86_64                                                                                                                                                                                                             53/60 
+  Installing : php-gd-5.4.16-48.el7.x86_64                                                                                                                                                                                                            54/60 
+  Installing : 1:mod_ssl-2.4.6-97.el7.centos.5.x86_64                                                                                                                                                                                                 55/60 
+  Installing : php-5.4.16-48.el7.x86_64                                                                                                                                                                                                               56/60 
+  Installing : php-xml-5.4.16-48.el7.x86_64                                                                                                                                                                                                           57/60 
+  Installing : php-mysql-5.4.16-48.el7.x86_64                                                                                                                                                                                                         58/60 
+  Installing : php-ldap-5.4.16-48.el7.x86_64                                                                                                                                                                                                          59/60 
+  Installing : 1:mariadb-server-5.5.68-1.el7.x86_64                                                                                                                                                                                                   60/60 
+  Verifying  : perl-HTTP-Tiny-0.033-3.el7.noarch                                                                                                                                                                                                       1/60 
+  Verifying  : libXau-1.0.8-2.1.el7.x86_64                                                                                                                                                                                                             2/60 
+  Verifying  : 1:mariadb-server-5.5.68-1.el7.x86_64                                                                                                                                                                                                    3/60 
+  Verifying  : php-common-5.4.16-48.el7.x86_64                                                                                                                                                                                                         4/60 
+  Verifying  : perl-threads-shared-1.43-6.el7.x86_64                                                                                                                                                                                                   5/60 
+  Verifying  : 4:perl-Time-HiRes-1.9725-3.el7.x86_64                                                                                                                                                                                                   6/60 
+  Verifying  : perl-threads-1.87-4.el7.x86_64                                                                                                                                                                                                          7/60 
+  Verifying  : perl-Exporter-5.68-3.el7.noarch                                                                                                                                                                                                         8/60 
+  Verifying  : perl-constant-1.27-2.el7.noarch                                                                                                                                                                                                         9/60 
+  Verifying  : perl-PathTools-3.40-5.el7.x86_64                                                                                                                                                                                                       10/60 
+  Verifying  : 1:mod_ssl-2.4.6-97.el7.centos.5.x86_64                                                                                                                                                                                                 11/60 
+  Verifying  : perl-Socket-2.010-5.el7.x86_64                                                                                                                                                                                                         12/60 
+  Verifying  : perl-Compress-Raw-Bzip2-2.061-3.el7.x86_64                                                                                                                                                                                             13/60 
+  Verifying  : php-xml-5.4.16-48.el7.x86_64                                                                                                                                                                                                           14/60 
+  Verifying  : php-ldap-5.4.16-48.el7.x86_64                                                                                                                                                                                                          15/60 
+  Verifying  : 1:perl-parent-0.225-244.el7.noarch                                                                                                                                                                                                     16/60 
+  Verifying  : 4:perl-macros-5.16.3-299.el7_9.x86_64                                                                                                                                                                                                  17/60 
+  Verifying  : perl-Net-Daemon-0.48-5.el7.noarch                                                                                                                                                                                                      18/60 
+  Verifying  : 1:perl-Pod-Simple-3.28-4.el7.noarch                                                                                                                                                                                                    19/60 
+  Verifying  : apr-1.4.8-7.el7.x86_64                                                                                                                                                                                                                 20/60 
+  Verifying  : perl-File-Temp-0.23.01-3.el7.noarch                                                                                                                                                                                                    21/60 
+  Verifying  : t1lib-5.1.2-14.el7.x86_64                                                                                                                                                                                                              22/60 
+  Verifying  : php-mysql-5.4.16-48.el7.x86_64                                                                                                                                                                                                         23/60 
+  Verifying  : perl-Time-Local-1.2300-2.el7.noarch                                                                                                                                                                                                    24/60 
+  Verifying  : libxcb-1.13-1.el7.x86_64                                                                                                                                                                                                               25/60 
+  Verifying  : php-5.4.16-48.el7.x86_64                                                                                                                                                                                                               26/60 
+  Verifying  : perl-Text-ParseWords-3.29-4.el7.noarch                                                                                                                                                                                                 27/60 
+  Verifying  : perl-DBI-1.627-4.el7.x86_64                                                                                                                                                                                                            28/60 
+  Verifying  : mailcap-2.1.41-2.el7.noarch                                                                                                                                                                                                            29/60 
+  Verifying  : libXpm-3.5.12-1.el7.x86_64                                                                                                                                                                                                             30/60 
+  Verifying  : libjpeg-turbo-1.2.90-8.el7.x86_64                                                                                                                                                                                                      31/60 
+  Verifying  : httpd-tools-2.4.6-97.el7.centos.5.x86_64                                                                                                                                                                                               32/60 
+  Verifying  : perl-Carp-1.26-244.el7.noarch                                                                                                                                                                                                          33/60 
+  Verifying  : perl-Data-Dumper-2.145-3.el7.x86_64                                                                                                                                                                                                    34/60 
+  Verifying  : php-cli-5.4.16-48.el7.x86_64                                                                                                                                                                                                           35/60 
+  Verifying  : apr-util-1.5.2-6.el7.x86_64                                                                                                                                                                                                            36/60 
+  Verifying  : 1:perl-Pod-Escapes-1.04-299.el7_9.noarch                                                                                                                                                                                               37/60 
+  Verifying  : perl-Scalar-List-Utils-1.27-248.el7.x86_64                                                                                                                                                                                             38/60 
+  Verifying  : 1:perl-Compress-Raw-Zlib-2.061-4.el7.x86_64                                                                                                                                                                                            39/60 
+  Verifying  : httpd-2.4.6-97.el7.centos.5.x86_64                                                                                                                                                                                                     40/60 
+  Verifying  : perl-IO-Compress-2.061-2.el7.noarch                                                                                                                                                                                                    41/60 
+  Verifying  : perl-Pod-Usage-1.63-3.el7.noarch                                                                                                                                                                                                       42/60 
+  Verifying  : perl-PlRPC-0.2020-14.el7.noarch                                                                                                                                                                                                        43/60 
+  Verifying  : perl-Encode-2.51-7.el7.x86_64                                                                                                                                                                                                          44/60 
+  Verifying  : perl-Storable-2.45-3.el7.x86_64                                                                                                                                                                                                        45/60 
+  Verifying  : perl-Pod-Perldoc-3.20-4.el7.noarch                                                                                                                                                                                                     46/60 
+  Verifying  : perl-podlators-2.5.1-3.el7.noarch                                                                                                                                                                                                      47/60 
+  Verifying  : 4:perl-5.16.3-299.el7_9.x86_64                                                                                                                                                                                                         48/60 
+  Verifying  : perl-File-Path-2.09-2.el7.noarch                                                                                                                                                                                                       49/60 
+  Verifying  : libxslt-1.1.28-6.el7.x86_64                                                                                                                                                                                                            50/60 
+  Verifying  : libX11-1.6.7-4.el7_9.x86_64                                                                                                                                                                                                            51/60 
+  Verifying  : perl-DBD-MySQL-4.023-6.el7.x86_64                                                                                                                                                                                                      52/60 
+  Verifying  : 1:mariadb-5.5.68-1.el7.x86_64                                                                                                                                                                                                          53/60 
+  Verifying  : php-pdo-5.4.16-48.el7.x86_64                                                                                                                                                                                                           54/60 
+  Verifying  : php-gd-5.4.16-48.el7.x86_64                                                                                                                                                                                                            55/60 
+  Verifying  : perl-Filter-1.49-3.el7.x86_64                                                                                                                                                                                                          56/60 
+  Verifying  : perl-Getopt-Long-2.40-3.el7.noarch                                                                                                                                                                                                     57/60 
+  Verifying  : libzip-0.10.1-8.el7.x86_64                                                                                                                                                                                                             58/60 
+  Verifying  : 4:perl-libs-5.16.3-299.el7_9.x86_64                                                                                                                                                                                                    59/60 
+  Verifying  : libX11-common-1.6.7-4.el7_9.noarch                                                                                                                                                                                                     60/60 
+
+Installed:
+  httpd.x86_64 0:2.4.6-97.el7.centos.5   mariadb-server.x86_64 1:5.5.68-1.el7   mod_ssl.x86_64 1:2.4.6-97.el7.centos.5   php.x86_64 0:5.4.16-48.el7   php-common.x86_64 0:5.4.16-48.el7   php-gd.x86_64 0:5.4.16-48.el7   php-ldap.x86_64 0:5.4.16-48.el7  
+  php-mysql.x86_64 0:5.4.16-48.el7       php-xml.x86_64 0:5.4.16-48.el7        
+
+Dependency Installed:
+  apr.x86_64 0:1.4.8-7.el7                             apr-util.x86_64 0:1.5.2-6.el7                       httpd-tools.x86_64 0:2.4.6-97.el7.centos.5         libX11.x86_64 0:1.6.7-4.el7_9                    libX11-common.noarch 0:1.6.7-4.el7_9         
+  libXau.x86_64 0:1.0.8-2.1.el7                        libXpm.x86_64 0:3.5.12-1.el7                        libjpeg-turbo.x86_64 0:1.2.90-8.el7                libxcb.x86_64 0:1.13-1.el7                       libxslt.x86_64 0:1.1.28-6.el7                
+  libzip.x86_64 0:0.10.1-8.el7                         mailcap.noarch 0:2.1.41-2.el7                       mariadb.x86_64 1:5.5.68-1.el7                      perl.x86_64 4:5.16.3-299.el7_9                   perl-Carp.noarch 0:1.26-244.el7              
+  perl-Compress-Raw-Bzip2.x86_64 0:2.061-3.el7         perl-Compress-Raw-Zlib.x86_64 1:2.061-4.el7         perl-DBD-MySQL.x86_64 0:4.023-6.el7                perl-DBI.x86_64 0:1.627-4.el7                    perl-Data-Dumper.x86_64 0:2.145-3.el7        
+  perl-Encode.x86_64 0:2.51-7.el7                      perl-Exporter.noarch 0:5.68-3.el7                   perl-File-Path.noarch 0:2.09-2.el7                 perl-File-Temp.noarch 0:0.23.01-3.el7            perl-Filter.x86_64 0:1.49-3.el7              
+  perl-Getopt-Long.noarch 0:2.40-3.el7                 perl-HTTP-Tiny.noarch 0:0.033-3.el7                 perl-IO-Compress.noarch 0:2.061-2.el7              perl-Net-Daemon.noarch 0:0.48-5.el7              perl-PathTools.x86_64 0:3.40-5.el7           
+  perl-PlRPC.noarch 0:0.2020-14.el7                    perl-Pod-Escapes.noarch 1:1.04-299.el7_9            perl-Pod-Perldoc.noarch 0:3.20-4.el7               perl-Pod-Simple.noarch 1:3.28-4.el7              perl-Pod-Usage.noarch 0:1.63-3.el7           
+  perl-Scalar-List-Utils.x86_64 0:1.27-248.el7         perl-Socket.x86_64 0:2.010-5.el7                    perl-Storable.x86_64 0:2.45-3.el7                  perl-Text-ParseWords.noarch 0:3.29-4.el7         perl-Time-HiRes.x86_64 4:1.9725-3.el7        
+  perl-Time-Local.noarch 0:1.2300-2.el7                perl-constant.noarch 0:1.27-2.el7                   perl-libs.x86_64 4:5.16.3-299.el7_9                perl-macros.x86_64 4:5.16.3-299.el7_9            perl-parent.noarch 1:0.225-244.el7           
+  perl-podlators.noarch 0:2.5.1-3.el7                  perl-threads.x86_64 0:1.87-4.el7                    perl-threads-shared.x86_64 0:1.43-6.el7            php-cli.x86_64 0:5.4.16-48.el7                   php-pdo.x86_64 0:5.4.16-48.el7               
+  t1lib.x86_64 0:5.1.2-14.el7                         
+
+Complete!
+Failed to set locale, defaulting to C
+Failed to set locale, defaulting to C
+Note: Forwarding request to 'systemctl enable httpd.service'.
+Created symlink from /etc/systemd/system/multi-user.target.wants/httpd.service to /usr/lib/systemd/system/httpd.service.
+Redirecting to /bin/systemctl restart httpd.service
+Job for httpd.service failed because the control process exited with error code. See "systemctl status httpd.service" and "journalctl -xe" for details.
+==> Generating tls certificate for *.severalnines.local
+Generating RSA private key, 2048 bit long modulus
+......................................................+++
+................+++
+e is 65537 (0x10001)
+Signature ok
+subject=/C=SE/ST=Stockholm/L=Stockholm/O=Severalnines AB/OU=Severalnines/CN=*.severalnines.local/emailAddress=support@severalnines.com
+Getting Private key
+Redirecting to /bin/systemctl restart httpd.service
+Stoppping MySQL Server before updating configuration ...
+
+=> Starting database. This may take a couple of minutes. Do NOT press any key.
+Redirecting to /bin/systemctl start mariadb.service
+=> Securing the MySQL Server ...
+=> !! In order to complete the installation you need to set a MySQL root password !!
+=> Supported special password characters: ~!@#$%^&*()_+{}<>?
+
+=> !! Setting MySQL root user password !!
+=> !! Please run mysql_secure_installation after the setup !!
+Note: Forwarding request to 'systemctl enable mariadb.service'.
+Created symlink from /etc/systemd/system/multi-user.target.wants/mariadb.service to /usr/lib/systemd/system/mariadb.service.
+=> NOTE: Stopping and disabling firewall...manually re-enable and add rules if required.
+Required ports to be opened, http://support.severalnines.com/entries/22654676-Firewall-ports-
+Removed symlink /etc/systemd/system/multi-user.target.wants/firewalld.service.
+Removed symlink /etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service.
+
+=> Importing the Web Application DB schema and creating the cmon user.
+
+=> Importing /var/www/html/clustercontrol/sql/dc-schema.sql
+=> Set a password for ClusterControl's MySQL user (cmon) [Nutanix/4u]
+=> Supported special characters: ~!@#$%^&*()_+{}<>?
+=> Creating the MySQL cmon user ...
+=> Creating UI configuration ...
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LANGUAGE = (unset),
+	LC_ALL = (unset),
+	LC_CTYPE = "UTF-8",
+	LANG = "en_US.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+=> ClusterControl Web Application setup completed!
+=> Installing ClusterControl Controller ...
+Failed to set locale, defaulting to C
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.freethought-internet.co.uk
+ * extras: mirror.freethought-internet.co.uk
+ * updates: mirrors.coreix.net
+Resolving Dependencies
+--> Running transaction check
+---> Package clustercontrol-controller.x86_64 0:1.9.2-5308 will be installed
+--> Processing Dependency: nc for package: clustercontrol-controller-1.9.2-5308.x86_64
+--> Processing Dependency: gnuplot for package: clustercontrol-controller-1.9.2-5308.x86_64
+--> Processing Dependency: bind-utils for package: clustercontrol-controller-1.9.2-5308.x86_64
+--> Processing Dependency: /usr/bin/expect for package: clustercontrol-controller-1.9.2-5308.x86_64
+--> Processing Dependency: psmisc for package: clustercontrol-controller-1.9.2-5308.x86_64
+--> Processing Dependency: perl(XML::XPath) for package: clustercontrol-controller-1.9.2-5308.x86_64
+--> Running transaction check
+---> Package bind-utils.x86_64 32:9.11.4-26.P2.el7_9.9 will be installed
+--> Processing Dependency: bind-libs-lite(x86-64) = 32:9.11.4-26.P2.el7_9.9 for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: bind-libs(x86-64) = 32:9.11.4-26.P2.el7_9.9 for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: liblwres.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: libisccfg.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: libisc.so.169()(64bit) for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: libirs.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: libdns.so.1102()(64bit) for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: libbind9.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+--> Processing Dependency: libGeoIP.so.1()(64bit) for package: 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64
+---> Package expect.x86_64 0:5.45-14.el7_1 will be installed
+--> Processing Dependency: libtcl8.5.so()(64bit) for package: expect-5.45-14.el7_1.x86_64
+---> Package gnuplot.x86_64 0:4.6.2-3.el7 will be installed
+--> Processing Dependency: gnuplot-common = 4.6.2-3.el7 for package: gnuplot-4.6.2-3.el7.x86_64
+--> Processing Dependency: dejavu-sans-fonts for package: gnuplot-4.6.2-3.el7.x86_64
+--> Processing Dependency: libpangocairo-1.0.so.0()(64bit) for package: gnuplot-4.6.2-3.el7.x86_64
+--> Processing Dependency: libpango-1.0.so.0()(64bit) for package: gnuplot-4.6.2-3.el7.x86_64
+--> Processing Dependency: libgd.so.2()(64bit) for package: gnuplot-4.6.2-3.el7.x86_64
+--> Processing Dependency: libfontconfig.so.1()(64bit) for package: gnuplot-4.6.2-3.el7.x86_64
+--> Processing Dependency: libcairo.so.2()(64bit) for package: gnuplot-4.6.2-3.el7.x86_64
+---> Package nmap-ncat.x86_64 2:6.40-19.el7 will be installed
+--> Processing Dependency: libpcap.so.1()(64bit) for package: 2:nmap-ncat-6.40-19.el7.x86_64
+---> Package perl-XML-XPath.noarch 0:1.13-22.el7 will be installed
+--> Processing Dependency: perl(XML::Parser) for package: perl-XML-XPath-1.13-22.el7.noarch
+---> Package psmisc.x86_64 0:22.20-17.el7 will be installed
+--> Running transaction check
+---> Package GeoIP.x86_64 0:1.5.0-14.el7 will be installed
+--> Processing Dependency: geoipupdate for package: GeoIP-1.5.0-14.el7.x86_64
+---> Package bind-libs.x86_64 32:9.11.4-26.P2.el7_9.9 will be installed
+--> Processing Dependency: bind-license = 32:9.11.4-26.P2.el7_9.9 for package: 32:bind-libs-9.11.4-26.P2.el7_9.9.x86_64
+---> Package bind-libs-lite.x86_64 32:9.11.4-26.P2.el7_9.9 will be installed
+---> Package cairo.x86_64 0:1.15.12-4.el7 will be installed
+--> Processing Dependency: libpixman-1.so.0()(64bit) for package: cairo-1.15.12-4.el7.x86_64
+--> Processing Dependency: libXrender.so.1()(64bit) for package: cairo-1.15.12-4.el7.x86_64
+--> Processing Dependency: libXext.so.6()(64bit) for package: cairo-1.15.12-4.el7.x86_64
+--> Processing Dependency: libGL.so.1()(64bit) for package: cairo-1.15.12-4.el7.x86_64
+--> Processing Dependency: libEGL.so.1()(64bit) for package: cairo-1.15.12-4.el7.x86_64
+---> Package dejavu-sans-fonts.noarch 0:2.33-6.el7 will be installed
+--> Processing Dependency: dejavu-fonts-common = 2.33-6.el7 for package: dejavu-sans-fonts-2.33-6.el7.noarch
+---> Package fontconfig.x86_64 0:2.13.0-4.3.el7 will be installed
+--> Processing Dependency: fontpackages-filesystem for package: fontconfig-2.13.0-4.3.el7.x86_64
+---> Package gd.x86_64 0:2.0.35-27.el7_9 will be installed
+---> Package gnuplot-common.x86_64 0:4.6.2-3.el7 will be installed
+---> Package libpcap.x86_64 14:1.5.3-13.el7_9 will be installed
+---> Package pango.x86_64 0:1.42.4-4.el7_7 will be installed
+--> Processing Dependency: libthai(x86-64) >= 0.1.9 for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: libXft(x86-64) >= 2.0.0 for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: harfbuzz(x86-64) >= 1.4.2 for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: fribidi(x86-64) >= 1.0 for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: libthai.so.0(LIBTHAI_0.1)(64bit) for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: libthai.so.0()(64bit) for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: libharfbuzz.so.0()(64bit) for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: libfribidi.so.0()(64bit) for package: pango-1.42.4-4.el7_7.x86_64
+--> Processing Dependency: libXft.so.2()(64bit) for package: pango-1.42.4-4.el7_7.x86_64
+---> Package perl-XML-Parser.x86_64 0:2.41-10.el7 will be installed
+---> Package tcl.x86_64 1:8.5.13-8.el7 will be installed
+--> Running transaction check
+---> Package bind-license.noarch 32:9.11.4-26.P2.el7_9.9 will be installed
+---> Package dejavu-fonts-common.noarch 0:2.33-6.el7 will be installed
+---> Package fontpackages-filesystem.noarch 0:1.44-8.el7 will be installed
+---> Package fribidi.x86_64 0:1.0.2-1.el7_7.1 will be installed
+---> Package geoipupdate.x86_64 0:2.5.0-1.el7 will be installed
+---> Package harfbuzz.x86_64 0:1.7.5-2.el7 will be installed
+--> Processing Dependency: libgraphite2.so.3()(64bit) for package: harfbuzz-1.7.5-2.el7.x86_64
+---> Package libXext.x86_64 0:1.3.3-3.el7 will be installed
+---> Package libXft.x86_64 0:2.3.2-2.el7 will be installed
+---> Package libXrender.x86_64 0:0.9.10-1.el7 will be installed
+---> Package libglvnd-egl.x86_64 1:1.0.1-0.8.git5baa1e5.el7 will be installed
+--> Processing Dependency: libglvnd(x86-64) = 1:1.0.1-0.8.git5baa1e5.el7 for package: 1:libglvnd-egl-1.0.1-0.8.git5baa1e5.el7.x86_64
+--> Processing Dependency: mesa-libEGL(x86-64) >= 13.0.4-1 for package: 1:libglvnd-egl-1.0.1-0.8.git5baa1e5.el7.x86_64
+--> Processing Dependency: libGLdispatch.so.0()(64bit) for package: 1:libglvnd-egl-1.0.1-0.8.git5baa1e5.el7.x86_64
+---> Package libglvnd-glx.x86_64 1:1.0.1-0.8.git5baa1e5.el7 will be installed
+--> Processing Dependency: mesa-libGL(x86-64) >= 13.0.4-1 for package: 1:libglvnd-glx-1.0.1-0.8.git5baa1e5.el7.x86_64
+---> Package libthai.x86_64 0:0.1.14-9.el7 will be installed
+---> Package pixman.x86_64 0:0.34.0-1.el7 will be installed
+--> Running transaction check
+---> Package graphite2.x86_64 0:1.3.10-1.el7_3 will be installed
+---> Package libglvnd.x86_64 1:1.0.1-0.8.git5baa1e5.el7 will be installed
+---> Package mesa-libEGL.x86_64 0:18.3.4-12.el7_9 will be installed
+--> Processing Dependency: mesa-libgbm = 18.3.4-12.el7_9 for package: mesa-libEGL-18.3.4-12.el7_9.x86_64
+--> Processing Dependency: libxshmfence.so.1()(64bit) for package: mesa-libEGL-18.3.4-12.el7_9.x86_64
+--> Processing Dependency: libwayland-server.so.0()(64bit) for package: mesa-libEGL-18.3.4-12.el7_9.x86_64
+--> Processing Dependency: libwayland-client.so.0()(64bit) for package: mesa-libEGL-18.3.4-12.el7_9.x86_64
+--> Processing Dependency: libglapi.so.0()(64bit) for package: mesa-libEGL-18.3.4-12.el7_9.x86_64
+--> Processing Dependency: libgbm.so.1()(64bit) for package: mesa-libEGL-18.3.4-12.el7_9.x86_64
+---> Package mesa-libGL.x86_64 0:18.3.4-12.el7_9 will be installed
+--> Processing Dependency: libXxf86vm.so.1()(64bit) for package: mesa-libGL-18.3.4-12.el7_9.x86_64
+--> Processing Dependency: libXfixes.so.3()(64bit) for package: mesa-libGL-18.3.4-12.el7_9.x86_64
+--> Processing Dependency: libXdamage.so.1()(64bit) for package: mesa-libGL-18.3.4-12.el7_9.x86_64
+--> Running transaction check
+---> Package libXdamage.x86_64 0:1.1.4-4.1.el7 will be installed
+---> Package libXfixes.x86_64 0:5.0.3-1.el7 will be installed
+---> Package libXxf86vm.x86_64 0:1.1.4-1.el7 will be installed
+---> Package libwayland-client.x86_64 0:1.15.0-1.el7 will be installed
+---> Package libwayland-server.x86_64 0:1.15.0-1.el7 will be installed
+---> Package libxshmfence.x86_64 0:1.2-1.el7 will be installed
+---> Package mesa-libgbm.x86_64 0:18.3.4-12.el7_9 will be installed
+---> Package mesa-libglapi.x86_64 0:18.3.4-12.el7_9 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================================================================================================================================================================================================
+ Package                                                               Arch                                               Version                                                                Repository                                            Size
+============================================================================================================================================================================================================================================================
+Installing:
+ clustercontrol-controller                                             x86_64                                             1.9.2-5308                                                             s9s-repo                                              22 M
+Installing for dependencies:
+ GeoIP                                                                 x86_64                                             1.5.0-14.el7                                                           base                                                 1.5 M
+ bind-libs                                                             x86_64                                             32:9.11.4-26.P2.el7_9.9                                                updates                                              157 k
+ bind-libs-lite                                                        x86_64                                             32:9.11.4-26.P2.el7_9.9                                                updates                                              1.1 M
+ bind-license                                                          noarch                                             32:9.11.4-26.P2.el7_9.9                                                updates                                               91 k
+ bind-utils                                                            x86_64                                             32:9.11.4-26.P2.el7_9.9                                                updates                                              261 k
+ cairo                                                                 x86_64                                             1.15.12-4.el7                                                          base                                                 741 k
+ dejavu-fonts-common                                                   noarch                                             2.33-6.el7                                                             base                                                  64 k
+ dejavu-sans-fonts                                                     noarch                                             2.33-6.el7                                                             base                                                 1.4 M
+ expect                                                                x86_64                                             5.45-14.el7_1                                                          base                                                 262 k
+ fontconfig                                                            x86_64                                             2.13.0-4.3.el7                                                         base                                                 254 k
+ fontpackages-filesystem                                               noarch                                             1.44-8.el7                                                             base                                                 9.9 k
+ fribidi                                                               x86_64                                             1.0.2-1.el7_7.1                                                        base                                                  79 k
+ gd                                                                    x86_64                                             2.0.35-27.el7_9                                                        updates                                              146 k
+ geoipupdate                                                           x86_64                                             2.5.0-1.el7                                                            base                                                  35 k
+ gnuplot                                                               x86_64                                             4.6.2-3.el7                                                            base                                                 644 k
+ gnuplot-common                                                        x86_64                                             4.6.2-3.el7                                                            base                                                 595 k
+ graphite2                                                             x86_64                                             1.3.10-1.el7_3                                                         base                                                 115 k
+ harfbuzz                                                              x86_64                                             1.7.5-2.el7                                                            base                                                 267 k
+ libXdamage                                                            x86_64                                             1.1.4-4.1.el7                                                          base                                                  20 k
+ libXext                                                               x86_64                                             1.3.3-3.el7                                                            base                                                  39 k
+ libXfixes                                                             x86_64                                             5.0.3-1.el7                                                            base                                                  18 k
+ libXft                                                                x86_64                                             2.3.2-2.el7                                                            base                                                  58 k
+ libXrender                                                            x86_64                                             0.9.10-1.el7                                                           base                                                  26 k
+ libXxf86vm                                                            x86_64                                             1.1.4-1.el7                                                            base                                                  18 k
+ libglvnd                                                              x86_64                                             1:1.0.1-0.8.git5baa1e5.el7                                             base                                                  89 k
+ libglvnd-egl                                                          x86_64                                             1:1.0.1-0.8.git5baa1e5.el7                                             base                                                  44 k
+ libglvnd-glx                                                          x86_64                                             1:1.0.1-0.8.git5baa1e5.el7                                             base                                                 125 k
+ libpcap                                                               x86_64                                             14:1.5.3-13.el7_9                                                      updates                                              139 k
+ libthai                                                               x86_64                                             0.1.14-9.el7                                                           base                                                 187 k
+ libwayland-client                                                     x86_64                                             1.15.0-1.el7                                                           base                                                  33 k
+ libwayland-server                                                     x86_64                                             1.15.0-1.el7                                                           base                                                  39 k
+ libxshmfence                                                          x86_64                                             1.2-1.el7                                                              base                                                 7.2 k
+ mesa-libEGL                                                           x86_64                                             18.3.4-12.el7_9                                                        updates                                              110 k
+ mesa-libGL                                                            x86_64                                             18.3.4-12.el7_9                                                        updates                                              166 k
+ mesa-libgbm                                                           x86_64                                             18.3.4-12.el7_9                                                        updates                                               39 k
+ mesa-libglapi                                                         x86_64                                             18.3.4-12.el7_9                                                        updates                                               46 k
+ nmap-ncat                                                             x86_64                                             2:6.40-19.el7                                                          base                                                 206 k
+ pango                                                                 x86_64                                             1.42.4-4.el7_7                                                         base                                                 280 k
+ perl-XML-Parser                                                       x86_64                                             2.41-10.el7                                                            base                                                 223 k
+ perl-XML-XPath                                                        noarch                                             1.13-22.el7                                                            base                                                  82 k
+ pixman                                                                x86_64                                             0.34.0-1.el7                                                           base                                                 248 k
+ psmisc                                                                x86_64                                             22.20-17.el7                                                           base                                                 141 k
+ tcl                                                                   x86_64                                             1:8.5.13-8.el7                                                         base                                                 1.9 M
+
+Transaction Summary
+============================================================================================================================================================================================================================================================
+Install  1 Package (+43 Dependent packages)
+
+Total download size: 34 M
+Installed size: 89 M
+Downloading packages:
+(1/44): bind-libs-9.11.4-26.P2.el7_9.9.x86_64.rpm                                                                                                                                                                                    | 157 kB  00:00:00     
+(2/44): bind-license-9.11.4-26.P2.el7_9.9.noarch.rpm                                                                                                                                                                                 |  91 kB  00:00:00     
+(3/44): bind-utils-9.11.4-26.P2.el7_9.9.x86_64.rpm                                                                                                                                                                                   | 261 kB  00:00:00     
+(4/44): bind-libs-lite-9.11.4-26.P2.el7_9.9.x86_64.rpm                                                                                                                                                                               | 1.1 MB  00:00:00     
+(5/44): GeoIP-1.5.0-14.el7.x86_64.rpm                                                                                                                                                                                                | 1.5 MB  00:00:00     
+(6/44): dejavu-fonts-common-2.33-6.el7.noarch.rpm                                                                                                                                                                                    |  64 kB  00:00:00     
+(7/44): dejavu-sans-fonts-2.33-6.el7.noarch.rpm                                                                                                                                                                                      | 1.4 MB  00:00:00     
+(8/44): cairo-1.15.12-4.el7.x86_64.rpm                                                                                                                                                                                               | 741 kB  00:00:00     
+(9/44): fontconfig-2.13.0-4.3.el7.x86_64.rpm                                                                                                                                                                                         | 254 kB  00:00:00     
+(10/44): expect-5.45-14.el7_1.x86_64.rpm                                                                                                                                                                                             | 262 kB  00:00:00     
+(11/44): geoipupdate-2.5.0-1.el7.x86_64.rpm                                                                                                                                                                                          |  35 kB  00:00:00     
+(12/44): gd-2.0.35-27.el7_9.x86_64.rpm                                                                                                                                                                                               | 146 kB  00:00:00     
+(13/44): gnuplot-4.6.2-3.el7.x86_64.rpm                                                                                                                                                                                              | 644 kB  00:00:00     
+(14/44): fontpackages-filesystem-1.44-8.el7.noarch.rpm                                                                                                                                                                               | 9.9 kB  00:00:00     
+(15/44): graphite2-1.3.10-1.el7_3.x86_64.rpm                                                                                                                                                                                         | 115 kB  00:00:00     
+(16/44): fribidi-1.0.2-1.el7_7.1.x86_64.rpm                                                                                                                                                                                          |  79 kB  00:00:00     
+(17/44): libXdamage-1.1.4-4.1.el7.x86_64.rpm                                                                                                                                                                                         |  20 kB  00:00:00     
+(18/44): harfbuzz-1.7.5-2.el7.x86_64.rpm                                                                                                                                                                                             | 267 kB  00:00:00     
+(19/44): libXfixes-5.0.3-1.el7.x86_64.rpm                                                                                                                                                                                            |  18 kB  00:00:00     
+(20/44): libXext-1.3.3-3.el7.x86_64.rpm                                                                                                                                                                                              |  39 kB  00:00:00     
+(21/44): libXrender-0.9.10-1.el7.x86_64.rpm                                                                                                                                                                                          |  26 kB  00:00:00     
+(22/44): libXft-2.3.2-2.el7.x86_64.rpm                                                                                                                                                                                               |  58 kB  00:00:00     
+(23/44): libXxf86vm-1.1.4-1.el7.x86_64.rpm                                                                                                                                                                                           |  18 kB  00:00:00     
+(24/44): libglvnd-1.0.1-0.8.git5baa1e5.el7.x86_64.rpm                                                                                                                                                                                |  89 kB  00:00:00     
+(25/44): libglvnd-egl-1.0.1-0.8.git5baa1e5.el7.x86_64.rpm                                                                                                                                                                            |  44 kB  00:00:00     
+(26/44): libglvnd-glx-1.0.1-0.8.git5baa1e5.el7.x86_64.rpm                                                                                                                                                                            | 125 kB  00:00:00     
+(27/44): libthai-0.1.14-9.el7.x86_64.rpm                                                                                                                                                                                             | 187 kB  00:00:00     
+(28/44): libpcap-1.5.3-13.el7_9.x86_64.rpm                                                                                                                                                                                           | 139 kB  00:00:00     
+(29/44): libwayland-client-1.15.0-1.el7.x86_64.rpm                                                                                                                                                                                   |  33 kB  00:00:00     
+(30/44): libwayland-server-1.15.0-1.el7.x86_64.rpm                                                                                                                                                                                   |  39 kB  00:00:00     
+(31/44): gnuplot-common-4.6.2-3.el7.x86_64.rpm                                                                                                                                                                                       | 595 kB  00:00:00     
+(32/44): mesa-libGL-18.3.4-12.el7_9.x86_64.rpm                                                                                                                                                                                       | 166 kB  00:00:00     
+(33/44): mesa-libEGL-18.3.4-12.el7_9.x86_64.rpm                                                                                                                                                                                      | 110 kB  00:00:00     
+(34/44): mesa-libglapi-18.3.4-12.el7_9.x86_64.rpm                                                                                                                                                                                    |  46 kB  00:00:00     
+(35/44): libxshmfence-1.2-1.el7.x86_64.rpm                                                                                                                                                                                           | 7.2 kB  00:00:00     
+(36/44): pango-1.42.4-4.el7_7.x86_64.rpm                                                                                                                                                                                             | 280 kB  00:00:00     
+(37/44): perl-XML-XPath-1.13-22.el7.noarch.rpm                                                                                                                                                                                       |  82 kB  00:00:00     
+(38/44): perl-XML-Parser-2.41-10.el7.x86_64.rpm                                                                                                                                                                                      | 223 kB  00:00:00     
+(39/44): nmap-ncat-6.40-19.el7.x86_64.rpm                                                                                                                                                                                            | 206 kB  00:00:00     
+(40/44): pixman-0.34.0-1.el7.x86_64.rpm                                                                                                                                                                                              | 248 kB  00:00:00     
+(41/44): psmisc-22.20-17.el7.x86_64.rpm                                                                                                                                                                                              | 141 kB  00:00:00     
+(42/44): mesa-libgbm-18.3.4-12.el7_9.x86_64.rpm                                                                                                                                                                                      |  39 kB  00:00:00     
+(43/44): clustercontrol-controller-1.9.2-5308-x86_64.rpm                                                                                                                                                                             |  22 MB  00:00:00     
+(44/44): tcl-8.5.13-8.el7.x86_64.rpm                                                                                                                                                                                                 | 1.9 MB  00:00:00     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                                                                        41 MB/s |  34 MB  00:00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : libXext-1.3.3-3.el7.x86_64                                                                                                                                                                                                              1/44 
+  Installing : mesa-libglapi-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                    2/44 
+  Installing : libXrender-0.9.10-1.el7.x86_64                                                                                                                                                                                                          3/44 
+  Installing : 32:bind-license-9.11.4-26.P2.el7_9.9.noarch                                                                                                                                                                                             4/44 
+  Installing : libXfixes-5.0.3-1.el7.x86_64                                                                                                                                                                                                            5/44 
+  Installing : libxshmfence-1.2-1.el7.x86_64                                                                                                                                                                                                           6/44 
+  Installing : 1:libglvnd-1.0.1-0.8.git5baa1e5.el7.x86_64                                                                                                                                                                                              7/44 
+  Installing : fontpackages-filesystem-1.44-8.el7.noarch                                                                                                                                                                                               8/44 
+  Installing : libwayland-server-1.15.0-1.el7.x86_64                                                                                                                                                                                                   9/44 
+  Installing : mesa-libgbm-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                     10/44 
+  Installing : dejavu-fonts-common-2.33-6.el7.noarch                                                                                                                                                                                                  11/44 
+  Installing : dejavu-sans-fonts-2.33-6.el7.noarch                                                                                                                                                                                                    12/44 
+  Installing : fontconfig-2.13.0-4.3.el7.x86_64                                                                                                                                                                                                       13/44 
+  Installing : libXft-2.3.2-2.el7.x86_64                                                                                                                                                                                                              14/44 
+  Installing : gd-2.0.35-27.el7_9.x86_64                                                                                                                                                                                                              15/44 
+  Installing : libXdamage-1.1.4-4.1.el7.x86_64                                                                                                                                                                                                        16/44 
+  Installing : libXxf86vm-1.1.4-1.el7.x86_64                                                                                                                                                                                                          17/44 
+  Installing : 1:libglvnd-glx-1.0.1-0.8.git5baa1e5.el7.x86_64                                                                                                                                                                                         18/44 
+  Installing : mesa-libGL-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                      19/44 
+  Installing : psmisc-22.20-17.el7.x86_64                                                                                                                                                                                                             20/44 
+  Installing : graphite2-1.3.10-1.el7_3.x86_64                                                                                                                                                                                                        21/44 
+  Installing : harfbuzz-1.7.5-2.el7.x86_64                                                                                                                                                                                                            22/44 
+  Installing : 14:libpcap-1.5.3-13.el7_9.x86_64                                                                                                                                                                                                       23/44 
+  Installing : 2:nmap-ncat-6.40-19.el7.x86_64                                                                                                                                                                                                         24/44 
+  Installing : pixman-0.34.0-1.el7.x86_64                                                                                                                                                                                                             25/44 
+  Installing : libthai-0.1.14-9.el7.x86_64                                                                                                                                                                                                            26/44 
+  Installing : fribidi-1.0.2-1.el7_7.1.x86_64                                                                                                                                                                                                         27/44 
+  Installing : libwayland-client-1.15.0-1.el7.x86_64                                                                                                                                                                                                  28/44 
+  Installing : 1:libglvnd-egl-1.0.1-0.8.git5baa1e5.el7.x86_64                                                                                                                                                                                         29/44 
+  Installing : mesa-libEGL-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                     30/44 
+  Installing : cairo-1.15.12-4.el7.x86_64                                                                                                                                                                                                             31/44 
+  Installing : pango-1.42.4-4.el7_7.x86_64                                                                                                                                                                                                            32/44 
+  Installing : gnuplot-common-4.6.2-3.el7.x86_64                                                                                                                                                                                                      33/44 
+  Installing : gnuplot-4.6.2-3.el7.x86_64                                                                                                                                                                                                             34/44 
+  Installing : perl-XML-Parser-2.41-10.el7.x86_64                                                                                                                                                                                                     35/44 
+  Installing : perl-XML-XPath-1.13-22.el7.noarch                                                                                                                                                                                                      36/44 
+  Installing : geoipupdate-2.5.0-1.el7.x86_64                                                                                                                                                                                                         37/44 
+  Installing : GeoIP-1.5.0-14.el7.x86_64                                                                                                                                                                                                              38/44 
+  Installing : 32:bind-libs-lite-9.11.4-26.P2.el7_9.9.x86_64                                                                                                                                                                                          39/44 
+  Installing : 32:bind-libs-9.11.4-26.P2.el7_9.9.x86_64                                                                                                                                                                                               40/44 
+  Installing : 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64                                                                                                                                                                                              41/44 
+  Installing : 1:tcl-8.5.13-8.el7.x86_64                                                                                                                                                                                                              42/44 
+  Installing : expect-5.45-14.el7_1.x86_64                                                                                                                                                                                                            43/44 
+  Installing : clustercontrol-controller-1.9.2-5308.x86_64                                                                                                                                                                                            44/44 
+*** If you are upgrading from an older version to v1.2.12,
+*** you must also upgrade the DB schema manually.
+***
+*** Starting from version 1.2.12, cmon will attempt to auto-upgrade the schema
+*** so if you upgrading from 1.2.12 or later then you need to only do
+*** sudo /etc/init.d/cmon restart
+*** and you can check the cmon logs for the results / to make sure
+***
+*** From version 1.6.2 please put your modified template files
+*** into /etc/cmon/templates/
+***
+*** See also, http://severalnines.com/docs/administration.html#upgrading-clustercontrol
+
+*** /etc/cmon.cnf not configured yet.
+  Verifying  : libXext-1.3.3-3.el7.x86_64                                                                                                                                                                                                              1/44 
+  Verifying  : 1:tcl-8.5.13-8.el7.x86_64                                                                                                                                                                                                               2/44 
+  Verifying  : fontconfig-2.13.0-4.3.el7.x86_64                                                                                                                                                                                                        3/44 
+  Verifying  : geoipupdate-2.5.0-1.el7.x86_64                                                                                                                                                                                                          4/44 
+  Verifying  : libXrender-0.9.10-1.el7.x86_64                                                                                                                                                                                                          5/44 
+  Verifying  : 1:libglvnd-glx-1.0.1-0.8.git5baa1e5.el7.x86_64                                                                                                                                                                                          6/44 
+  Verifying  : libXxf86vm-1.1.4-1.el7.x86_64                                                                                                                                                                                                           7/44 
+  Verifying  : libwayland-server-1.15.0-1.el7.x86_64                                                                                                                                                                                                   8/44 
+  Verifying  : perl-XML-Parser-2.41-10.el7.x86_64                                                                                                                                                                                                      9/44 
+  Verifying  : libwayland-client-1.15.0-1.el7.x86_64                                                                                                                                                                                                  10/44 
+  Verifying  : fontpackages-filesystem-1.44-8.el7.noarch                                                                                                                                                                                              11/44 
+  Verifying  : GeoIP-1.5.0-14.el7.x86_64                                                                                                                                                                                                              12/44 
+  Verifying  : 32:bind-libs-9.11.4-26.P2.el7_9.9.x86_64                                                                                                                                                                                               13/44 
+  Verifying  : mesa-libglapi-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                   14/44 
+  Verifying  : dejavu-fonts-common-2.33-6.el7.noarch                                                                                                                                                                                                  15/44 
+  Verifying  : pango-1.42.4-4.el7_7.x86_64                                                                                                                                                                                                            16/44 
+  Verifying  : fribidi-1.0.2-1.el7_7.1.x86_64                                                                                                                                                                                                         17/44 
+  Verifying  : libthai-0.1.14-9.el7.x86_64                                                                                                                                                                                                            18/44 
+  Verifying  : 1:libglvnd-1.0.1-0.8.git5baa1e5.el7.x86_64                                                                                                                                                                                             19/44 
+  Verifying  : libXft-2.3.2-2.el7.x86_64                                                                                                                                                                                                              20/44 
+  Verifying  : mesa-libGL-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                      21/44 
+  Verifying  : 32:bind-libs-lite-9.11.4-26.P2.el7_9.9.x86_64                                                                                                                                                                                          22/44 
+  Verifying  : 32:bind-utils-9.11.4-26.P2.el7_9.9.x86_64                                                                                                                                                                                              23/44 
+  Verifying  : gnuplot-4.6.2-3.el7.x86_64                                                                                                                                                                                                             24/44 
+  Verifying  : gnuplot-common-4.6.2-3.el7.x86_64                                                                                                                                                                                                      25/44 
+  Verifying  : mesa-libgbm-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                     26/44 
+  Verifying  : harfbuzz-1.7.5-2.el7.x86_64                                                                                                                                                                                                            27/44 
+  Verifying  : dejavu-sans-fonts-2.33-6.el7.noarch                                                                                                                                                                                                    28/44 
+  Verifying  : pixman-0.34.0-1.el7.x86_64                                                                                                                                                                                                             29/44 
+  Verifying  : gd-2.0.35-27.el7_9.x86_64                                                                                                                                                                                                              30/44 
+  Verifying  : cairo-1.15.12-4.el7.x86_64                                                                                                                                                                                                             31/44 
+  Verifying  : 14:libpcap-1.5.3-13.el7_9.x86_64                                                                                                                                                                                                       32/44 
+  Verifying  : libxshmfence-1.2-1.el7.x86_64                                                                                                                                                                                                          33/44 
+  Verifying  : clustercontrol-controller-1.9.2-5308.x86_64                                                                                                                                                                                            34/44 
+  Verifying  : 1:libglvnd-egl-1.0.1-0.8.git5baa1e5.el7.x86_64                                                                                                                                                                                         35/44 
+  Verifying  : graphite2-1.3.10-1.el7_3.x86_64                                                                                                                                                                                                        36/44 
+  Verifying  : expect-5.45-14.el7_1.x86_64                                                                                                                                                                                                            37/44 
+  Verifying  : 2:nmap-ncat-6.40-19.el7.x86_64                                                                                                                                                                                                         38/44 
+  Verifying  : perl-XML-XPath-1.13-22.el7.noarch                                                                                                                                                                                                      39/44 
+  Verifying  : libXdamage-1.1.4-4.1.el7.x86_64                                                                                                                                                                                                        40/44 
+  Verifying  : libXfixes-5.0.3-1.el7.x86_64                                                                                                                                                                                                           41/44 
+  Verifying  : 32:bind-license-9.11.4-26.P2.el7_9.9.noarch                                                                                                                                                                                            42/44 
+  Verifying  : psmisc-22.20-17.el7.x86_64                                                                                                                                                                                                             43/44 
+  Verifying  : mesa-libEGL-18.3.4-12.el7_9.x86_64                                                                                                                                                                                                     44/44 
+
+Installed:
+  clustercontrol-controller.x86_64 0:1.9.2-5308                                                                                                                                                                                                             
+
+Dependency Installed:
+  GeoIP.x86_64 0:1.5.0-14.el7                        bind-libs.x86_64 32:9.11.4-26.P2.el7_9.9           bind-libs-lite.x86_64 32:9.11.4-26.P2.el7_9.9     bind-license.noarch 32:9.11.4-26.P2.el7_9.9     bind-utils.x86_64 32:9.11.4-26.P2.el7_9.9     
+  cairo.x86_64 0:1.15.12-4.el7                       dejavu-fonts-common.noarch 0:2.33-6.el7            dejavu-sans-fonts.noarch 0:2.33-6.el7             expect.x86_64 0:5.45-14.el7_1                   fontconfig.x86_64 0:2.13.0-4.3.el7            
+  fontpackages-filesystem.noarch 0:1.44-8.el7        fribidi.x86_64 0:1.0.2-1.el7_7.1                   gd.x86_64 0:2.0.35-27.el7_9                       geoipupdate.x86_64 0:2.5.0-1.el7                gnuplot.x86_64 0:4.6.2-3.el7                  
+  gnuplot-common.x86_64 0:4.6.2-3.el7                graphite2.x86_64 0:1.3.10-1.el7_3                  harfbuzz.x86_64 0:1.7.5-2.el7                     libXdamage.x86_64 0:1.1.4-4.1.el7               libXext.x86_64 0:1.3.3-3.el7                  
+  libXfixes.x86_64 0:5.0.3-1.el7                     libXft.x86_64 0:2.3.2-2.el7                        libXrender.x86_64 0:0.9.10-1.el7                  libXxf86vm.x86_64 0:1.1.4-1.el7                 libglvnd.x86_64 1:1.0.1-0.8.git5baa1e5.el7    
+  libglvnd-egl.x86_64 1:1.0.1-0.8.git5baa1e5.el7     libglvnd-glx.x86_64 1:1.0.1-0.8.git5baa1e5.el7     libpcap.x86_64 14:1.5.3-13.el7_9                  libthai.x86_64 0:0.1.14-9.el7                   libwayland-client.x86_64 0:1.15.0-1.el7       
+  libwayland-server.x86_64 0:1.15.0-1.el7            libxshmfence.x86_64 0:1.2-1.el7                    mesa-libEGL.x86_64 0:18.3.4-12.el7_9              mesa-libGL.x86_64 0:18.3.4-12.el7_9             mesa-libgbm.x86_64 0:18.3.4-12.el7_9          
+  mesa-libglapi.x86_64 0:18.3.4-12.el7_9             nmap-ncat.x86_64 2:6.40-19.el7                     pango.x86_64 0:1.42.4-4.el7_7                     perl-XML-Parser.x86_64 0:2.41-10.el7            perl-XML-XPath.noarch 0:1.13-22.el7           
+  pixman.x86_64 0:0.34.0-1.el7                       psmisc.x86_64 0:22.20-17.el7                       tcl.x86_64 1:8.5.13-8.el7                        
+
+Complete!
+The --init option received, initializing the controller.
+Generating cmon configuration...
+------8<------8<------8<------8<------8<------8<------8<------
+#
+# Configuration file for the Cmon Controller.
+#
+
+#
+# The name or IP address of the Cmon Controller.
+#
+hostname=10.68.101.175
+
+#
+# Cmon Database credentials. The controller will use 
+# this database to store its own data structures.
+#
+mysql_hostname=127.0.0.1
+mysql_port=3306
+mysql_password='Nutanix/4u'
+cmon_user=cmon
+cmon_db=cmon
+rpc_key=32693b86eb73ff8d8ebcd1eddcd56e889ae8c68b
+
+------8<------8<------8<------8<------8<------8<------8<------
+Verifying the Cmon Database...
+Cmon Database connect success, the database is not yet created, ok.
+Checking the Cmon Database schema...
+Cmon Database does not exist, will be created now.
+Applying modifications from 'cmon_db.sql,cmon_db_mods_hotfix.sql,cmon_data.sql'.
+Schema creation succeed (version 107060).
+Verifying connection...
+Initializing the user manager.
+User manager is creating system users.
+Checking that the system users exist.
+Creating system groups: admins
+Creating system groups: users
+Creating system groups: nobody
+Creating system user.
+Creating nobody user.
+Creating admin user.
+Writing the configuration file.
+Note: Forwarding request to 'systemctl enable cmon.service'.
+Created symlink from /etc/systemd/system/multi-user.target.wants/cmon.service to /etc/systemd/system/cmon.service.
+=> Starting the Controller process.
+Failed to set locale, defaulting to C
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.freethought-internet.co.uk
+ * extras: mirror.freethought-internet.co.uk
+ * updates: mirrors.coreix.net
+Resolving Dependencies
+--> Running transaction check
+---> Package ntp.x86_64 0:4.2.6p5-29.el7.centos.2 will be installed
+--> Processing Dependency: libopts.so.25()(64bit) for package: ntp-4.2.6p5-29.el7.centos.2.x86_64
+---> Package ntpdate.x86_64 0:4.2.6p5-29.el7.centos.2 will be installed
+--> Running transaction check
+---> Package autogen-libopts.x86_64 0:5.18-5.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================================================================================================================================================================================================
+ Package                                                         Arch                                                   Version                                                                  Repository                                            Size
+============================================================================================================================================================================================================================================================
+Installing:
+ ntp                                                             x86_64                                                 4.2.6p5-29.el7.centos.2                                                  base                                                 549 k
+ ntpdate                                                         x86_64                                                 4.2.6p5-29.el7.centos.2                                                  base                                                  87 k
+Installing for dependencies:
+ autogen-libopts                                                 x86_64                                                 5.18-5.el7                                                               base                                                  66 k
+
+Transaction Summary
+============================================================================================================================================================================================================================================================
+Install  2 Packages (+1 Dependent package)
+
+Total download size: 701 k
+Installed size: 1.6 M
+Downloading packages:
+(1/3): autogen-libopts-5.18-5.el7.x86_64.rpm                                                                                                                                                                                         |  66 kB  00:00:00     
+(2/3): ntpdate-4.2.6p5-29.el7.centos.2.x86_64.rpm                                                                                                                                                                                    |  87 kB  00:00:00     
+(3/3): ntp-4.2.6p5-29.el7.centos.2.x86_64.rpm                                                                                                                                                                                        | 549 kB  00:00:00     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                                                                       4.5 MB/s | 701 kB  00:00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : autogen-libopts-5.18-5.el7.x86_64                                                                                                                                                                                                        1/3 
+  Installing : ntpdate-4.2.6p5-29.el7.centos.2.x86_64                                                                                                                                                                                                   2/3 
+  Installing : ntp-4.2.6p5-29.el7.centos.2.x86_64                                                                                                                                                                                                       3/3 
+  Verifying  : ntpdate-4.2.6p5-29.el7.centos.2.x86_64                                                                                                                                                                                                   1/3 
+  Verifying  : ntp-4.2.6p5-29.el7.centos.2.x86_64                                                                                                                                                                                                       2/3 
+  Verifying  : autogen-libopts-5.18-5.el7.x86_64                                                                                                                                                                                                        3/3 
+
+Installed:
+  ntp.x86_64 0:4.2.6p5-29.el7.centos.2                                                                                       ntpdate.x86_64 0:4.2.6p5-29.el7.centos.2                                                                                      
+
+Dependency Installed:
+  autogen-libopts.x86_64 0:5.18-5.el7                                                                                                                                                                                                                       
+
+Complete!
+Note: Forwarding request to 'systemctl enable ntpd.service'.
+Created symlink from /etc/systemd/system/multi-user.target.wants/ntpd.service to /usr/lib/systemd/system/ntpd.service.
+ 7 Apr 15:06:31 ntpdate[2825]: adjust time server 95.85.21.89 offset -0.000730 sec
+Redirecting to /bin/systemctl start ntpd.service
+Failed to set locale, defaulting to C
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirror.freethought-internet.co.uk
+ * extras: mirror.freethought-internet.co.uk
+ * updates: mirrors.coreix.net
+Resolving Dependencies
+--> Running transaction check
+---> Package s9s-tools.x86_64 0:1.9-17.1 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================================================================================================================================================================================================
+ Package                                                       Arch                                                       Version                                                       Repository                                                     Size
+============================================================================================================================================================================================================================================================
+Installing:
+ s9s-tools                                                     x86_64                                                     1.9-17.1                                                      s9s-tools                                                     7.7 M
+
+Transaction Summary
+============================================================================================================================================================================================================================================================
+Install  1 Package
+
+Total download size: 7.7 M
+Installed size: 41 M
+Downloading packages:
+warning: /var/cache/yum/x86_64/7/s9s-tools/packages/s9s-tools-1.9-17.1.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID d4871e82: NOKEY
+Public key for s9s-tools-1.9-17.1.x86_64.rpm is not installed
+s9s-tools-1.9-17.1.x86_64.rpm                                                                                                                                                                                                        | 7.7 MB  00:00:00     
+Retrieving key from http://repo.severalnines.com/s9s-tools/CentOS_7/repodata/repomd.xml.key
+Importing GPG key 0xD4871E82:
+ Userid     : "home:kedazo OBS Project <home:kedazo@build.opensuse.org>"
+ Fingerprint: 137a 4cc1 aef2 16ae dc5f 941f df4d 4bc1 d487 1e82
+ From       : http://repo.severalnines.com/s9s-tools/CentOS_7/repodata/repomd.xml.key
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : s9s-tools-1.9-17.1.x86_64                                                                                                                                                                                                                1/1 
+  Verifying  : s9s-tools-1.9-17.1.x86_64                                                                                                                                                                                                                1/1 
+
+Installed:
+  s9s-tools.x86_64 0:1.9-17.1                                                                                                                                                                                                                               
+
+Complete!
+User created.
+*** Restarting the Controller process to generate the rpc_tls files.
+=> Your login username is set to wierd.vanderhaar ...
+Created symlink from /etc/systemd/system/multi-user.target.wants/cmon-events.service to /etc/systemd/system/cmon-events.service.
+Created symlink from /etc/systemd/system/multi-user.target.wants/cmon-ssh.service to /etc/systemd/system/cmon-ssh.service.
+Created symlink from /etc/systemd/system/multi-user.target.wants/cmon-cloud.service to /etc/systemd/system/cmon-cloud.service.
+=> ClusterControl installation completed!
+Open your web browser to http://10.68.101.175/clustercontrol and
+enter an email address and new password for the default Admin User.
+
+
+Determining network interfaces. This may take a couple of minutes. Do NOT press any key.
+Public/external IP => http://213.244.142.97/clustercontrol
+Installation successful. If you want to uninstall ClusterControl then run install-cc --uninstall.

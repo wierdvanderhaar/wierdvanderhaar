@@ -1,0 +1,73 @@
+===== List all DGs and disks
+col PATH for a50
+col DG_NAME for a15
+col DG_STATE for a10
+col FAILGROUP for a25
+col COMPATIBILITY for a20
+select dg.name dg_name, dg.state dg_state, dg.type, d.disk_number dsk_no, d.path, d.mount_status, d.FAILGROUP, d.state, dg.OFFLINE_DISKS, dg.COMPATIBILITY, dg.DATABASE_COMPATIBILITY
+from v$asm_diskgroup dg, v$asm_disk d
+where dg.group_number=d.group_number
+order by dg_name, dsk_no;
+
+
+select dg.name DG_NAME, d.name DSK_NAME, d.HEADER_STATUS HEADER_STATUS
+from v$asm_diskgroup dg, v$asm_disk d
+where dg.group_number=d.group_number
+and HEADER_STATUS <> 'MEMBER'
+order by dg_name;
+
+===== List disks per DG
+SET LINESIZE 400
+COL PATH FOR A50
+COL NAME FOR A30
+COL HEADER_STATUS FOR A20
+COL FAILGROUP FOR A20
+COL FAILGROUP_TYPE FOR A20
+COL VOTING_FILE FOR A20
+SELECT NAME,PATH,HEADER_STATUS,FAILGROUP, FAILGROUP_TYPE, VOTING_FILE, OS_MB,TOTAL_MB,FREE_MB
+FROM V$ASM_DISK
+WHERE GROUP_NUMBER = ( SELECT GROUP_NUMBER
+                                FROM V$ASM_DISKGROUP
+                                WHERE NAME='&1')
+ORDER BY 1;
+
+
+
+
+
+
+SET LINESIZE 150
+COL PATH FOR A30
+COL NAME FOR A10
+COL HEADER_STATUS FOR A20
+COL FAILGROUP FOR A20
+COL FAILGROUP_TYPE FOR A20
+COL VOTING_FILE FOR A20
+SELECT NAME,PATH,HEADER_STATUS,FAILGROUP, FAILGROUP_TYPE, VOTING_FILE, OS_MB,TOTAL_MB,FREE_MB
+FROM V$ASM_DISK
+WHERE GROUP_NUMBER = ( SELECT GROUP_NUMBER 
+				FROM V$ASM_DISKGROUP
+				WHERE NAME='DATANR')
+order by 4,6;
+
+select 'alter diskgroup ' || dg.name || ' add 
+
+select path, name, header_status, state, failgroup from v$asm_disk where STATE = 'NORMAL' order by 1,2, failgroup;
+
+select name, path, failgroup from v$asm_disk where group_number =0 and path is null order by 3,1,2;
+
+SELECT NAME,PATH,HEADER_STATUS,FAILGROUP, FAILGROUP_TYPE, VOTING_FILE, OS_MB,TOTAL_MB,FREE_MB
+FROM V$ASM_DISK
+WHERE GROUP_NUMBER = ( SELECT GROUP_NUMBER 
+				FROM V$ASM_DISKGROUP
+				WHERE NAME='CRSHR')
+order by 4,6;
+
+SELECT NAME,PATH,HEADER_STATUS,FAILGROUP, FAILGROUP_TYPE, VOTING_FILE, OS_MB,TOTAL_MB,FREE_MB
+FROM V$ASM_DISK
+WHERE GROUP_NUMBER = 1
+order by 4,6;
+
+ALTER diskgroup CRSHR ADD failgroup FG3 disk
+'\\.\ORCLDISK_CRSHR_FG3_MER2_0' FORCE;
+

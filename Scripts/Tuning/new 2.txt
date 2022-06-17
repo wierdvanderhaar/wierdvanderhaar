@@ -1,0 +1,2800 @@
+> insert into ACCTEST values (
+ACCTEST_SEQ.nextval,
+'DG Switchover plus FSFO',
+(SELECT HOST_NAME from v$instance),
+SYSDATE);
+
+
+
+Architect: High Availability
+ 	 	 
+  DOWNLOAD
+ 
+ 	 	 
+ 	
+  Oracle Database	 
+ 
+ 	 	 
+  TAGS
+ 
+ 	 	 
+ 	
+database, availability, All	 
+ 
+Guide to Oracle Data Guard Fast-Start Failover
+by John Smiley
+
+Published March 2009
+
+This document will guide you through configuring Oracle Data Guard Fast-Start Failover (FSFO) using a physical standby database.  FSFO can provide substantial gains in high availability and disaster recovery preparedness for all environments, from inexpensive Cloud-based systems to global distributed data centers. 
+
+The information in this guide is based on practical experience gained from deploying FSFO in a global corporate production environment. The guide makes few assumptions about your existing environment and includes examples for creating a physical standby database and Data Guard Broker configuration.  To get started, all you'll need is Oracle Database Enterprise Edition Release 10.2 or later, a database, and three hosts: two for the databases and a small host for the FSFO observer.  The guide attempts to be operating system agnostic; however, some examples may contain platform specific elements such as path and file naming conventions. 
+Major Components of an FSFO Environment 
+FSFO builds upon a number of other Oracle technologies and features such as Data Guard, Flashback Database, and Data Guard Broker.  
+Data Guard
+The foundation of FSFO is Data Guard - a primary and at least one standby.  The standby can be physical or logical and there can be multiple standbys, but only one of the standbys can be the failover target at any given time.  The following paragraphs describe the supported availability modes. 
+
+Maximum Availability Mode (Oracle Database 10g Rel 2 and later) 
+In Maximum Availability mode, FSFO guarantees that no transaction that has received a commit acknowledgment will be lost during a failover.  The price for this guarantee is increased commit latency ( log file sync waits).  Maximum Availability mode uses synchronous redo transfer and FSFO imposes the additional requirement that the redo is recorded in the standby redo log (SRL) of the target standby (AFFIRM option of log_archive_dest_ n).  Overall commit latency is increased by the round-trip network latency.  With increased latency comes decreased throughput; however, in some cases the difference in throughput may be made up by increasing parallelism.  
+
+Although redo transfer is synchronous, Maximum Availability mode allows the primary to remain available if the standby database becomes unavailable for any reason (e.g. standby database, host, or network failure, etc.).  If the primary is unable to contact the standby after a user specified period of time (NET_TIMEOUT option of log_archive_dest_ n), it drops out of synchronous transfer mode and begins operating as though it were in Maximum Performance mode.  When the standby becomes available again, the primary and standby re-synchronize and resume synchronous redo transfer. 
+
+Maximum Performance Mode (Oracle Database 11g Rel 1 and later) 
+Oracle Database 11g FSFO adds support for Maximum Performance mode (async redo transfer), providing the flexibility to trade durability for performance.  Commit latency is not affected by redo transfer, but committed transactions whose redo has not been received by the standby will be lost during failover.  FSFO configurations in Maximum Performance mode may limit potential data loss by specifying the maximum allowable age of transactions that are lost during a failover. For example, if the limit specified is 30 seconds (the default), FSFO guarantees that all transactions that committed prior to 30 seconds ago are preserved during failover.  The minimum allowable limit is 10 seconds. 
+Data Guard Broker
+Broker is a Data Guard management utility that maintains state information about a primary and its standby databases.  It automatically sets Data Guard related database initialization parameters on instance start and role transitions, starts apply services for standbys, and automates many of the administrative tasks associated with maintaining a Data Guard configuration.  FSFO is a feature of Broker which records information about the failover target, how long to wait after a failure before triggering a failover, and other FSFO specific properties. 
+Flashback Database
+Flashback Database is a continuous data protection (CDP) solution integrated with the Oracle Database.  It provides a way to quickly restore a database to a previous point in time or SCN using on-disk data structures called flashback logs.  Flashing back a database is much faster and more seamless (one simple DDL statement) than traditional point-in-time or SCN-based recovery.  FSFO uses Flashback Database as part of the process of reinstating a failed primary as a standby. 
+
+Problems with automatic reinstatement are frequently due to misconfiguration, so let's look at this in a bit more detail. 
+
+Flashback Database records the before-image of changed blocks. To avoid the overhead of recording every change to every block, Flashback Database takes a "fuzzy" snapshot every 30 minutes and only records the before-image block upon its first change since the last snapshot.  Subsequent changes to the same block during the same snapshot are not recorded. 
+
+Flashing back a database occurs in two stages: 
+Restore - Flashback Database restores the datafiles to the closest snapshot prior to the specified SCN. This can be compared to performing an RMAN restore of the datafiles from a backup taken prior to the specified SCN, but is much faster.
+Media Recovery - Once the restore is complete, recovery proceeds as a typical media recovery, applying redo from archived and online redologs and rolling back uncommitted changes with undo.  This means that in order for a flashback database operation to succeed, Flashback Database requires all archive redo logs generated between the snapshot time and restore SCN (typically the past 30 minutes of redo).  Use the V$RECOVERY_PROGRESS view to monitor recovery status. 
+For FSFO environments, set db_flashback_retention_target = 60 or higher to provide sufficient Flashback Database history for automatic standby reinstatement. Metadata for the fuzzy snapshot is stored in the flashback log itself. If that metadata is pushed out, Oracle can no longer find a fuzzy snapshot so it will not be able to flash back. To avoid problems due to timing variations, values less than 60 minutes are not recommended and values of 30 or less virtually guarantee Flashback Database failure. 
+Flashback Database stores its logs in the Flash Recovery Area (FRA), so the FRA must be large enough to store at least 60 minutes of Flashback Database history.  The total storage requirement is proportional to the number of distinct blocks changed during snapshots - e.g. 1,000,000 block changes on a small set of blocks generates less Flashback Database history than 1,000,000 changes on a larger set of blocks.  A good method to determine Flashback Database storage requirements is to enable Flashback Database and observe the amount of storage it uses during several peak loads.  There is little risk in enabling Flashback Database to determine its storage requirements - it can be disabled while the primary is open if necessary.  However, re-enabling Flashback Database will require a bounce since the database must be mounted and not open. 
+FSFO observer
+The observer is the third party in an otherwise typical primary/standby Data Guard configuration.  It is actually a low-footprint OCI client built into the DGMGRL CLI (Data Guard Broker Command Line Interface) and, like any other client, may be run on a different hardware platform than the database servers.  Its primary job is to perform a failover when conditions permit it to do so without violating the data durability constraints set by the DBA.  Only the observer can initiate FSFO failover.  It's secondary job is to automatically reinstate a failed primary as a standby if that feature is enabled (the default).  The observer is the key element that separates Data Guard failover from its pre-FSFO role as the plan of last resort to its leading role in a robust high availability solution. 
+
+Note: the FSFO observer version must match the database version.  Oracle Database 11g observers are incompatible with 10g databases and vice-versa. 
+Conditions for FSFO Failover
+By default, the observer will initiate failover to the target standby if and only if ALL of the following are true: 
+observer is running 
+observer and the standby both lose contact with the primary
+Note: if the observer loses contact with the primary, but the standby does not, the observer can determine that the primary is still up via the standby.
+observer is still in contact with the standby
+durability constraints are met
+failover threshold timeout has elapsed 
+User configurable failover conditions (11g and later)
+Oracle Database 11g Rel 1 introduced user configurable failover conditions that can trigger the observer to initiate failover immediately. 
+
+Health conditions 
+Broker can be configured to initiate failover on any of the following conditions.  Conditions shown in blue are enabled by default. 
+
+Datafile Offline (due to IO errors) 
+Corrupted Controlfile
+Corrupted Dictionary
+Inaccessible Logfile (due to IO errors) 
+Stuck Archiver
+
+Oracle errors (ORA-NNNNN) 
+You can also specify a list of ORA- errors that will initiate FSFO failover.  The list is empty by default. 
+
+Application initiated 
+Applications can initiate FSFO failover directly using the DBMS_DG.INITIATE_FS_FAILOVER procedure with an optional message text that will be displayed in the observer log and the primary's alert log. 
+Walkthrough Overview 
+The walkthrough begins with a single database that will become the primary of a Data Guard configuration.  For this build, we will use a single physical standby database.  FSFO can also be used with logical standbys and an FSFO-enabled configuration may have multiple standbys with a mix of physical and logical, but only one standby can be the failover target at any given time. 
+
+The major steps in the walkthrough are: 
+
+Configure Oracle Net (aka SQL*Net)
+Prepare the primary database
+Create a physical standby
+Enable Flashback Database
+Create a Broker configuration
+Configure the observer 
+Enable and test FSFO
+Conventions used
+Database hosts are referred to as "a" and "b" hosts and the databases themselves are referred to as the "a" and "b" databases.  The observer host is 'observer.demo.org'.
+
+Names used in the examples:
+
+ 
+
+
+Database name	
+db1
+
+Database unique names	
+db1_a
+
+db1_b
+
+Domain name
+
+demo.org
+Hostnames	
+dbhost-a
+
+dbhost-b 
+observer 
+Data Guard listener name  	LISTENER_DG
+TNS aliases 
+db1_a
+
+db1_b
+
+
+Input commands are shown in shaded boxes in normal text.  Expected output is shown in blue text. 
+Configure Oracle Net
+Data Guard uses Oracle Net (SQL*Net) for communication between the primary and standby databases and the FSFO observer.  Getting the Oracle Net configuration right is one of the key factors in a successful FSFO deployment.  Improper Oracle Net configuration is a leading cause of reported FSFO issues. 
+
+Note: Data Guard requires dedicated server connections for proper operation.  Do not use Shared Server (formerly MTS) for Data Guard. 
+Configure listeners
+It's good practice to use separate listeners for application connections and Data Guard connections.  This allows Data Guard to remain functional during maintenance periods when the application listeners are down.  Be sure to include the Data Guard listener in the local_listeners database parameter. 
+
+Most of the network services used in a FSFO environment may use dynamic registration, but to enable Broker to restart instances during role transitions or during reinstatement after a failover, you must define a static service named db_unique_name_dgmgrl. db_domain . (Note: 11.1.0.7 adds the StaticConnectIdentifier Broker database property to allow you to specify a different service name.)  If you will be using RMAN to create the standby database, it also needs a static service to restart the database being created.  In order to maintain separation of Broker and non-Broker activity, a second static service is recommended. 
+ 
+
+listener.ora configuration for host "a": 
+LISTENER_DG =
+                                        
+
+
+  (DESCRIPTION=
+                                        
+
+
+    (ADDRESS_LIST=
+                                        
+
+
+      (ADDRESS=(PROTOCOL=tcp)(HOST=dbhost-a)(PORT=1522))
+                                        
+
+
+    )
+                                        
+
+
+  )
+                                        
+
+
+                                         
+
+
+SID_LIST_LISTENER_DG=
+                                        
+
+
+  (SID_LIST=
+                                        
+
+
+    (SID_DESC=
+                                        
+
+
+      (SID_NAME=db1)
+                                        
+
+
+      (SDU=32767)
+                                        
+
+
+      (ORACLE_HOME=/u01/app/oracle/product/11.1.0/db_1)
+                                        
+
+
+      (GLOBAL_DBNAME=db1_a_static.demo.org)
+                                        
+
+
+    )
+                                        
+
+
+    (SID_DESC=
+                                        
+
+
+      (SID_NAME=db1)
+                                        
+
+
+      (SDU=32767)
+                                        
+
+
+      (ORACLE_HOME=/u01/app/oracle/product/11.1.0/db_1)
+                                        
+
+
+      (GLOBAL_DBNAME=db1_a_dgmgrl.demo.org)
+                                        
+
+
+    )
+                                        
+
+
+  )
+                                      
+listener.ora configuration for host "b":  
+
+LISTENER_DG =
+                                        
+
+
+  (DESCRIPTION=
+                                        
+
+
+    (ADDRESS_LIST=
+                                        
+
+
+      (ADDRESS=(PROTOCOL=tcp)(HOST=dbhost-b)(PORT=1522))
+                                        
+
+
+    )
+                                        
+
+
+  )
+                                        
+
+
+                                         
+
+
+SID_LIST_LISTENER_DG=
+                                        
+
+
+  (SID_LIST=
+                                        
+
+
+    (SID_DESC=
+                                        
+
+
+      (SID_NAME=db1)
+                                        
+
+
+      (SDU=32767)
+                                        
+
+
+      (ORACLE_HOME=/u01/app/oracle/product/11.1.0/db_1)
+                                        
+
+
+      (GLOBAL_DBNAME=db1_b_static.demo.org)
+                                        
+
+
+    )
+                                        
+
+
+    (SID_DESC=
+                                        
+
+
+      (SID_NAME=db1)
+                                        
+
+
+      (SDU=32767)
+                                        
+
+
+      (ORACLE_HOME=/u01/app/oracle/product/11.1.0/db_1)
+                                        
+
+
+      (GLOBAL_DBNAME=db1_b_dgmgrl.demo.org)
+                                        
+
+
+    )
+                                        
+
+
+  )
+                                        
+
+
+                                      
+Configure naming method
+Create a unique connect alias for each database.  Using the db_unique_name of each database as the Oracle Net alias is simple and intuitive.
+
+db1_a: Alias to connect to the dynamic Data Guard service on database "a"
+db1_b: Alias to connect to the dynamic Data Guard service on database "b" 
+db1_a_static: Alias to connect to the static Data Guard service  on database "a"
+db1_b_static: Alias to connect to the static Data Guard service on database "b"
+ 
+Example tnsnames.ora entries: 
+                                                     
+db1_a=
+                                                    
+
+
+  
+                                                    
+ (description=
+                                                    
+
+
+  
+                                                    
+   (SDU=32767)
+                                                    
+
+
+  
+                                                    
+   (address_list=
+                                                    
+
+
+  
+                                                    
+     (address=(protocol=tcp)(host=dbhost-a)(port=1522))
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+   (connect_data=
+                                                    
+
+
+  
+                                                    
+     (service_name=db1_a.demo.org)
+                                                    
+
+
+  
+                                                    
+     (server=dedicated)
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+ )
+                                                    
+
+
+                                                     
+
+
+                                                     
+db1_b=
+                                                    
+
+
+  
+                                                    
+ (description=
+                                                    
+
+
+  
+                                                    
+   (SDU=32767)
+                                                    
+
+
+  
+                                                    
+   (address_list=
+                                                    
+
+
+  
+                                                    
+     (address=(protocol=tcp)(host=dbhost-b)(port=1522))
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+   (connect_data=
+                                                    
+
+
+  
+                                                    
+     (service_name=db1_b.demo.org)
+                                                    
+
+
+  
+                                                    
+     (server=dedicated)
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+)
+                                                      
+
+
+                                                                                                        
+                                                       
+
+
+db1_a_static=
+                                                    
+                                                    
+
+
+  
+                                                    
+ (description=
+                                                    
+
+
+  
+                                                    
+   (SDU=32767)
+                                                    
+
+
+  
+                                                    
+   (address_list=
+                                                    
+
+
+  
+                                                    
+     (address=(protocol=tcp)(host=dbhost-a)(port=1522))
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+   (connect_data=
+                                                    
+
+
+  
+                                                    
+     (service_name=db1_a_static.demo.org)
+                                                    
+
+
+  
+                                                    
+     (server=dedicated)
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+ )
+                                                    
+
+
+                                                     
+
+
+                                                     
+db1_b_static=
+                                                    
+
+
+  
+                                                    
+ (description=
+                                                    
+
+
+  
+                                                    
+   (SDU=32767)
+                                                    
+
+
+  
+                                                    
+   (address_list=
+                                                    
+
+
+  
+                                                    
+     (address=(protocol=tcp)(host=dbhost-b)(port=1522))
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+   (connect_data=
+                                                    
+
+
+  
+                                                    
+     (service_name=db1_b_static.demo.org)
+                                                    
+
+
+  
+                                                    
+     (server=dedicated)
+                                                    
+
+
+  
+                                                    
+   )
+                                                    
+
+
+  
+                                                    
+ )
+                                                    
+
+
+                                                  
+Start the Data Guard listener
+Start the Data Guard listener on both "a" and "b" hosts. 
+lsnrctl start LISTENER_DG
+Test the Oracle Net connections
+Verify the configuration from both hosts. 
+tnsping db1_a
+                                                    
+
+
+                                                     
+
+
+                                                     
+Attempting to contact (description= (SDU=32767) (address_list= (address=(protocol=tcp)(host=dbhost-a)(port=1522)))
+                                                    
+
+
+  
+                                                    
+(connect_data= (service_name=db1_a.demo.org) (server=dedicated)))
+                                                    
+
+
+                                                     
+OK (0 msec)
+                                                  
+tnsping db1_b
+                                                    
+
+
+                                                     
+
+
+                                                     
+Attempting to contact (description= (SDU=32767) (address_list= (address=(protocol=tcp)(host=dbhost-b)(port=1522)))
+                                                    
+
+
+  
+                                                    
+(connect_data= (service_name=db1_b.demo.org) (server=dedicated)))
+                                                    
+
+
+                                                     
+OK (0 msec)
+                                                    
+
+
+                                                  
+Preparing the Primary 
+A number of prerequisites must be met on the primary in order to use Fast-Start Failover. This section describes how to configure and verify each prerequisite. To see if your primary has already met a prerequisite, follow the instructions in the Verify section. 
+
+Steps that require the primary to be in a mounted (not open) state are grouped together in the section below entitled Steps Requiring a Bounce of the Primary.
+
+Add the Data Guard listener to local_listeners parameter 
+To allow the database to register with the Data Guard listener, the listener endpoint must be added to the database's local_listener parameter.  If local_listener is already in use, add the Data Guard listener to the list.  After setting local_listener, register the database with the listener and verify the services have been registered. 
+
+Note: You can also use TNS aliases defined in the tnsnames.ora file when setting the local_listener parameter.  This is particularly useful when registering with multiple listeners where the parameter value would otherwise exceed the 255 character limit. 
+Set
+alter system set local_listener='(address=(host=dbhost-a)(port=1522)(protocol=tcp))';
+                                                    
+
+
+alter system register;
+                                                    
+
+
+                                                  
+Verify
+show parameter local_listener
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+local_listener                       string      (address=(host=dbhost-a)(port=
+                                                    
+
+
+  
+                                                    
+                                                1522)(protocol=tcp))
+                                                  
+lsnrctl status listener_dg
+                                                    
+
+
+                                                     
+
+
+                                                     
+                                                    
+...
+                                                    
+
+
+                                                     
+Services Summary...
+                                                    
+
+
+                                                     
+Service "DB1_A" has 1 instance(s).
+                                                    
+
+
+  
+                                                    
+ Instance "db1", status READY, has 1 handler(s) for this service...
+                                                    
+
+
+                                                     
+Service "DB1_A_XPT" has 1 instance(s).
+                                                    
+
+
+  
+                                                    
+ Instance "db1", status READY, has 1 handler(s) for this service...
+                                                    
+
+
+                                                     
+Service "db1XDB" has 1 instance(s).
+                                                    
+
+
+  
+                                                    
+ Instance "db1", status READY, has 1 handler(s) for this service...
+                                                    
+
+
+                                                     
+Service "db1_a_dgmgrl.demo.org" has 1 instance(s).
+                                                    
+
+
+  
+                                                    
+ Instance "db1", status UNKNOWN, has 1 handler(s) for this service...
+                                                    
+
+
+                                                     
+Service "db1_a_static.demo.org" has 1 instance(s).
+                                                    
+
+
+  
+                                                    
+ Instance "db1", status UNKNOWN, has 1 handler(s) for this service...
+                                                    
+
+
+                                                     
+The command completed successfully
+                                                    
+
+
+                                                     
+
+
+                                                  
+Enable Force Logging
+All Data Guard environments should enable force logging at the database level in order to guard against nologging tablespaces from being added. 
+Enable
+alter database force logging;
+Verify
+select force_logging from v$database;
+                                                    
+
+
+                                                     
+
+
+                                                     
+FOR
+                                                    
+
+
+                                                     
+---
+                                                    
+
+
+                                                     
+YES
+                                                    
+
+
+                                                  
+Create an spfile
+Broker changes database parameters during startup and role transitions via ALTER SYSTEM commands.  An spfile is required to persist these changes. 
+Create
+create spfile='?/dbs/spfile${ORACLE_SID}.ora' from pfile='?/dbs/init${ORACLE_SID}.ora';
+                                                    
+
+
+alter system set spfile='?/dbs/spfiledb1.ora';
+                                                    
+
+
+                                                  
+Verify
+show parameter spfile;
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+spfile                               string      ?/dbs/spfiledb1.ora
+                                                    
+
+
+                                                  
+Create a password file
+All Data Guard environments require the use of a password file in order to allow the databases to connect to each other. 
+Create
+orapwd file=$ORACLE_HOME/dbs/orapw$ORACLE_SID
+                                                    
+
+
+                                                  
+Verify
+select * from v$pwfile_users;
+                                                    
+
+
+                                                     
+
+
+                                                     
+USERNAME                       SYSDB SYSOP SYSAS
+                                                    
+
+
+                                                     
+------------------------------ ----- ----- -----
+                                                    
+
+
+                                                     
+SYS                            TRUE  TRUE  FALSE
+                                                    
+
+
+                                                  
+Enable remote login
+Remote login is required, along with a password file, to allow the databases in a Data Guard configuration to connect to each other. 
+Enable
+alter system set remote_login_passwordfile=exclusive scope=spfile;
+                                                    
+
+
+                                                  
+Verify
+show parameter remote_login_passwordfile
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+remote_login_passwordfile            string      EXCLUSIVE
+                                                    
+
+
+                                                  
+Set db_unique_name
+Each database in a Data Guard configuration must have a unique name.  This guide uses the naming convention of appending an underscore followed by a letter to the db_name to create the db_unique_name. 
+Set
+alter system set db_unique_name = db1_a scope=spfile;
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+db_unique_name                       string      db1_a
+                                                    
+
+
+                                                  
+Verify
+show parameter db_unique_name
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+db_unique_name                       string      db1_a
+                                                    
+
+
+                                                  
+Configure Flash Recovery Area
+If you don't already have a Flash Recovery Area (FRA), you will need to create one for Flashback Database.  If you already have an FRA, you may need to increase its size in order to accommodate the Flashback Database files.  See the Flashback Database section above for information on storage requirements. 
+Configure
+alter system set db_recovery_file_dest_size = 20g scope=both;
+                                                    
+
+
+alter system set db_recovery_file_dest = '/u01/fra' scope=both;
+                                                  
+Verify
+show parameter db_recovery_file
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+db_recovery_file_dest                string      /u02/flash_recovery_area
+                                                    
+
+
+                                                     
+db_recovery_file_dest_size           big integer 2G
+                                                    
+
+
+                                                  
+Enable automatic standby file management
+Not a hard requirement, but recommended. 
+Enable
+alter system set standby_file_management=auto;
+                                                    
+
+
+                                                  
+Verify
+show parameter standby_file_management
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+standby_file_management              string      AUTO
+                                                    
+
+
+                                                  
+Set log_archive_config
+This parameter must be set before the primary can be opened in Maximum Availability mode. The remaining Data Guard-related parameters will be set by Broker later in the walkthrough.
+Set
+alter system set log_archive_config='DG_CONFIG=(db1_b)' scope=both;
+                                                    
+
+
+                                                  
+Verify
+show parameter log_archive_config
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+log_archive_config                   string      DG_CONFIG=(db1_b)
+                                                    
+
+
+                                                  
+Create standby redo logs
+In order to accommodate all load conditions, Oracle recommends having at least one more SRL group than the number of ORL groups of the same size. This walkthrough assumes that all ORLs and SRLs on the primary and standby databases are the same size.
+Create
+Determine the number and size of the Online Redo Log files (ORLs)
+select bytes, count(group#) from v$log group by bytes;
+                                                    
+
+
+                                                     
+
+
+  
+                                                    
+    BYTES COUNT(GROUP#)
+                                                    
+
+
+                                                     
+---------- -------------
+                                                    
+
+
+  
+                                                    
+ 52428800             3
+                                                    
+
+
+                                                  
+Find the highest group#
+select max(group#) from v$log;
+                                                    
+
+
+                                                     
+
+
+                                                     
+MAX(GROUP#)
+                                                    
+
+
+                                                     
+-----------
+                                                    
+
+
+  
+                                                    
+         3
+                                                    
+
+
+                                                  
+Add the SRLs. Unlike ORLs, SRLs should be created with only one member per group. There is no need to multiplex SRLs in order to protect redo as with ORLs (the redo is already protected in the ORLs of the primary). Multiplexing SRLs merely adds unnecessary IO and can increase commit latency. For systems with multiple RAID controllers, consider creating SRLs such that their IO is balanced across the controllers.
+ 
+
+In this example, there are 3 ORLs with a max group# of 3.  We will create 4 SRLs starting with group# 11.  Starting with 11 is purely cosmetic - it allows new ORL groups to be added later while keeping their group# in the same sequence as the existing ORLs. 
+alter database add standby logfile group 11 '/u02/oradata/db1/stby-t01-g11-m1.log' size 52428800;
+                                                    
+
+
+alter database add standby logfile group 12 '/u02/oradata/db1/stby-t01-g12-m1.log' size 52428800;
+                                                    
+
+
+alter database add standby logfile group 13 '/u02/oradata/db1/stby-t01-g13-m1.log' size 52428800;
+                                                    
+
+
+alter database add standby logfile group 14 '/u02/oradata/db1/stby-t01-g14-m1.log' size 52428800;
+                                                    
+
+
+                                                  
+Verify
+select group#, type, member from v$logfile where type = 'STANDBY';
+                                                    
+
+
+                                                     
+
+
+  
+                                                    
+   GROUP# TYPE    MEMBER
+                                                    
+
+
+                                                     
+---------- ------- ----------------------------------------
+                                                    
+
+
+  
+                                                    
+       11 STANDBY /u02/oradata/db1/stby-t01-g11-m1.log
+                                                    
+
+
+  
+                                                    
+       12 STANDBY /u02/oradata/db1/stby-t01-g12-m1.log
+                                                    
+
+
+  
+                                                    
+       13 STANDBY /u02/oradata/db1/stby-t01-g13-m1.log
+                                                    
+
+
+  
+                                                    
+       14 STANDBY /u02/oradata/db1/stby-t01-g14-m1.log
+                                                    
+
+
+                                                  
+Steps Requiring a Bounce of the Primary
+The following steps all require the database to be in a mounted (not open) state.  They can all be done at the same time in a single bounce. 
+Enable archivelog mode
+Enable
+alter database archivelog;
+Verify
+select log_mode from v$database;
+                                                    
+
+
+                                                     
+
+
+                                                     
+LOG_MODE
+                                                    
+
+
+                                                     
+------------
+                                                    
+
+
+                                                     
+ARCHIVELOG
+                                                    
+
+
+                                                  
+Enable Flashback Database
+Enable
+alter database flashback on;
+                                                    
+
+
+alter system set db_flashback_retention_target = 60 scope=both;
+                                                    
+
+
+                                                  
+Verify
+select flashback_on from v$database;
+                                                    
+
+
+                                                     
+
+
+                                                     
+FLASHBACK_ON
+                                                    
+
+
+                                                     
+------------------
+                                                    
+
+
+                                                     
+YES
+                                                    
+
+
+                                                  
+show parameter db_flashback_retention_target
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+db_flashback_retention_target        integer     60
+                                                    
+
+
+                                                  
+Enable Maximum Availability Mode
+As mentioned above, Maximum Availability mode is mandatory for Oracle Database 10g and optional for Oracle Database 11g. 
+Enable
+alter database set standby database to maximize availability;
+                                                    
+
+
+                                                  
+Verify
+select protection_mode from v$database;
+                                                    
+
+
+                                                     
+
+
+                                                     
+PROTECTION_MODE
+                                                    
+
+
+                                                     
+--------------------
+                                                    
+
+
+                                                     
+MAXIMUM AVAILABILITY
+                                                    
+
+
+                                                  
+Create the Standby Database
+If you don't already have a standby database, use your favorite method to create one. The example below takes advantage of the 11g RMAN Active Database Duplication feature. This feature enables RMAN to duplicate an existing database over the network without requiring a backup to disk or tape. The following assumes that the standby host has been setup according to Oracle's recommendations and that the operating system, accounts, security, resource limits, directory structure, etc. are configured correctly.
+Copy the password file from the primary to the standby
+In Oracle Database 11g, the password file on the standby must be a physical copy of the password file on the primary due to security enhancements introduced in Oracle Database 11g. Oracle Database 10g allows a different password file to be used as long as the SYS passwords are the same on the primary and standby.
+Create oratab entry
+Add an entry to the oratab file for the standby
+db1:/u01/app/oracle/product/11.1.0/db_1:Y
+                                                    
+
+
+                                                  
+Create an init.ora file
+For the RMAN duplicate active database method, the init.ora file (initdb1.ora in the example) requires only one parameter: db_name (it doesn't even have to be the real name of the database - any name will do). RMAN will copy the spfile from the primary, so this init.ora file is only needed during the first phase of the duplication.
+db_name = db1
+                                                    
+
+
+                                                  
+Set environment
+Make sure that your OS environment on the standby is setup. Use the oraenv script provided by Oracle.
+Startup nomount the standby
+ startup nomount
+                                                    
+
+
+                                                  
+Create the standby with RMAN
+Run the RMAN utility and connect to the target (primary) and auxiliary (new standby).
+rman target sys/password@db1_a_static auxiliary sys/password@db1_b_static
+                                                    
+
+
+                                                     
+
+
+                                                     
+connected to target database: DB1 (DBID=1234567890)
+                                                    
+
+
+                                                     
+connected to auxiliary database: X (not mounted)
+                                                    
+
+
+                                                  
+Set the default device type to disk
+CONFIGURE DEFAULT DEVICE TYPE TO DISK;
+                                                    
+
+
+                                                  
+Duplicate the database from the active primary
+The procedure for using RMAN to create a standby database is fully explained in Appendix F of Oracle Oracle Data Guard Concepts and Administration document (10g Rel 2 and 11g Rel 1).  The example uses the FROM ACTIVE DATABASE clause introduced in 11g that allows RMAN to create a standby database by copying the primary across the network without the need to store the backup files on disk or tape. RMAN also copies the spfile and password files and you can change the values for individual parameters. At a minimum, you must set db_unique_name. The example assumes that the standby uses the same directory structure as the primary. 
+
+Note:  If you have just enabled archivelog mode, force an archive log creation ( alter system archive log current) to ensure that at least one archive log exists.  Otherwise, the DUPLICATE TARGET DATABASE command will fail with "RMAN-20208: UNTIL CHANGE is before RESETLOGS change". 
+DUPLICATE TARGET DATABASE
+                                                    
+
+
+ FOR STANDBY
+                                                    
+
+
+ FROM ACTIVE DATABASE
+                                                    
+
+
+ DORECOVER
+                                                    
+
+
+ SPFILE
+                                                    
+
+
+ SET db_unique_name='db1_b'
+                                                    
+
+
+ SET log_archive_config=''
+                                                    
+
+
+ SET log_file_name_convert= ' ',' '
+                                                    
+
+
+ SET local_listener='(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=dbhost-b)(PORT=1522)))'
+                                                    
+
+
+ NOFILENAMECHECK;
+                                                    
+
+
+                                                  
+Enable Flashback Database on the standby
+Enable
+alter database flashback on;
+                                                    
+
+
+alter system set db_flashback_retention_target = 60 scope=both;
+                                                    
+
+
+                                                  
+Verify
+select flashback_on from v$database;
+                                                    
+
+
+                                                     
+
+
+                                                     
+FLASHBACK_ON
+                                                    
+
+
+                                                     
+------------------
+                                                    
+
+
+                                                     
+YES
+                                                    
+
+
+                                                  
+show parameter db_flashback_retention_target
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+db_flashback_retention_target        integer     60
+                                                    
+
+
+                                                  
+Set the location of the Data Guard Broker configuration files
+Broker stores it configuration information in a mirrored set of files outside the database. By default, both files are stored in $ORACLE_HOME/dbs. To protect the files, it's good practice to store them in separate filesystems.
+Set (primary and standby)
+alter system set dg_broker_config_file1='/u01/app/oracle/admin/db1/dgbroker/dg1db1.dat';
+                                                    
+
+
+alter system set dg_broker_config_file2='/u02/app/oracle/admin/db1/dgbroker/dg2db1.dat';
+                                                    
+
+
+                                                  
+Verify
+show parameter dg_broker_config_file
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+dg_broker_config_file1               string /u01/app/oracle/admin/db1/dgbr
+                                                    
+
+
+  
+                                                    
+                                           oker/dg1db1.dat
+                                                    
+
+
+                                                     
+dg_broker_config_file2               string /u02/app/oracle/admin/db1/dgbr
+                                                    
+
+
+  
+                                                    
+                                           oker/dg2db1.dat
+                                                    
+
+
+                                                  
+Enable Data Guard Broker
+Enable (primary and standby)
+alter system set dg_broker_start=true;
+                                                    
+
+
+                                                  
+Verify
+show parameter dg_broker_start
+                                                    
+
+
+                                                     
+
+
+                                                     
+NAME                                 TYPE        VALUE
+                                                    
+
+
+                                                     
+------------------------------------ ----------- ------------------------------
+                                                    
+
+
+                                                     
+dg_broker_start                      boolean     TRUE
+                                                    
+
+
+                                                  
+Configure Broker
+Start the dgmgrl utility and connect as SYS on the primary 
+ dgmgrl sys/password@db1_a
+                                                    
+
+
+                                                  
+Create the Broker Configuration
+Add the primary
+create configuration 'FSF' as
+                                                    
+
+
+primary database is db1_a
+                                                    
+
+
+connect identifier is db1_a;
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration "FSF" created with primary database "db1_a"
+                                                    
+
+
+                                                  
+Add the standby
+add database db1_b as
+                                                    
+
+
+connect identifier is db1_b
+                                                    
+
+
+maintained as physical;
+                                                    
+
+
+                                                     
+
+
+                                                     
+Database "db1_b" added
+                                                    
+
+
+                                                  
+Verify the configuration
+show configuration
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration
+                                                    
+
+
+  
+                                                    
+Name: FSF
+                                                    
+
+
+  
+                                                    
+Enabled: NO
+                                                    
+
+
+  
+                                                    
+Protection Mode: MaxAvailability
+                                                    
+
+
+  
+                                                    
+Databases:
+                                                    
+
+
+  
+                                                    
+db1_a - Primary database
+                                                    
+
+
+  
+                                                    
+db1_b - Physical standby database
+                                                    
+
+
+                                                     
+
+
+                                                     
+Fast-Start Failover: DISABLED
+                                                    
+
+
+                                                     
+
+
+                                                     
+Current status for "FSF":
+                                                    
+
+
+                                                     
+DISABLED
+                                                    
+
+
+                                                  
+Edit Database Properties
+LogXptMode 
+Broker will set the primary to use asynchronous log transport by default. For Maximum Availability environments, change this to synchronous. 
+
+NetTimeout 
+The NetTimeout property specifies the number of seconds LGWR will block waiting for acknowledgment from the standby in synchronous mode before considering the connection lost (corresponds to the NET_TIMEOUT option of log_archive_dest_n).  The default value is 30 seconds.  When using Maximum Availability mode, consider lowering this to reduce the time commits block when the standby becomes unavailable.  Choose a value high enough to avoid false disconnects from intermittent network trouble.  The example uses 10 seconds. 
+
+ObserverConnectIdentifier (11g and later) 
+Oracle Database 11g adds the ObserverConnectIdentifier database property to the Broker configuration, allowing you to specify a connect identifier for the observer to use for monitoring the primary and failover target.  By default, the observer uses the same connect identifiers used by Data Guard for redo transfer and information exchange between the primary and standby ( DGConnectIdentifier  in Oracle Database 11g, InitialConnectIdentifier in Oracle Database 10g). ObserverConnectIdentifier allows you to specify different connect identifiers for the observer to use.  You might, for instance, use this to allow the observer to monitor the databases using the same connect identifiers as the client applications. 
+
+We'll leave the other properties at their default values for the walkthrough, but you should become familiar with all of the Broker config and database properties.  Chapter 9 of the Data Guard Broker documentation (10g and 11g) contains a description of each property.  Some properties have changed between those releases. 
+
+Note: Many of the Broker database properties correspond to database spfile parameters.  Broker maintains these parameters by issuing ALTER SYSTEM commands as appropriate during role transitions, database startup/shutdown, and other events.  If these parameters are modified outside of Broker, it raises a warning.  To see the specific parameter, use the "show database ... StatusReport" command. 
+edit database db1_a set property LogXptMode='SYNC';
+                                                    
+
+
+edit database db1_a set property NetTimeout=10;
+                                                    
+
+
+edit database db1_b set property NetTimeout=10;
+                                                    
+
+
+                                                  
+Enable the configuration
+Broker will validate the configuration, set parameters on both databases, and start managed recovery.  This may take a few minutes.  Tailing the alert logs on the primary and standby is a good way to watch Broker in action and get familiar with how it performs various tasks. 
+enable configuration;
+                                                    
+
+
+                                                  
+Verify the configuration
+Make sure everything is working before moving on. 
+show configuration
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration
+                                                    
+
+
+  
+                                                    
+Name: FSF
+                                                    
+
+
+  
+                                                    
+Enabled: YES
+                                                    
+
+
+  
+                                                    
+Protection Mode: MaxAvailability
+                                                    
+
+
+  
+                                                    
+Databases:
+                                                    
+
+
+  
+                                                    
+db1_a - Primary database
+                                                    
+
+
+  
+                                                    
+db1_b - Physical standby database
+                                                    
+
+
+                                                     
+
+
+                                                     
+Fast-Start Failover: DISABLED
+                                                    
+
+
+                                                     
+
+
+                                                     
+Current status for "FSF":
+                                                    
+
+
+                                                     
+SUCCESS
+                                                    
+
+
+                                                  
+Enable Fast-Start Failover
+This is a good time to enable FSFO to make sure that all of the prerequisites have been met.  Broker will verify that the configuration meets all prerequisites before enabling FSFO and will report any problems it finds.  The most common problems are mismatched Data Guard protection modes and LogXptMode properties and forgetting to enable Flashback Database on the primary or standby. 
+
+Note that enabling FSFO does not make the configuration ready for automatic failover - that requires an observer, which we'll get to next. 
+enable fast_start failover;
+                                                    
+
+
+                                                     
+
+
+                                                     
+Enabled.
+                                                    
+
+
+                                                  
+With FSFO enabled, Broker expects to find an observer, which we haven't started yet, so if you verify the configuration at this point with 'show configuration', Broker will report a warning (if it doesn't, give it a minute to discover that the observer isn't there). 
+show configuration
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration
+                                                    
+
+
+  
+                                                    
+ Name:                FSF
+                                                    
+
+
+  
+                                                    
+ Enabled:             YES
+                                                    
+
+
+  
+                                                    
+ Protection Mode:     MaxAvailability
+                                                    
+
+
+  
+                                                    
+ Databases:
+                                                    
+
+
+  
+                                                    
+   db1_a - Primary database
+                                                    
+
+
+  
+                                                    
+   db1_b - Physical standby database
+                                                    
+
+
+  
+                                                    
+         - Fast-Start Failover target
+                                                    
+
+
+                                                     
+
+
+                                                     
+Fast-Start Failover:  
+                                                    
+ENABLED
+                                                    
+
+
+                                                     
+
+
+                                                     
+Current status for "FSF":
+                                                    
+
+
+                                                     
+Warning: ORA-16608: one or more databases have warnings
+                                                    
+                                                    
+
+
+                                                  
+Running a StatusReport on the primary should verify that the error is due to a missing observer.
+show database db1_a statusreport
+                                                    
+
+
+                                                     
+
+
+                                                     
+STATUS REPORT
+                                                    
+
+
+  
+                                                    
+      INSTANCE_NAME   SEVERITY ERROR_TEXT
+                                                    
+
+
+  
+                                                    
+                  *      ERROR ORA-16819: fast-start failover observer not started
+                                                    
+
+
+                                                  
+Configure the Observer
+To maximize the benefits of FSFO, the observer should run on a different host than the primary and standby databases. Ideally the primary, standby, and observer will be in geographically separate areas. The observer is very lightweight, requiring few system resources.  Unlike the primary / standby interconnect, where bandwidth and latency are determining performance factors, the observer requires very little network bandwidth and is not overly latency sensitive, allowing the it to be placed practically anywhere a reliable connection is available. 
+
+Since the observer is a specialized instance of a dgmgrl session, the observer host should be installed with either the Oracle Client Administrator software or the full Oracle Database software stack. 
+Verify connectivity to the primary and standby
+ tnsping db1_a
+                                                    
+
+
+                                                     
+
+
+                                                     
+Attempting to contact (description= (SDU=32767) (address_list= (address=(protocol=tcp)(host=dbhost-a)(port=1522)))
+                                                    
+
+
+  
+                                                    
+(connect_data= (service_name=db1_a.demo.org) (server=dedicated)))
+                                                    
+
+
+                                                     
+OK (0 msec)
+                                                    
+
+
+                                                  
+tnsping db1_b
+                                                    
+
+
+                                                     
+
+
+                                                     
+Attempting to contact (description= (SDU=32767) (address_list= (address=(protocol=tcp)(host=dbhost-b)(port=1522)))
+                                                    
+
+
+  
+                                                    
+(connect_data= (service_name=db1_b.demo.org) (server=dedicated)))
+                                                    
+
+
+                                                     
+OK (0 msec)
+                                                    
+
+
+                                                  
+Start the observer 
+Start the observer by running dgmgrl and logging in using SYS credentials.  We'll start it interactively for now to verify that everything's working.   Notice that the terminal session appears to hang after starting the observer.  This is normal.  The Appendix provides information on creating a simple wrapper script to start the observer as a background process. 
+dgmgrl sys/password@db1_a
+                                                    
+
+
+start observer;
+                                                    
+
+
+                                                     
+
+
+                                                     
+observer started
+                                                    
+
+
+                                                  
+The terminal session will appear to hang at this point. 
+Verify the configuration
+In a separate terminal session, verify the configuration.  This example shows the verbose mode of the 'show configuration' command that provides FSFO-specific information.  If the status is SUCCESS, you're ready to start testing role transitions. 
+dgmgrl sys/password@db1_a
+                                                    
+
+
+show configuration verbose
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration
+                                                      
+
+
+  Name:                FSF
+                                                      
+
+
+  Enabled:             YES
+                                                      
+
+
+  Protection Mode:     MaxAvailability
+                                                      
+
+
+  Databases:
+                                                      
+
+
+    db1_a - Primary database
+                                                      
+
+
+    db1_b - Physical standby database
+                                                      
+
+
+          - Fast-Start Failover target
+                                                      
+
+
+                                                       
+
+
+Fast-Start Failover: ENABLED
+                                                    
+                                                    
+
+
+  Threshold:           30 seconds
+                                                    
+
+
+  Target:              db1_b
+                                                    
+
+
+  Observer:            observer.demo.org
+                                                    
+
+
+  Lag Limit:           30 seconds (not in use)
+                                                    
+
+
+  Shutdown Primary:    TRUE
+                                                    
+
+
+  Auto-reinstate:      TRUE
+                                                    
+
+
+                                                     
+
+
+Current status for "FSF":
+                                                    
+
+
+SUCCESS
+                                                    
+                                                    
+
+
+                                                  
+Use the 'show fast_start failover' command to see which user configurable FSFO failover conditions are in effect. 
+show fast_start failover;
+                                                    
+
+
+                                                     
+
+
+                                                     
+Fast-Start Failover: ENABLED
+                                                    
+
+
+  
+                                                    
+ Threshold:           30 seconds
+                                                    
+
+
+  
+                                                    
+ Target:              db1_b
+                                                    
+
+
+  
+                                                    
+ Observer:            observer.demo.org
+                                                    
+
+
+  
+                                                    
+ Lag Limit:           30 seconds (not in use)
+                                                    
+
+
+  
+                                                    
+ Shutdown Primary:    TRUE
+                                                    
+
+
+  
+                                                    
+ Auto-reinstate:      TRUE
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configurable Failover Conditions
+                                                    
+
+
+  
+                                                    
+ Health Conditions:
+                                                    
+
+
+  
+                                                    
+   Corrupted Controlfile          YES
+                                                    
+
+
+  
+                                                    
+   Corrupted Dictionary           YES
+                                                    
+
+
+  
+                                                    
+   Inaccessible Logfile            NO
+                                                    
+
+
+  
+                                                    
+   Stuck Archiver                  NO
+                                                    
+
+
+  
+                                                    
+   Datafile Offline               YES
+                                                    
+
+
+                                                     
+
+
+  
+                                                    
+ Oracle Error Conditions:
+                                                    
+
+
+  
+                                                    
+   (none)
+                                                    
+
+
+                                                  
+Testing the Configuration
+The real test of the configuration is a successful role transition in both directions with both switchover and FSFO failover.  We'll start with switchovers.  
+Test switchover in both directions
+In order to fully automate switchover, Broker needs SYSDBA credentials in order to restart one or both databases.  Without the credentials, Broker will complete the role transition, but will leave the databases in need of a manual restart. 
+dgmgrl sys/password@db1_a
+                                                    
+
+
+switchover to db1_b
+                                                    
+
+
+                                                     
+
+
+                                                     
+Performing switchover NOW, please wait...
+                                                    
+
+
+                                                     
+New primary database "db1_b" is opening...
+                                                    
+
+
+                                                     
+Operation requires shutdown of instance "db1" on database "db1_a"
+                                                    
+
+
+                                                     
+Shutting down instance "db1"...
+                                                    
+
+
+                                                     
+ORA-01109: database not open
+                                                    
+
+
+                                                     
+
+
+                                                     
+Database dismounted.
+                                                    
+
+
+                                                     
+ORACLE instance shut down.
+                                                    
+
+
+                                                     
+Operation requires startup of instance "db1" on database "db1_a"
+                                                    
+
+
+                                                     
+Starting instance "db1"...
+                                                    
+
+
+                                                     
+ORACLE instance started.
+                                                    
+
+
+                                                     
+Database mounted.
+                                                    
+
+
+                                                     
+Switchover succeeded, new primary is "db1_b"
+                                                    
+
+
+                                                  
+show configuration
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration
+                                                    
+
+
+  
+                                                    
+ Name:                FSF
+                                                    
+
+
+  
+                                                    
+ Enabled:             YES
+                                                    
+
+
+  
+                                                    
+ Protection Mode:     MaxAvailability
+                                                    
+
+
+  
+                                                    
+ Databases:
+                                                    
+
+
+  
+                                                    
+    
+                                                    
+db1_b - Primary database
+                                                    
+
+
+  
+                                                    
+   db1_a - Physical standby database
+                                                    
+
+
+  
+                                                    
+         - Fast-Start Failover target
+                                                    
+
+
+                                                     
+
+
+                                                     
+Fast-Start Failover: ENABLED
+                                                    
+
+
+                                                     
+
+
+                                                     
+Current status for "FSF":
+                                                    
+
+
+                                                     
+SUCCESS
+                                                    
+
+
+                                                  
+Now let's test switchover in the other direction. 
+switchover to db1_a
+                                                    
+
+
+                                                     
+
+
+                                                     
+Performing switchover NOW, please wait...
+                                                    
+
+
+                                                     
+New primary database "db1_a" is opening...
+                                                    
+
+
+                                                     
+Operation requires shutdown of instance "db1" on database "db1_b"
+                                                    
+
+
+                                                     
+Shutting down instance "db1"...
+                                                    
+
+
+                                                     
+ORA-01109: database not open
+                                                    
+
+
+                                                     
+
+
+                                                     
+Database dismounted.
+                                                    
+
+
+                                                     
+ORACLE instance shut down.
+                                                    
+
+
+                                                     
+Operation requires startup of instance "db1" on database "db1_b"
+                                                    
+
+
+                                                     
+Starting instance "db1"...
+                                                    
+
+
+                                                     
+ORACLE instance started.
+                                                    
+
+
+                                                     
+Database mounted.
+                                                    
+
+
+                                                     
+Switchover succeeded, new primary is "db1_a"
+                                                    
+
+
+                                                  
+show configuration
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration
+                                                    
+
+
+  
+                                                    
+ Name:                FSF
+                                                    
+
+
+  
+                                                    
+ Enabled:             YES
+                                                    
+
+
+  
+                                                    
+ Protection Mode:     MaxAvailability
+                                                    
+
+
+  
+                                                    
+ Databases:
+                                                    
+
+
+  
+                                                    
+    
+                                                    
+db1_a - Primary database
+                                                    
+
+
+  
+                                                    
+   db1_b - Physical standby database
+                                                    
+
+
+  
+                                                    
+         - Fast-Start Failover target
+                                                    
+
+
+                                                     
+
+
+                                                     
+Fast-Start Failover: ENABLED
+                                                    
+
+
+                                                     
+
+
+                                                     
+Current status for "FSF":
+                                                    
+
+
+                                                     
+SUCCESS
+                                                    
+
+
+                                                  
+Test FSFO failover in both directions 
+Now that we know switchovers work, it's time to test failovers.  Testing FSFO failover requires simulating loss of the primary.  The simplest way to do this is to abort the primary.  This will signal the observer to initiate failover after the FSFO threshold timeout has been reached (default is 30 seconds).  It is instructive to watch the alert logs on both databases as well as the observer log after aborting the primary to gain insight into what happens during FSFO failover. 
+
+It is also possible to initiate failover using the dgmgrl failover command.  This exercises the configuration, but triggers failover differently than losing contact with the primary. 
+Check Flashback Database retention 
+We want the observer to be able to automatically reinstate the former primary as a standby after our failover tests, so before each test, make sure that Flashback Database has at least 30 minutes of history.  Do this prior to every failover test.  If Flashback Database history is insufficient, the observer will not be able to reinstate and you will have to manually reinstate from backup or by primary duplication. 
+
+On the primary to be aborted: 
+select (sysdate - oldest_flashback_time)*24*60 as history from v$flashback_database_log;
+                                                    
+
+
+                                                     
+
+
+  
+                                                    
+  HISTORY
+                                                    
+
+
+                                                     
+----------
+                                                    
+
+
+  
+                                                    
+   140.35
+                                                    
+
+
+                                                  
+Don't initiate failover unless at least 30 minutes of history is available. 
+Create some test data
+It wouldn't be much of a test if we didn't verify that our durability constraints were being met, so let's make a change on the primary and see if it survives the failover.  This walkthrough uses Maximum Availability mode to achieve "zero data loss". 
+
+Log in as a test user and make some changes that won't impact other parts of the system. 
+-- Note that DDL statements automatically commit
+                                                    
+
+
+create table x as select * from all_objects;
+                                                    
+
+
+                                                     
+
+
+                                                     
+Table created.
+                                                    
+
+
+                                                  
+select count(*) from x;
+                                                    
+
+
+                                                     
+
+
+  
+                                                    
+ COUNT(*)
+                                                    
+
+
+                                                     
+----------
+                                                    
+
+
+  
+                                                    
+    68855
+                                                    
+
+
+                                                  
+Initiate FSFO failover
+Abort the primary. 
+shutdown abort
+                                                    
+
+
+                                                  
+observer log:
+
+Initiating Fast-Start Failover to database "db1_b"...
+                                                    
+
+
+Performing failover NOW, please wait...
+                                                    
+
+
+Failover succeeded, new primary is "db1_b"
+                                                    
+
+
+                                                  
+Examine the Broker configuration by logging into dgmgrl on the new primary.  Notice that the former primary is now disabled. 
+dgmgrl sys/password@db1_b
+                                                    
+
+
+show configuration
+                                                    
+
+
+                                                     
+
+
+                                                     
+Configuration
+                                                    
+
+
+  
+                                                    
+ Name:                FSF
+                                                    
+
+
+  
+                                                    
+ Enabled:             YES
+                                                    
+
+
+  
+                                                    
+ Protection Mode:     MaxAvailability
+                                                    
+
+
+  
+                                                    
+ Databases:
+                                                    
+
+
+  
+                                                    
+   db1_b - Primary database
+                                                    
+
+
+  
+                                                    
+   db1_a - Physical standby database  
+                                                    
+(disabled)
+                                                    
+
+
+  
+                                                    
+         - Fast-Start Failover target
+                                                    
+
+
+                                                     
+
+
+                                                     
+Fast-Start Failover: ENABLED
+                                                    
+
+
+                                                     
+
+
+                                                     
+Current status for "FSF":
+                                                    
+
+
+                                                     
+Warning: ORA-16608: one or more databases have warnings
+                                                    
+
+
+                                                  
+Check the test data
+Log into the new primary and verify that the changes made it across. 
+select count(*) from x;
+                                                    
+
+
+                                                     
+
+
+  
+                                                    
+ COUNT(*)
+                                                    
+
+
+                                                     
+----------
+                                                    
+
+
+  
+                                                    
+    68855
+                                                    
+
+
+                                                  
+Reinstate the aborted primary as a standby
+Initiate reinstatement by mounting the database.  Note that the database will not open at this point.  A database in the primary role will not open until it has verified with the observer that it is still the primary.  If the observer finds that the database is no longer the primary, it will attempt to reinstate it as the failover target standby.  
+
+The first step in reinstatement is to flash the database back to the SCN where the standby became the primary ( v$database.standby_became_primary_scn on the new primary).   As described in the Flashback Database section, Flashback Database takes place in two stages: a restore stage and a media recovery stage.   In the restore stage, Flashback Database restores the database to a point prior to the standby_became_primary_scn using the before-image blocks in the Flashback Database logs.  In the media recovery phase, Flashback Database applies redo to bring the database up to the standby_became_primary_scn.  In order for Flashback Database to succeed, there must be sufficient history available in the Flashback Database logs and all of the redo generated between the restore point and the standby_became_primary_scn must be available.  If Flashback Database fails, automatic reinstatement stops and you will have to perform a manual SCN-based recovery to the standby_became_primary_scn and complete the reinstatement. 
+
+Once Flashback Database has succeeded, the observer will convert the database to a standby, bounce it, and begin apply services. 
+startup mount
+                                                    
+
+
+                                                  
+observer log: 
+Initiating reinstatement for database "db1_a"...
+                                                    
+
+
+Reinstating database "db1_a", please wait...
+                                                    
+
+
+Operation requires shutdown of instance "db1" on database "db1_a"
+                                                    
+
+
+Shutting down instance "db1"...
+                                                    
+
+
+ORA-01109: database not open
+                                                    
+
+
+                                                     
+
+
+Database dismounted.
+                                                    
+
+
+ORACLE instance shut down.
+                                                    
+
+
+Operation requires startup of instance "db1" on database "db1_a"
+                                                    
+
+
+Starting instance "db1"...
+                                                    
+
+
+ORACLE instance started.
+                                                    
+
+
+Database mounted.
+                                                    
+
+
+Continuing to reinstate database "db1_a" ...
+                                                    
+
+
+Reinstatement of database "db1_a" succeeded
+                                                    
+
+
+                                                  
+dgmgrl status: 
+Configuration
+                                                    
+
+
+  Name:                FSF
+                                                    
+
+
+  Enabled:             YES
+                                                    
+
+
+  Protection Mode:     MaxAvailability
+                                                    
+
+
+  Databases:
+                                                    
+
+
+    db1_b - Primary database
+                                                    
+
+
+    db1_a - Physical standby database
+                                                    
+
+
+          - Fast-Start Failover target
+                                                    
+
+
+                                                     
+
+
+Fast-Start Failover: ENABLED
+                                                    
+
+
+                                                     
+
+
+Current status for "FSF":
+                                                    
+
+
+SUCCESS
+                                                    
+
+
+                                                  
+Repeat in the other direction
+Now test FSFO failover back to the original primary.  Make some new changes and verify that they are preserved after failover. Remember to check Flashback Database history before aborting the primary. 
+Stalling the Primary 
+Another good test is to simulate network failures that leave the primary up, but isolated from the failover target standby and the observer.  When a primary loses contact with both the failover target and the observer simultaneously, it enters a "stalled" state (v$database.fs_failover_status = 'STALLED') and any sessions still connected to the primary will block on commit.  Queries and DML will continue to run - only sessions that commit will block.  This prevents a "split brain" condition if a failover occurs since none of the changes made to the isolated primary can be made permanent.  Oracle Database 10g databases running versions prior to 10.2.0.4 will remain in a stalled state until aborted or signaled to remain the primary by the observer once connectivity has been restored.  Starting with 10.2.0.4 (including all versions of 11g and later), Oracle provides the FastStartFailoverPmyShutdown Broker property that allows you to specify what the primary should do if it is still in a stalled state when the FSFO threshold timeout has elapsed.  Setting this property to 'TRUE' (the default) causes the primary to self-terminate.  Setting it to 'FALSE' leaves the database open and stalled until it is terminated or signaled to proceed in the event a failover did not take place (e.g. the observer was killed after the stall began, but before the failover timeout had elapsed). 
+
+The simple tests described in this guide are fine for making sure the basics are working, but you'll probably want to develop a more comprehensive set of tests suited to your environment and requirements. 

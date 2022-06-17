@@ -1,0 +1,5 @@
+@echo off
+REM net start | findstr OracleService > active_services.ora
+dir /b G:\oracle\oradata > active_services.ora
+for /F %%A in (active_services.ora) do call manage_one_rman.cmd %%A
+

@@ -1,0 +1,14 @@
+select table_owner, table_name, updates,deletes from   dba_tab_modifications
+                              where  updates > 0
+                                     or deletes > 0
+				and table_owner <> 'SYSMAN' 
+order by deletes, table_owner
+/
+
+
+select table_owner, table_name, updates,deletes from   dba_tab_modifications
+                              where  updates > 0
+                                     or deletes > 0
+				and table_owner like 'X%' 
+order by deletes, table_owner
+/

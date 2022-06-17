@@ -1,0 +1,150 @@
+-bash-4.2$ cat create_standby_database.sh
+#!/bin/sh
+
+echo "##################################################"  >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log
+echo "Executing script $0 as user $USER" >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log
+echo "##################################################"  >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log
+
+echo "Setting environment..." >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+# Set environment variables
+export ORACLE_HOME=/u02/app/oracle/product/19.0.0/dbhome_1
+export ORACLE_SID=TESTDB
+export PATH=$PATH:$ORACLE_HOME/bin
+
+rm -fr $ORACLE_HOME/dbs/initTESTDB.ora
+PFILE=$ORACLE_HOME/dbs/initTESTDB.ora
+echo "*.db_name='TESTDB'" > $PFILE
+
+mkdir -p /u02/app/oracle/admin/TESTDB/adump
+
+mkdir -p /u02/app/oracle/oradata/datafiles_TESTDB/TESTDBS/CONTROLFILE
+mkdir -p /u02/app/oracle/oradata/fra_TESTDB/TESTDBS
+
+echo "Removing any existing password file" >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+rm -fr $ORACLE_HOME/dbs/orapwTESTDB
+
+echo "Create new password file" >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+cd $ORACLE_HOME/bin
+orapwd file=$ORACLE_HOME/dbs/orapwTESTDB password=$1 entries=10 >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+
+$ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+STARTUP NOMOUNT PFILE='/u02/app/oracle/product/19.0.0/dbhome_1/dbs/initTESTDB.ora';
+exit;
+EOF
+
+echo "Processing Initialization Parameters" >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+temp_tbsp_size=""
+IFS=';' read -r -a init_param_list <<< "SHARED_SERVERS=0;DB_BLOCK_SIZE=8;NLS_LANGUAGE=AMERICAN;UNDO_TABLESPACE=1024;TEMP_TABLESPACE=256;PROCESSES=300;MEMORY_TARGET=8196;NLS_TERRITORY=AMERICA;_DISABLE_HIGHRES_TICKS=TRUE"
+for index in "${!init_param_list[@]}"
+do
+    IFS='=' read -r -a init_param <<< "${init_param_list[index]}"
+        if [ ${init_param[0]} == 'TEMP_TABLESPACE' ]; then
+                temp_tbsp_size=${init_param[1]}'M'
+        fi
+done
+
+$ORACLE_HOME/bin/rman target sys/$1@TESTDB AUXILIARY sys/$1@TESTDBS @/tmp/705800e2-1d56-41ec-98de-c50732b3d077/create_standby.rman >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+rman_out=$?
+if [ $rman_out -ne 0 ]; then
+    echo "RMAN script failed! Check /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log for details." >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log
+    rman_error=`grep "RMAN-" /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log |tail -n 2  | tr '\n' '.'`
+    echo "$rman_error" 1>&2;
+    exit $rman_out
+fi
+
+echo "alter system set local_listener='(ADDRESS=(PROTOCOL=TCP)(HOST="10.68.101.86")(PORT=1521))' scope=both;" | $ORACLE_HOME/bin/sqlplus / as sysdba >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+echo "alter system register;" | $ORACLE_HOME/bin/sqlplus / as sysdba >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+
+$ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+alter system set standby_file_management=MANUAL;
+ALTER DATABASE ADD LOGFILE THREAD 2;
+ALTER DATABASE ADD LOGFILE THREAD 2;
+ALTER DATABASE ADD LOGFILE THREAD 2;
+ALTER DATABASE ENABLE PUBLIC THREAD 2;
+exit;
+EOF
+
+$ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+alter system set standby_file_management=AUTO;
+exit;
+EOF
+
+$ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+SHUTDOWN IMMEDIATE;
+STARTUP;
+ALTER DATABASE ADD STANDBY LOGFILE SIZE 50M;
+ALTER DATABASE ADD STANDBY LOGFILE SIZE 50M;
+ALTER DATABASE ADD STANDBY LOGFILE SIZE 50M;
+ALTER DATABASE ADD STANDBY LOGFILE SIZE 50M;
+exit;
+EOF
+
+if [ "$temp_tbsp_size" != '' ]; then
+        echo "Altering Temp tablespace size..." >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+        temp_tbsp_file=`echo "SELECT FILE_NAME FROM DBA_TEMP_FILES WHERE TABLESPACE_NAME = 'TEMP';" | $ORACLE_HOME/bin/sqlplus / as sysdba|grep -i "/u02/app/oracle/oradata/datafiles_TESTDB/TESTDBS"`
+        echo "ALTER DATABASE TEMPFILE '$temp_tbsp_file' RESIZE $temp_tbsp_size;" | $ORACLE_HOME/bin/sqlplus / as sysdba >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+fi
+
+$ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log 2>&1
+ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1='/u02/app/oracle/oradata/datafiles_TESTDB/TESTDBS/dr1TESTDBS.dat';
+ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2='/u02/app/oracle/oradata/fra_TESTDB/TESTDBS/dr2TESTDBS.dat';
+ALTER SYSTEM SET dg_broker_start=true;
+exit;
+EOF
+
+echo "export ORACLE_SID=$ORACLE_SID" >> ~/.bash_profile
+echo "export ORACLE_HOME=/u02/app/oracle/product/19.0.0/dbhome_1" >> ~/.bash_profile
+echo "export PATH=$PATH:/u02/app/oracle/product/19.0.0/dbhome_1/bin" >> ~/.bash_profile
+
+echo "##################################################"  >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log
+echo "End script $0" >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log
+echo "##################################################"  >> /tmp/705800e2-1d56-41ec-98de-c50732b3d077/705800e2-1d56-41ec-98de-c50732b3d077_SCRIPTS.log
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-bash-4.2$ cat create_standby.rman
+DUPLICATE TARGET DATABASE
+  FOR STANDBY
+  FROM ACTIVE DATABASE
+  DORECOVER
+  SPFILE
+    SET db_unique_name='TESTDBS' COMMENT 'Is standby'
+    SET control_files '/u02/app/oracle/oradata/datafiles_TESTDB/TESTDBS/CONTROLFILE/control01.ctl','/u02/app/oracle/oradata/datafiles_TESTDB/TESTDBS/CONTROLFILE/control02.ctl'
+    SET CLUSTER_DATABASE='FALSE'
+          SET db_file_name_convert='/u02/app/oracle/oradata/datafiles_TESTDB/TESTDB/datafile','/u02/app/oracle/oradata/datafiles_TESTDB/TESTDBS'
+            SET log_file_name_convert='/u02/app/oracle/oradata/fra_TESTDB/TESTDB/TESTDB','/u02/app/oracle/oradata/fra_TESTDB/TESTDBS','/u02/app/oracle/oradata/datafiles_TESTDB/TESTDB/datafile','/u02/app/oracle/oradata/fra_TESTDB/TESTDBS'
+        SET db_create_file_dest='/u02/app/oracle/oradata/datafiles_TESTDB'
+    SET db_recovery_file_dest='/u02/app/oracle/oradata/fra_TESTDB'
+    SET db_create_online_log_dest_1='/u02/app/oracle/oradata/datafiles_TESTDB'
+    SET db_create_online_log_dest_2='/u02/app/oracle/oradata/fra_TESTDB'
+    SET diagnostic_dest='/u02/app/oracle'
+    SET audit_file_dest='/u02/app/oracle/admin/TESTDB/adump'
+    SET SHARED_SERVERS='0'
+    SET DB_BLOCK_SIZE='8192'
+    SET NLS_LANGUAGE='AMERICAN'
+    SET PROCESSES='300'
+    SET PGA_AGGREGATE_TARGET='0'
+    SET SGA_TARGET='0'
+    SET MEMORY_MAX_TARGET='8196m'
+    SET MEMORY_TARGET='8196m'
+    SET NLS_TERRITORY='AMERICA'
+    SET _DISABLE_HIGHRES_TICKS='TRUE'
+    RESET PGA_AGGREGATE_LIMIT
+    RESET SGA_MAX_SIZE
+
+  NOFILENAMECHECK;
+exit;

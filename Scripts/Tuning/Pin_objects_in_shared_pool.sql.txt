@@ -1,0 +1,9 @@
+select 	SUBSTR(owner,1,10) owner,
+		SUBSTR(type,1,20) Type,
+		SUBSTR(name,1,20) Name,
+		executions,
+		sharable_mem Mem_used,
+		SUBSTR(kept||' ',1,4) "Kept?"
+FROM 	gv$db_object_cache
+where	type in ('TRIGGER','PROCEDURE','PACKAGE BODY', 'PACKAGE')
+order by executions asc;

@@ -1,0 +1,347 @@
+#! /bin/ksh
+#
+# Name        : User_Privs
+# Description : Show privileges for the user in the running databases
+# Version     : 1.0 - 2006-05-09
+# Usage       : User_Privs [options]... {username}...
+# 
+#               Valid options are:
+#               -d   database
+#               -h   Show header
+#               -o   Show object privs (default)
+#               -r   Show role privs (default)
+#               -s   Show System privs (default)
+#               -O   Do not show object privs
+#               -R   Do not show role privs
+#               -S   Do not show System privs
+
+
+# -------------------------------------------------------------
+# Name       : Show_Help
+# Parameters : -
+#
+# Description
+# -----------
+# Show help
+# -------------------------------------------------------------
+
+Show_Help()
+{
+   (
+      echo 'Usage: ${0} [options...] {username}...'
+      echo 
+      echo 'Possible options are:'
+      echo '---------------------'
+      echo '-d   Database'
+      echo '-h   Show header'
+      echo '-o   Show object privileges'
+      echo '-r   Show role privileges'
+      echo '-s   Show system privileges'
+      echo '-O   Do not show object privileges'
+      echo '-R   Do not show role privileges'
+      echo '-S   Do not show system privileges'
+   ) >&2
+}
+
+# -------------------------------------------------------------
+# Name       : Init_Vars
+# Parameters : -
+#
+# Description
+# -----------
+# Initialize variables
+# -------------------------------------------------------------
+
+Init_Vars() {
+   pd=0
+   ph=0
+   po=0
+   pr=0
+   ps=0
+   pO=0
+   pR=0
+   pS=0
+
+   dVal=''
+}
+
+# -------------------------------------------------------------
+# Name       : Process_Options
+# Parameters : ${*}
+#
+# Description
+# -----------
+# Process the variables
+# -------------------------------------------------------------
+
+Process_Options() {
+   while getopts horsORSd: OPTION_NAME 2>/dev/null; do
+      case ${OPTION_NAME} in
+        d) grep '^'${OPTARG}':' ${ORATAB_LOC} >/dev/null 2>&1 
+           if [ ${?} -ne 0 ]; then
+              if [ `grep -i '^'${OPTARG}':' ${ORATAB_LOC} | wc -l` -eq 1 ]; then
+                 OPTARG=`grep -i '^'${OPTARG}':' ${ORATAB_LOC} | cut -d: -f 1`
+              else
+                 echo ${0}: Database ${OPTARG} does not exist >&2
+                 exit 1
+              fi
+           fi
+           pd=`expr ${pd} + 1`
+           dVal=${dVal}' '${OPTARG}
+           ;;
+        h) if [ ${ph} -ne 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              ph=1
+           fi
+           ;;
+
+        o) if [ ${pO} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and O are mutually exclusive >&2
+              exit 1
+           elif [ ${po} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              po=1
+           fi
+           ;;
+        r) if [ ${pR} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and R are mutually exclusive >&2
+              exit 1
+           elif [ ${pr} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              pr=1
+           fi
+           ;;
+        s) if [ ${pS} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and S are mutually exclusive >&2
+              exit 1
+           elif [ ${ps} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              ps=1
+           fi
+           ;;
+        O) if [ ${po} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and o are mutually exclusive >&2
+              exit 1
+           elif [ ${pO} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              pO=1
+           fi
+           ;;
+        R) if [ ${pr} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and r are mutually exclusive >&2
+              exit 1
+           elif [ ${pR} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              pR=1
+           fi
+           ;;
+        S) if [ ${ps} -ne 0 ]; then
+              echo ${0}: Options ${OPTION_NAME} and s are mutually exclusive >&2
+              exit 1
+           elif [ ${pS} -gt 0 ]; then
+              echo ${0}: Option ${OPTION_NAME} already specified >&2
+              exit 1
+           else
+              pS=1
+           fi
+           ;;
+        *) echo ${0}: Invalid option  >&2
+           Show_Help
+           exit 1
+           ;;
+      esac
+   done
+
+   shift $((${OPTIND} -1))
+
+   USER_LIST=${*}
+}
+
+# -------------------------------------------------------------
+# Name       : Set_Default_DB_List
+# Parameters : 
+#
+# Description
+# -----------
+# Generate a default list of databases to check.
+# -------------------------------------------------------------
+
+Set_Default_DB_List() {
+   dVal=''
+   pd=0
+   for DB in `ps -ef | grep ' ora_smon_[^ ]*$' | cut -c58- | sort`; do
+      pd=`expr ${pd} + 1`
+      dVal=${dVal}' '${DB}
+   done
+}
+
+# -------------------------------------------------------------
+# Name       : Get_SQL
+# Parameters : 1 - username
+#
+# Description
+# -----------
+# Build a SQL Statement for querying the database
+# -------------------------------------------------------------
+
+Get_SQL() {
+  Subquery_Count=0
+
+  SQLO="SELECT GRANTEE,OWNER||@.@||TABLE_NAME AS v1,PRIVILEGE AS v2,DECODE(GRANTABLE,@YES@,@WITH GRANT OPTION@,NULL) AS v3 FROM DBA_TAB_PRIVS"
+
+  SQLR="SELECT GRANTEE,GRANTED_ROLE AS v1,TO_CHAR(NULL) AS v2,LTRIM(DECODE(DEFAULT_ROLE,@YES@,NULL,@NON-DEFAULT@)||@ @||DECODE(ADMIN_OPTION,@YES@,@WITH ADMIN@,NULL)) AS v3 FROM DBA_ROLE_PRIVS"
+
+  SQLS="SELECT GRANTEE,TO_CHAR(NULL) AS v1,PRIVILEGE AS v2,DECODE(ADMIN_OPTION,@YES@,@WITH ADMIN@,NULL) AS v3 FROM DBA_SYS_PRIVS"
+
+   SQL="SELECT name,@:@,v1,@:@,v2,@:@,v3 FROM ("
+
+  if [ ${pO} -eq 0 ]; then
+     Subquery_Count=`expr ${Subquery_Count} + 1`
+     SQL=${SQL}' '${SQLO}
+  fi
+  if [ ${pR} -eq 0 ]; then
+     Subquery_Count=`expr ${Subquery_Count} + 1`
+     if [ ${Subquery_Count} -gt 1 ]; then
+        SQL=${SQL}' UNION ALL '
+     fi
+     SQL=${SQL}' '${SQLR}
+  fi
+  if [ ${pS} -eq 0 ]; then
+     Subquery_Count=`expr ${Subquery_Count} + 1`
+     if [ ${Subquery_Count} -gt 1 ]; then
+        SQL=${SQL}' UNION ALL '
+     fi
+     SQL=${SQL}' '${SQLS}
+  fi
+
+  SQL=${SQL}"),( SELECT name FROM v\$database ) WHERE UPPER(GRANTEE) = @"${1}"@ ORDER BY 1,2,3,4"
+}
+
+# ---------------------------------------------------------------
+#                  M A I N
+# ---------------------------------------------------------------
+
+ORATAB_LOC=/var/opt/oracle/oratab
+
+Init_Vars
+Process_Options ${*}
+if [ ${pd} -eq 0 ]; then
+   Set_Default_DB_List
+fi
+if [ ${pd} -eq 0 ]; then
+   echo ${0}': No databases found to check' >&2
+   exit 1
+fi
+
+for USERNAME in `echo ${USER_LIST} | tr '[a-z]' '[A-Z]'`; do
+   for DB in ${dVal}; do
+      grep '^'${DB}':' ${ORATAB_LOC} >/dev/null 2>&1
+      if [ ${?} -eq 0 ]; then
+         ORACLE_SID=${DB}
+         ORAENV_ASK=NO
+         . oraenv
+         Get_SQL ${USERNAME}
+
+(
+ echo set feedback off
+ echo whenever sqlerror exit
+ echo whenever oserror exit
+ echo set pagesize 0
+ 
+ echo set linesize 2000
+ echo set trimspool on
+ 
+ ( echo ${SQL} | tr '@' "'" )
+ echo /
+
+ echo exit
+ echo
+) | 
+  sqlplus -S '/ as sysdba'  
+      fi
+   done |
+  sed 's/[	 ]*:/:/g' | 
+  sed 's/:[	 ]*/:/g' | 
+  awk '
+       function Init_Vars() {
+          DB[0]="DB"
+          DBOBJECT[0]="OBJECT"
+          DBPRIV[0]="PRIVILEGE"
+          DBDETAIL[0]="DETAILS"
+
+          if ( '${ph}' == 0 ) {
+             MAXLENGTH_DB=1
+             MAXLENGTH_DBOBJECT=1
+             MAXLENGTH_DBPRIV=1
+             MAXLENGTH_DBDETAIL=1
+          } else {
+             MAXLENGTH_DB=length(DB[0])
+             MAXLENGTH_DBOBJECT=length(DBOBJECT[0])
+             MAXLENGTH_DBPRIV=length(DBPRIV[0])
+             MAXLENGTH_DBDETAIL=length(DBDETAIL[0])
+          }
+       }
+
+       function Show_Header() {
+          LONGLINE="-------------------------------------------------------------------------------"
+          MASK="%-"MAXLENGTH_DB"s   %-"MAXLENGTH_DBOBJECT"s   %-"MAXLENGTH_DBPRIV"s   %-"MAXLENGTH_DBDETAIL"s\n"
+          printf(MASK \
+                ,DB[0] \
+                ,DBOBJECT[0] \
+                ,DBPRIV[0] \
+                ,DBDETAIL[0] \
+                )
+          printf(MASK \
+                ,substr(LONGLINE,1,length(DB[0])) \
+                ,substr(LONGLINE,1,length(DBOBJECT[0])) \
+                ,substr(LONGLINE,1,length(DBPRIV[0])) \
+                ,substr(LONGLINE,1,length(DBDETAIL[0])) \
+                )
+       }
+
+       BEGIN	{ FS=":" 
+                  Init_Vars()
+                }
+
+
+                { DB[NR]=$1
+                  DBOBJECT[NR]=$2
+                  DBPRIV[NR]=$3
+                  DBDETAIL[NR]=$4
+
+                  if ( length(DB[NR]) > MAXLENGTH_DB )
+                     MAXLENGTH_DB=length(DB[NR])
+                  if ( length(DBOBJECT[NR]) > MAXLENGTH_DBOBJECT )
+                     MAXLENGTH_DBOBJECT=length(DBOBJECT[NR])
+                  if ( length(DBPRIV[NR]) > MAXLENGTH_DBPRIV )
+                     MAXLENGTH_DBPRIV=length(DBPRIV[NR])
+                  if ( length(DBDETAIL[NR]) > MAXLENGTH_DBDETAIL )
+                     MAXLENGTH_DBDETAIL=length(DBDETAIL[NR])
+                }
+
+       END	{ 
+                  if ( NR == 0 ) 
+                     exit 1
+
+                  if ( '${ph}' != 0 )
+                     Show_Header()
+
+                  MASK="%-"MAXLENGTH_DB"s   %-"MAXLENGTH_DBOBJECT"s   %-"MAXLENGTH_DBPRIV"s   %-"MAXLENGTH_DBDETAIL"s\n"
+                  for ( RECNO = 1 ; RECNO <= NR ; RECNO++) 
+		     printf(MASK,DB[RECNO],DBOBJECT[RECNO],DBPRIV[RECNO],DBDETAIL[RECNO])
+		}
+      ' |
+      tr ':' ' '
+done

@@ -1,0 +1,101 @@
+VMP3-16:~ # hwinfo --short
+cpu:
+                       Intel(R) Xeon(R) CPU E5-2609 v2 @ 2.50GHz, 2000 MHz
+                       Intel(R) Xeon(R) CPU E5-2609 v2 @ 2.50GHz, 2000 MHz
+keyboard:
+  /dev/input/event0    AT Translated Set 2 keyboard
+mouse:
+  /dev/input/mice      VMware Virtual USB Mouse
+  /dev/input/mice      VMware Mouse
+graphics card:
+                       VMware VMWARE0405
+storage:
+                       Floppy disk controller
+                       VMware Virtual Machine Chipset
+                       VMware LSI Logic Parallel SCSI Controller
+network:
+  eth1                 VMware PRO/1000 MT Single Port Adapter
+  eth0                 VMware VMXNET3 Ethernet Controller
+network interface:
+  lo                   Loopback network interface
+  eth0                 Ethernet network interface
+  eth1                 Ethernet network interface
+disk:
+  /dev/sda             VMware Virtual disk
+  /dev/sdb             VMware Virtual disk
+  /dev/sdc             VMware Virtual disk
+  /dev/sdd             VMware Virtual disk
+  /dev/sde             VMware Virtual disk
+  /dev/sdf             VMware Virtual disk
+partition:
+  /dev/sda1            Partition
+  /dev/sda2            Partition
+  /dev/sdb1            Partition
+  /dev/sdc1            Partition
+  /dev/sdd1            Partition
+  /dev/sde1            Partition
+  /dev/sdf1            Partition
+cdrom:
+  /dev/sr0             NECVMWar VMware IDE CDR00
+floppy:
+  /dev/fd0             Floppy Disk
+usb controller:
+                       VMware USB Controller
+                       VMware USB2 EHCI Controller
+bios:
+                       BIOS
+bridge:
+                       VMware Virtual Machine Chipset
+                       Intel 440BX/ZX/DX - 82443BX/ZX/DX AGP bridge
+                       VMware Virtual Machine Chipset
+                       VMware Virtual Machine Chipset
+                       VMware PCI bridge
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+                       VMware PCI Express Root Port
+hub:
+                       Linux 3.0.76-0.11-default ehci_hcd EHCI Host Controller
+                       Linux 3.0.76-0.11-default uhci_hcd UHCI Host Controller
+                       VMware Virtual USB Hub
+memory:
+                       Main Memory
+unknown:
+                       FPU
+                       DMA controller
+                       PIC
+                       Timer
+                       Keyboard controller
+  /dev/lp0             Parallel controller
+                       PS/2 Controller
+                       VMware Virtual Machine Communication Interface
+  /dev/ttyS0           16550A
+  /dev/ttyS1           16550A

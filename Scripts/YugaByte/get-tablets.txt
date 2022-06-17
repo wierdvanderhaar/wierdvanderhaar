@@ -1,0 +1,21 @@
+-- get table_id from yb-admin
+yb-admin -master_addresses=127.0.0.1,127.0.0.2,127.0.0.3 list_tables include_db_type include_table_id | grep sample
+
+yb_example.sample 0000437500003000800000000000439c
+
+-- using id get tablets
+yb-admin -master_addresses=127.0.0.1,127.0.0.2,127.0.0.3 list_tablets tableid.0000437500003000800000000000439c
+
+Tablet-UUID                      	Range                                                    	Leader-IP       	Leader-UUID
+0a6610a44b9149068da9239e8f0aa532 	partition_key_start: "" partition_key_end: "\037\377"    	127.0.0.2:9100  	c488f5ca01ca4a8e8346be03aeb3212d
+066a105dc2a846bd9f2b0e335117b515 	partition_key_start: "\037\377" partition_key_end: "?\376" 	127.0.0.2:9100  	c488f5ca01ca4a8e8346be03aeb3212d
+
+daab19aabef34bf3b42d8b08d65e261a 	partition_key_start: "_\375" partition_key_end: "\177\374" 	127.0.0.3:9100  	b28d94e474be4e1d86a6fa4f2521b5f2
+e811fc6838f448799cf6f99d72b56a66 	partition_key_start: "\237\373" partition_key_end: "\277\372" 	127.0.0.3:9100  	b28d94e474be4e1d86a6fa4f2521b5f2
+4f3a68a549e54c8abfb637aa21622a47 	partition_key_start: "\337\371" partition_key_end: ""    	127.0.0.3:9100  	b28d94e474be4e1d86a6fa4f2521b5f2
+5051d7c8bc04416a9c2c500095275454 	partition_key_start: "?\376" partition_key_end: "_\375"  	127.0.0.4:9100  	ca0c532b05734477a30833f00e4fd3d3
+de2138d0429e46d08e5198f3fb646e98 	partition_key_start: "\177\374" partition_key_end: "\237\373" 	127.0.0.4:9100  	ca0c532b05734477a30833f00e4fd3d3
+decf187bdd3447a1a4335a4c19336ff4 	partition_key_start: "\277\372" partition_key_end: "\337\371" 	127.0.0.4:9100  	ca0c532b05734477a30833f00e4fd3d3
+
+
+select yb_hash_code(id,age) from sample order by 1;

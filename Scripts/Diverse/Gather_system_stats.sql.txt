@@ -1,0 +1,79 @@
+exec dbms_stats.gather_schema_stats (‘SYS’);
+==============================================
+==> This will gather stats for SYS schema which is similar to gathering dictionary objects statistics.
+==> If your database encounters a lot of changes (DMLs) for SYS schema objects, then it is recommended to collect SYS schema statistics.  The collection of statistics on SYS Schema objects will optimize the performance of internal recursive queries and application queries on SYS schema objects.
+==> To gather dictionary stats, execute one of the following:-
+
+SQL> EXEC DBMS_STATS.GATHER_SCHEMA_STATS ('SYS');
+SQL> exec DBMS_STATS.GATHER_DATABASE_STATS (gather_sys=>TRUE);
+SQL> EXEC DBMS_STATS.GATHER_DICTIONARY_STATS;
+
+exec dbms_stats.gather_database_stats (gather_sys=>TRUE);
+==========================================================
+==> This statement will gather statistics for the SYS schema objects.
+==> It is another way of doing the same thing i.e. collecting Dictionary Statistics.
+
+
+exec dbms_stats.gather_fixed_objects_stats;
+=============================================
+==> Gather_fixed_objects_stats also gathers statistics for dynamic tables, e.g. the X$ tables which loaded in SGA during the startup. Gathering statistics for fixed objects would normally be recommended if poor performance is encountered while querying dynamic views ,e.g. V$ views. 
+Since fixed objects record current database activity, statistics gathering should be done when database has a representative load so that the statistics reflect the normal database activity .
+
+==> To gather the fixed objects stats, use the following:-
+EXEC DBMS_STATS.GATHER_FIXED_OBJECTS_STATS;
+
+==> Gather fixed objects stats if the load is heavy and if the system is busy.  For more details when to gather fixed object stats, read following note:
+REFER : Note 798257.1GATHER_FIXED_OBJECTS_STATS Considerations
+
+ORDER of the statements
+=========================
+The order in which the statement should be run will not matter much as they deal with separate objects in the database.
+
+CBO statistics during Upgrade
+==============================
+There is a nice document which mentions the steps in which you can maintain the CBO statistics during an upgrade.
+REFER : How to: Manage CBO Statistics During an Upgrade from 10g or 9i into 11g (Note 465787.1)
+
+
+OBJECT statistics 
+==================
+==> For object related statistics, you can follow the guidelines given in document below.
+REFER : Statistics Gathering: Frequency and Strategy Guidelines (Note 44961.1)
+==> It is true that you need to collect objects statistics (except SYS objects and fixed objects) at low load in the database.
+
+
+Andere databases:
+-- Gather Stats on DataDictionary object. Recommended in Oracle doc 
+-- How to Gather Statistics on SYS Objects and 'Fixed' Objects? [ID 457926.1]
+-- Draaien zonder LOAD
+EXEC DBMS_STATS.GATHER_SCHEMA_STATS ('SYS');
+EXEC DBMS_STATS.GATHER_DATABASE_STATS (gather_sys=>TRUE);
+EXEC DBMS_STATS.GATHER_DICTIONARY_STATS;
+
+-- Gather stats on x$ tables and their indexes
+-- Draaien zonder LOAD
+EXEC DBMS_STATS.GATHER_FIXED_OBJECTS_STATS(NULL);
+
+
+-- Calibrate I/O
+-- Draaien zonder LOAD
+SET SERVEROUTPUT ON
+DECLARE
+  lat  INTEGER;
+  iops INTEGER;
+  mbps INTEGER;
+BEGIN
+-- DBMS_RESOURCE_MANAGER.CALIBRATE_IO (<DISKS#>, <MAX_LATENCY>, iops, mbps, lat);
+   DBMS_RESOURCE_MANAGER.CALIBRATE_IO (2, 10, iops, mbps, lat);
+  DBMS_OUTPUT.PUT_LINE ('max_iops = ' || iops);
+  DBMS_OUTPUT.PUT_LINE ('latency  = ' || lat);
+  dbms_output.put_line('max_mbps = ' || mbps);
+end;
+/
+
+-- Gather System Stats
+-- Met lOAD draaien.
+EXEC DBMS_STATS.GATHER_SYSTEM_STATS('interval',interval => 120); => 2uur
+
+
+select pname, pval1,pval2 from sys.aux_stats$;

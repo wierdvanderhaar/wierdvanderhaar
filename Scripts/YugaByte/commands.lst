@@ -1,0 +1,840 @@
+[root@yb-demo bin]# yb-admin -master_addresses=127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 list_all_masters
+Master UUID                      	RPC Host/Port        	State    	Role
+ae81e382db7745478e4c27d0b2bd2da2 	127.0.0.1:7100       	ALIVE    	FOLLOWER
+96c32a806efc4199a690099529dd6d35 	127.0.0.2:7100       	ALIVE    	LEADER
+713e8f403b574e28b81d65eff72052a6 	127.0.0.3:7100       	ALIVE    	FOLLOWER
+
+[root@yb-demo bin]# yb-admin -master_addresses=127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 list_all_tablet_servers
+Tablet Server UUID               RPC Host/Port Heartbeat delay Status   Reads/s  Writes/s Uptime   SST total size  SST uncomp size SST #files      Memory   
+0d517b117c9e4a2babfc55ee5d6776f9 127.0.0.1:9100 0.68s           ALIVE    0.00     0.00     2382     1.71 MB         1.91 MB         24              127.47 MB 
+c488f5ca01ca4a8e8346be03aeb3212d 127.0.0.2:9100 0.65s           ALIVE    0.00     0.00     2383     2.24 MB         2.52 MB         31              125.93 MB 
+b28d94e474be4e1d86a6fa4f2521b5f2 127.0.0.3:9100 0.69s           ALIVE    0.00     0.00     2384     3.95 MB         4.43 MB         55              132.83 MB 
+
+[root@yb-demo ~]# yb-admin -master_addresses=127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 list_tablets_for_tablet_server c488f5ca01ca4a8e8346be03aeb3212
+
+
+[root@yb-demo ~]# yb-admin -master_addresses=127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 list_tablets_for_tablet_server c488f5ca01ca4a8e8346be03aeb3212d | grep test1
+test1                                            	d91610191d3c414d9eeafb53636402c8 	0 	RUNNING 	0 	1 	1/1
+test1                                            	d9cd9ef6152c459aa2e8d13f7a0245f7 	1 	RUNNING 	0 	1 	1/1
+test1                                            	f353dfd4dfe94954ab1612ed9b94f891 	0 	RUNNING 	0 	1 	1/1
+test1                                            	bf51844322004377b4ed3908fc2f6605 	1 	RUNNING 	0 	1 	1/1
+test1                                            	f5769c7b9f144a30afedbb5be91fe2dc 	0 	RUNNING 	0 	1 	1/1
+test1                                            	f4e47b24584044baae13c614a62eaf63 	0 	RUNNING 	0 	1 	1/1
+[root@yb-demo ~]# yb-admin -master_addresses=127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 list_tablets_for_tablet_server b28d94e474be4e1d86a6fa4f2521b5f2 | grep test1
+test1                                            	d9cd9ef6152c459aa2e8d13f7a0245f7 	0 	RUNNING 	0 	1 	1/1
+test1                                            	f353dfd4dfe94954ab1612ed9b94f891 	0 	RUNNING 	0 	1 	1/1
+test1                                            	d91610191d3c414d9eeafb53636402c8 	0 	RUNNING 	0 	1 	1/1
+test1                                            	f5769c7b9f144a30afedbb5be91fe2dc 	1 	RUNNING 	0 	1 	1/1
+test1                                            	bf51844322004377b4ed3908fc2f6605 	0 	RUNNING 	0 	1 	1/1
+test1                                            	f4e47b24584044baae13c614a62eaf63 	1 	RUNNING 	0 	1 	1/1
+[root@yb-demo ~]# yb-admin -master_addresses=127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 list_tablets_for_tablet_server 0d517b117c9e4a2babfc55ee5d6776f9 | grep test1
+test1                                            	d91610191d3c414d9eeafb53636402c8 	1 	RUNNING 	0 	1 	1/1
+test1                                            	d9cd9ef6152c459aa2e8d13f7a0245f7 	0 	RUNNING 	0 	1 	1/1
+test1                                            	f353dfd4dfe94954ab1612ed9b94f891 	1 	RUNNING 	0 	1 	1/1
+test1                                            	f4e47b24584044baae13c614a62eaf63 	0 	RUNNING 	0 	1 	1/1
+test1                                            	bf51844322004377b4ed3908fc2f6605 	0 	RUNNING 	0 	1 	1/1
+test1                                            	f5769c7b9f144a30afedbb5be91fe2dc 	0 	RUNNING 	0 	1 	1/1
+
+
+
+yb-admin: yb-admin [-master_addresses server1:port,server2:port,server3:port,...]  [-timeout_ms <millisec>] [-certs_dir_name <dir_name>] <operation>
+<operation> must be one of:
+ 1. change_config <tablet_id> <ADD_SERVER|REMOVE_SERVER> <peer_uuid> [PRE_VOTER|PRE_OBSERVER]
+ 2. list_tablet_servers <tablet_id>
+ 3. backfill_indexes_for_table <table>
+ 4. list_tables [include_db_type] [include_table_id] [include_table_type]
+ 5. list_tables_with_db_types
+ 6. list_tablets <table> [max_tablets] (default 10, set 0 for max) [JSON] [include_followers]
+ 7. modify_table_placement_info [<(<keyspace> <table_name>)|tableid.<table_id>>] [placement_info] [replication_factor] [placement_uuid]
+ 8. modify_placement_info <placement_info> <replication_factor> [placement_uuid]
+ 9. clear_placement_info
+ 10. add_read_replica_placement_info <placement_info> <replication_factor> [placement_uuid]
+ 11. modify_read_replica_placement_info <placement_info> <replication_factor> [placement_uuid]
+ 12. delete_read_replica_placement_info
+ 13. delete_namespace <namespace>
+ 14. delete_namespace_by_id <namespace_id>
+ 15. delete_table <table>
+ 16. delete_table_by_id <table_id>
+ 17. delete_index <index>
+ 18. delete_index_by_id <index_id>
+ 19. flush_table <table> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 20. flush_table_by_id <table_id> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 21. flush_sys_catalog
+ 22. compact_sys_catalog
+ 23. compact_table <table> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 24. compact_table_by_id <table_id> [timeout_in_seconds] (default 20) [ADD_INDEXES] (default false)
+ 25. list_all_tablet_servers
+ 26. list_all_masters
+ 27. change_master_config <ADD_SERVER|REMOVE_SERVER> <ip_addr> <port> [<uuid>]
+ 28. dump_masters_state [CONSOLE]
+ 29. list_tablet_server_log_locations
+ 30. list_tablets_for_tablet_server <ts_uuid>
+ 31. set_load_balancer_enabled <0|1>
+ 32. get_load_balancer_state
+ 33. get_load_move_completion
+ 34. get_leader_blacklist_completion
+ 35. get_is_load_balancer_idle
+ 36. list_leader_counts <table>
+ 37. setup_redis_table
+ 38. drop_redis_table
+ 39. get_universe_config
+ 40. change_blacklist <ADD|REMOVE> <ip_addr>:<port> [<ip_addr>:<port>]...
+ 41. change_leader_blacklist <ADD|REMOVE> <ip_addr>:<port> [<ip_addr>:<port>]...
+ 42. master_leader_stepdown [dest_uuid]
+ 43. leader_stepdown <tablet_id> [dest_ts_uuid]
+ 44. split_tablet <tablet_id>
+ 45. create_transaction_table <table_name>
+ 46. ysql_catalog_version
+ 47. ddl_log
+ 48. upgrade_ysql
+ 49. set_wal_retention_secs <table> <seconds>
+ 50. get_wal_retention_secs <table>
+ 51. list_snapshots [SHOW_DETAILS] [NOT_SHOW_RESTORED] [SHOW_DELETED] [JSON]
+ 52. create_snapshot <table> [<table>]... [flush_timeout_in_seconds] (default 60, set 0 to skip flushing)
+ 53. list_snapshot_restorations [<restoration_id>]
+ 54. create_snapshot_schedule <snapshot_interval_in_minutes> <snapshot_retention_in_minutes> <keyspace>
+ 55. list_snapshot_schedules [<schedule_id>]
+ 56. delete_snapshot_schedule <schedule_id>
+ 57. restore_snapshot_schedule <schedule_id> (<timestamp> | minus <interval>)
+ 58. create_keyspace_snapshot [ycql.]<keyspace_name>
+ 59. create_database_snapshot [ysql.]<database_name>
+ 60. restore_snapshot <snapshot_id> [{<timestamp> | minus {interval}]
+ 61. export_snapshot <snapshot_id> <file_name>
+ 62. import_snapshot <file_name> [<namespace> <table_name> [<table_name>]...]
+ 63. delete_snapshot <snapshot_id>
+ 64. list_replica_type_counts <table>
+ 65. set_preferred_zones <cloud.region.zone> [<cloud.region.zone>]...
+ 66. rotate_universe_key key_path
+ 67. disable_encryption
+ 68. is_encryption_enabled
+ 69. add_universe_key_to_all_masters key_id key_path
+ 70. all_masters_have_universe_key_in_memory key_id
+ 71. rotate_universe_key_in_memory key_id
+ 72. disable_encryption_in_memory
+ 73. write_universe_key_to_file <key_id> <file_name>
+ 74. create_cdc_stream <table_id>
+ 75. create_change_data_stream <namespace> [checkpoint_type]
+ 76. delete_cdc_stream <stream_id> [force_delete]
+ 77. delete_change_data_stream <db_stream_id>
+ 78. list_cdc_streams [table_id]
+ 79. list_change_data_streams [namespace]
+ 80. get_change_data_stream_info <db_stream_id>
+ 81. setup_universe_replication <producer_universe_uuid> <producer_master_addresses> <comma_separated_list_of_table_ids> [comma_separated_list_of_producer_bootstrap_ids]
+ 82. delete_universe_replication <producer_universe_uuid> [ignore-errors]
+ 83. alter_universe_replication <producer_universe_id> {set_master_addresses [comma_separated_list_of_producer_master_addresses] |  add_table [comma_separated_list_of_table_ids]            [comma_separated_list_of_producer_bootstrap_ids] |  remove_table [comma_separated_list_of_table_ids] |  rename_id <new_producer_universe_id>}
+ 84. set_universe_replication_enabled <producer_universe_uuid> <0|1>
+ 85. bootstrap_cdc_producer <comma_separated_list_of_table_ids>
+
+<namespace>:
+  [(ycql|ysql).]<namespace_name>
+<table>:
+  <namespace> <table_name> | tableid.<table_id>
+<index>:
+  <namespace> <index_name> | tableid.<index_id>
+  
+  
+  
+[root@yb-demo bin]# yb-admin -master_addresses=127.0.0.1:7100,127.0.0.2:7100,127.0.0.3:7100 list_tables_with_db_types
+ycql.myapp.stock_market
+ycql.system.local
+ycql.system.partitions
+ycql.system.peers
+ycql.system.size_estimates
+ycql.system.transactions
+ycql.system_auth.resource_role_permissions_index
+ycql.system_auth.role_permissions
+ycql.system_auth.roles
+ycql.system_schema.aggregates
+ycql.system_schema.columns
+ycql.system_schema.functions
+ycql.system_schema.indexes
+ycql.system_schema.keyspaces
+ycql.system_schema.sys.catalog
+ycql.system_schema.tables
+ycql.system_schema.triggers
+ycql.system_schema.types
+ycql.system_schema.views
+ycql.test.t1
+ysql.northwind.categories
+ysql.northwind.customer_customer_demo
+ysql.northwind.customer_demographics
+ysql.northwind.customers
+ysql.northwind.employee_territories
+ysql.northwind.employees
+ysql.northwind.order_details
+ysql.northwind.orders
+ysql.northwind.pg_aggregate
+ysql.northwind.pg_am
+ysql.northwind.pg_am_name_index
+ysql.northwind.pg_amop
+ysql.northwind.pg_amop_fam_strat_index
+ysql.northwind.pg_amop_opr_fam_index
+ysql.northwind.pg_amproc
+ysql.northwind.pg_amproc_fam_proc_index
+ysql.northwind.pg_attrdef
+ysql.northwind.pg_attrdef_adrelid_adnum_index
+ysql.northwind.pg_attribute
+ysql.northwind.pg_attribute_relid_attnam_index
+ysql.northwind.pg_cast
+ysql.northwind.pg_cast_source_target_index
+ysql.northwind.pg_class
+ysql.northwind.pg_class_relname_nsp_index
+ysql.northwind.pg_class_tblspc_relfilenode_index
+ysql.northwind.pg_collation
+ysql.northwind.pg_collation_name_enc_nsp_index
+ysql.northwind.pg_constraint
+ysql.northwind.pg_constraint_conname_nsp_index
+ysql.northwind.pg_constraint_conparentid_index
+ysql.northwind.pg_constraint_conrelid_contypid_conname_index
+ysql.northwind.pg_constraint_contypid_index
+ysql.northwind.pg_conversion
+ysql.northwind.pg_conversion_default_index
+ysql.northwind.pg_conversion_name_nsp_index
+ysql.northwind.pg_default_acl
+ysql.northwind.pg_default_acl_role_nsp_obj_index
+ysql.northwind.pg_depend
+ysql.northwind.pg_depend_depender_index
+ysql.northwind.pg_depend_reference_index
+ysql.northwind.pg_description
+ysql.northwind.pg_enum
+ysql.northwind.pg_enum_typid_label_index
+ysql.northwind.pg_enum_typid_sortorder_index
+ysql.northwind.pg_event_trigger
+ysql.northwind.pg_event_trigger_evtname_index
+ysql.northwind.pg_extension
+ysql.northwind.pg_extension_name_index
+ysql.northwind.pg_foreign_data_wrapper
+ysql.northwind.pg_foreign_data_wrapper_name_index
+ysql.northwind.pg_foreign_server
+ysql.northwind.pg_foreign_server_name_index
+ysql.northwind.pg_foreign_table
+ysql.northwind.pg_index
+ysql.northwind.pg_index_indrelid_index
+ysql.northwind.pg_inherits
+ysql.northwind.pg_inherits_parent_index
+ysql.northwind.pg_init_privs
+ysql.northwind.pg_language
+ysql.northwind.pg_language_name_index
+ysql.northwind.pg_largeobject
+ysql.northwind.pg_largeobject_metadata
+ysql.northwind.pg_namespace
+ysql.northwind.pg_namespace_nspname_index
+ysql.northwind.pg_opclass
+ysql.northwind.pg_opclass_am_name_nsp_index
+ysql.northwind.pg_operator
+ysql.northwind.pg_operator_oprname_l_r_n_index
+ysql.northwind.pg_opfamily
+ysql.northwind.pg_opfamily_am_name_nsp_index
+ysql.northwind.pg_partitioned_table
+ysql.northwind.pg_policy
+ysql.northwind.pg_policy_polrelid_polname_index
+ysql.northwind.pg_proc
+ysql.northwind.pg_proc_proname_args_nsp_index
+ysql.northwind.pg_publication
+ysql.northwind.pg_publication_pubname_index
+ysql.northwind.pg_publication_rel
+ysql.northwind.pg_publication_rel_prrelid_prpubid_index
+ysql.northwind.pg_range
+ysql.northwind.pg_rewrite
+ysql.northwind.pg_rewrite_rel_rulename_index
+ysql.northwind.pg_seclabel
+ysql.northwind.pg_sequence
+ysql.northwind.pg_statistic
+ysql.northwind.pg_statistic_ext
+ysql.northwind.pg_statistic_ext_name_index
+ysql.northwind.pg_statistic_ext_relid_index
+ysql.northwind.pg_subscription_rel
+ysql.northwind.pg_transform
+ysql.northwind.pg_transform_type_lang_index
+ysql.northwind.pg_trigger
+ysql.northwind.pg_trigger_tgconstraint_index
+ysql.northwind.pg_trigger_tgrelid_tgname_index
+ysql.northwind.pg_ts_config
+ysql.northwind.pg_ts_config_cfgname_index
+ysql.northwind.pg_ts_config_map
+ysql.northwind.pg_ts_dict
+ysql.northwind.pg_ts_dict_dictname_index
+ysql.northwind.pg_ts_parser
+ysql.northwind.pg_ts_parser_prsname_index
+ysql.northwind.pg_ts_template
+ysql.northwind.pg_ts_template_tmplname_index
+ysql.northwind.pg_type
+ysql.northwind.pg_type_typname_nsp_index
+ysql.northwind.pg_user_mapping
+ysql.northwind.pg_user_mapping_user_server_index
+ysql.northwind.pg_yb_migration
+ysql.northwind.pg_yb_tablegroup
+ysql.northwind.products
+ysql.northwind.region
+ysql.northwind.shippers
+ysql.northwind.sql_features
+ysql.northwind.sql_implementation_info
+ysql.northwind.sql_languages
+ysql.northwind.sql_packages
+ysql.northwind.sql_parts
+ysql.northwind.sql_sizing
+ysql.northwind.sql_sizing_profiles
+ysql.northwind.suppliers
+ysql.northwind.territories
+ysql.northwind.us_states
+ysql.postgres.pg_aggregate
+ysql.postgres.pg_am
+ysql.postgres.pg_am_name_index
+ysql.postgres.pg_amop
+ysql.postgres.pg_amop_fam_strat_index
+ysql.postgres.pg_amop_opr_fam_index
+ysql.postgres.pg_amproc
+ysql.postgres.pg_amproc_fam_proc_index
+ysql.postgres.pg_attrdef
+ysql.postgres.pg_attrdef_adrelid_adnum_index
+ysql.postgres.pg_attribute
+ysql.postgres.pg_attribute_relid_attnam_index
+ysql.postgres.pg_cast
+ysql.postgres.pg_cast_source_target_index
+ysql.postgres.pg_class
+ysql.postgres.pg_class_relname_nsp_index
+ysql.postgres.pg_class_tblspc_relfilenode_index
+ysql.postgres.pg_collation
+ysql.postgres.pg_collation_name_enc_nsp_index
+ysql.postgres.pg_constraint
+ysql.postgres.pg_constraint_conname_nsp_index
+ysql.postgres.pg_constraint_conparentid_index
+ysql.postgres.pg_constraint_conrelid_contypid_conname_index
+ysql.postgres.pg_constraint_contypid_index
+ysql.postgres.pg_conversion
+ysql.postgres.pg_conversion_default_index
+ysql.postgres.pg_conversion_name_nsp_index
+ysql.postgres.pg_default_acl
+ysql.postgres.pg_default_acl_role_nsp_obj_index
+ysql.postgres.pg_depend
+ysql.postgres.pg_depend_depender_index
+ysql.postgres.pg_depend_reference_index
+ysql.postgres.pg_description
+ysql.postgres.pg_enum
+ysql.postgres.pg_enum_typid_label_index
+ysql.postgres.pg_enum_typid_sortorder_index
+ysql.postgres.pg_event_trigger
+ysql.postgres.pg_event_trigger_evtname_index
+ysql.postgres.pg_extension
+ysql.postgres.pg_extension_name_index
+ysql.postgres.pg_foreign_data_wrapper
+ysql.postgres.pg_foreign_data_wrapper_name_index
+ysql.postgres.pg_foreign_server
+ysql.postgres.pg_foreign_server_name_index
+ysql.postgres.pg_foreign_table
+ysql.postgres.pg_index
+ysql.postgres.pg_index_indrelid_index
+ysql.postgres.pg_inherits
+ysql.postgres.pg_inherits_parent_index
+ysql.postgres.pg_init_privs
+ysql.postgres.pg_language
+ysql.postgres.pg_language_name_index
+ysql.postgres.pg_largeobject
+ysql.postgres.pg_largeobject_metadata
+ysql.postgres.pg_namespace
+ysql.postgres.pg_namespace_nspname_index
+ysql.postgres.pg_opclass
+ysql.postgres.pg_opclass_am_name_nsp_index
+ysql.postgres.pg_operator
+ysql.postgres.pg_operator_oprname_l_r_n_index
+ysql.postgres.pg_opfamily
+ysql.postgres.pg_opfamily_am_name_nsp_index
+ysql.postgres.pg_partitioned_table
+ysql.postgres.pg_policy
+ysql.postgres.pg_policy_polrelid_polname_index
+ysql.postgres.pg_proc
+ysql.postgres.pg_proc_proname_args_nsp_index
+ysql.postgres.pg_publication
+ysql.postgres.pg_publication_pubname_index
+ysql.postgres.pg_publication_rel
+ysql.postgres.pg_publication_rel_prrelid_prpubid_index
+ysql.postgres.pg_range
+ysql.postgres.pg_rewrite
+ysql.postgres.pg_rewrite_rel_rulename_index
+ysql.postgres.pg_seclabel
+ysql.postgres.pg_sequence
+ysql.postgres.pg_statistic
+ysql.postgres.pg_statistic_ext
+ysql.postgres.pg_statistic_ext_name_index
+ysql.postgres.pg_statistic_ext_relid_index
+ysql.postgres.pg_subscription_rel
+ysql.postgres.pg_transform
+ysql.postgres.pg_transform_type_lang_index
+ysql.postgres.pg_trigger
+ysql.postgres.pg_trigger_tgconstraint_index
+ysql.postgres.pg_trigger_tgrelid_tgname_index
+ysql.postgres.pg_ts_config
+ysql.postgres.pg_ts_config_cfgname_index
+ysql.postgres.pg_ts_config_map
+ysql.postgres.pg_ts_dict
+ysql.postgres.pg_ts_dict_dictname_index
+ysql.postgres.pg_ts_parser
+ysql.postgres.pg_ts_parser_prsname_index
+ysql.postgres.pg_ts_template
+ysql.postgres.pg_ts_template_tmplname_index
+ysql.postgres.pg_type
+ysql.postgres.pg_type_typname_nsp_index
+ysql.postgres.pg_user_mapping
+ysql.postgres.pg_user_mapping_user_server_index
+ysql.postgres.pg_yb_migration
+ysql.postgres.pg_yb_tablegroup
+ysql.postgres.sql_features
+ysql.postgres.sql_implementation_info
+ysql.postgres.sql_languages
+ysql.postgres.sql_packages
+ysql.postgres.sql_parts
+ysql.postgres.sql_sizing
+ysql.postgres.sql_sizing_profiles
+ysql.system_platform.pg_aggregate
+ysql.system_platform.pg_am
+ysql.system_platform.pg_am_name_index
+ysql.system_platform.pg_amop
+ysql.system_platform.pg_amop_fam_strat_index
+ysql.system_platform.pg_amop_opr_fam_index
+ysql.system_platform.pg_amproc
+ysql.system_platform.pg_amproc_fam_proc_index
+ysql.system_platform.pg_attrdef
+ysql.system_platform.pg_attrdef_adrelid_adnum_index
+ysql.system_platform.pg_attribute
+ysql.system_platform.pg_attribute_relid_attnam_index
+ysql.system_platform.pg_cast
+ysql.system_platform.pg_cast_source_target_index
+ysql.system_platform.pg_class
+ysql.system_platform.pg_class_relname_nsp_index
+ysql.system_platform.pg_class_tblspc_relfilenode_index
+ysql.system_platform.pg_collation
+ysql.system_platform.pg_collation_name_enc_nsp_index
+ysql.system_platform.pg_constraint
+ysql.system_platform.pg_constraint_conname_nsp_index
+ysql.system_platform.pg_constraint_conparentid_index
+ysql.system_platform.pg_constraint_conrelid_contypid_conname_index
+ysql.system_platform.pg_constraint_contypid_index
+ysql.system_platform.pg_conversion
+ysql.system_platform.pg_conversion_default_index
+ysql.system_platform.pg_conversion_name_nsp_index
+ysql.system_platform.pg_default_acl
+ysql.system_platform.pg_default_acl_role_nsp_obj_index
+ysql.system_platform.pg_depend
+ysql.system_platform.pg_depend_depender_index
+ysql.system_platform.pg_depend_reference_index
+ysql.system_platform.pg_description
+ysql.system_platform.pg_enum
+ysql.system_platform.pg_enum_typid_label_index
+ysql.system_platform.pg_enum_typid_sortorder_index
+ysql.system_platform.pg_event_trigger
+ysql.system_platform.pg_event_trigger_evtname_index
+ysql.system_platform.pg_extension
+ysql.system_platform.pg_extension_name_index
+ysql.system_platform.pg_foreign_data_wrapper
+ysql.system_platform.pg_foreign_data_wrapper_name_index
+ysql.system_platform.pg_foreign_server
+ysql.system_platform.pg_foreign_server_name_index
+ysql.system_platform.pg_foreign_table
+ysql.system_platform.pg_index
+ysql.system_platform.pg_index_indrelid_index
+ysql.system_platform.pg_inherits
+ysql.system_platform.pg_inherits_parent_index
+ysql.system_platform.pg_init_privs
+ysql.system_platform.pg_language
+ysql.system_platform.pg_language_name_index
+ysql.system_platform.pg_largeobject
+ysql.system_platform.pg_largeobject_metadata
+ysql.system_platform.pg_namespace
+ysql.system_platform.pg_namespace_nspname_index
+ysql.system_platform.pg_opclass
+ysql.system_platform.pg_opclass_am_name_nsp_index
+ysql.system_platform.pg_operator
+ysql.system_platform.pg_operator_oprname_l_r_n_index
+ysql.system_platform.pg_opfamily
+ysql.system_platform.pg_opfamily_am_name_nsp_index
+ysql.system_platform.pg_partitioned_table
+ysql.system_platform.pg_policy
+ysql.system_platform.pg_policy_polrelid_polname_index
+ysql.system_platform.pg_proc
+ysql.system_platform.pg_proc_proname_args_nsp_index
+ysql.system_platform.pg_publication
+ysql.system_platform.pg_publication_pubname_index
+ysql.system_platform.pg_publication_rel
+ysql.system_platform.pg_publication_rel_prrelid_prpubid_index
+ysql.system_platform.pg_range
+ysql.system_platform.pg_rewrite
+ysql.system_platform.pg_rewrite_rel_rulename_index
+ysql.system_platform.pg_seclabel
+ysql.system_platform.pg_sequence
+ysql.system_platform.pg_statistic
+ysql.system_platform.pg_statistic_ext
+ysql.system_platform.pg_statistic_ext_name_index
+ysql.system_platform.pg_statistic_ext_relid_index
+ysql.system_platform.pg_subscription_rel
+ysql.system_platform.pg_transform
+ysql.system_platform.pg_transform_type_lang_index
+ysql.system_platform.pg_trigger
+ysql.system_platform.pg_trigger_tgconstraint_index
+ysql.system_platform.pg_trigger_tgrelid_tgname_index
+ysql.system_platform.pg_ts_config
+ysql.system_platform.pg_ts_config_cfgname_index
+ysql.system_platform.pg_ts_config_map
+ysql.system_platform.pg_ts_dict
+ysql.system_platform.pg_ts_dict_dictname_index
+ysql.system_platform.pg_ts_parser
+ysql.system_platform.pg_ts_parser_prsname_index
+ysql.system_platform.pg_ts_template
+ysql.system_platform.pg_ts_template_tmplname_index
+ysql.system_platform.pg_type
+ysql.system_platform.pg_type_typname_nsp_index
+ysql.system_platform.pg_user_mapping
+ysql.system_platform.pg_user_mapping_user_server_index
+ysql.system_platform.pg_yb_migration
+ysql.system_platform.pg_yb_tablegroup
+ysql.system_platform.sql_features
+ysql.system_platform.sql_implementation_info
+ysql.system_platform.sql_languages
+ysql.system_platform.sql_packages
+ysql.system_platform.sql_parts
+ysql.system_platform.sql_sizing
+ysql.system_platform.sql_sizing_profiles
+ysql.template0.pg_aggregate
+ysql.template0.pg_am
+ysql.template0.pg_am_name_index
+ysql.template0.pg_amop
+ysql.template0.pg_amop_fam_strat_index
+ysql.template0.pg_amop_opr_fam_index
+ysql.template0.pg_amproc
+ysql.template0.pg_amproc_fam_proc_index
+ysql.template0.pg_attrdef
+ysql.template0.pg_attrdef_adrelid_adnum_index
+ysql.template0.pg_attribute
+ysql.template0.pg_attribute_relid_attnam_index
+ysql.template0.pg_cast
+ysql.template0.pg_cast_source_target_index
+ysql.template0.pg_class
+ysql.template0.pg_class_relname_nsp_index
+ysql.template0.pg_class_tblspc_relfilenode_index
+ysql.template0.pg_collation
+ysql.template0.pg_collation_name_enc_nsp_index
+ysql.template0.pg_constraint
+ysql.template0.pg_constraint_conname_nsp_index
+ysql.template0.pg_constraint_conparentid_index
+ysql.template0.pg_constraint_conrelid_contypid_conname_index
+ysql.template0.pg_constraint_contypid_index
+ysql.template0.pg_conversion
+ysql.template0.pg_conversion_default_index
+ysql.template0.pg_conversion_name_nsp_index
+ysql.template0.pg_default_acl
+ysql.template0.pg_default_acl_role_nsp_obj_index
+ysql.template0.pg_depend
+ysql.template0.pg_depend_depender_index
+ysql.template0.pg_depend_reference_index
+ysql.template0.pg_description
+ysql.template0.pg_enum
+ysql.template0.pg_enum_typid_label_index
+ysql.template0.pg_enum_typid_sortorder_index
+ysql.template0.pg_event_trigger
+ysql.template0.pg_event_trigger_evtname_index
+ysql.template0.pg_extension
+ysql.template0.pg_extension_name_index
+ysql.template0.pg_foreign_data_wrapper
+ysql.template0.pg_foreign_data_wrapper_name_index
+ysql.template0.pg_foreign_server
+ysql.template0.pg_foreign_server_name_index
+ysql.template0.pg_foreign_table
+ysql.template0.pg_index
+ysql.template0.pg_index_indrelid_index
+ysql.template0.pg_inherits
+ysql.template0.pg_inherits_parent_index
+ysql.template0.pg_init_privs
+ysql.template0.pg_language
+ysql.template0.pg_language_name_index
+ysql.template0.pg_largeobject
+ysql.template0.pg_largeobject_metadata
+ysql.template0.pg_namespace
+ysql.template0.pg_namespace_nspname_index
+ysql.template0.pg_opclass
+ysql.template0.pg_opclass_am_name_nsp_index
+ysql.template0.pg_operator
+ysql.template0.pg_operator_oprname_l_r_n_index
+ysql.template0.pg_opfamily
+ysql.template0.pg_opfamily_am_name_nsp_index
+ysql.template0.pg_partitioned_table
+ysql.template0.pg_policy
+ysql.template0.pg_policy_polrelid_polname_index
+ysql.template0.pg_proc
+ysql.template0.pg_proc_proname_args_nsp_index
+ysql.template0.pg_publication
+ysql.template0.pg_publication_pubname_index
+ysql.template0.pg_publication_rel
+ysql.template0.pg_publication_rel_prrelid_prpubid_index
+ysql.template0.pg_range
+ysql.template0.pg_rewrite
+ysql.template0.pg_rewrite_rel_rulename_index
+ysql.template0.pg_seclabel
+ysql.template0.pg_sequence
+ysql.template0.pg_statistic
+ysql.template0.pg_statistic_ext
+ysql.template0.pg_statistic_ext_name_index
+ysql.template0.pg_statistic_ext_relid_index
+ysql.template0.pg_subscription_rel
+ysql.template0.pg_transform
+ysql.template0.pg_transform_type_lang_index
+ysql.template0.pg_trigger
+ysql.template0.pg_trigger_tgconstraint_index
+ysql.template0.pg_trigger_tgrelid_tgname_index
+ysql.template0.pg_ts_config
+ysql.template0.pg_ts_config_cfgname_index
+ysql.template0.pg_ts_config_map
+ysql.template0.pg_ts_dict
+ysql.template0.pg_ts_dict_dictname_index
+ysql.template0.pg_ts_parser
+ysql.template0.pg_ts_parser_prsname_index
+ysql.template0.pg_ts_template
+ysql.template0.pg_ts_template_tmplname_index
+ysql.template0.pg_type
+ysql.template0.pg_type_typname_nsp_index
+ysql.template0.pg_user_mapping
+ysql.template0.pg_user_mapping_user_server_index
+ysql.template0.pg_yb_migration
+ysql.template0.pg_yb_tablegroup
+ysql.template0.sql_features
+ysql.template0.sql_implementation_info
+ysql.template0.sql_languages
+ysql.template0.sql_packages
+ysql.template0.sql_parts
+ysql.template0.sql_sizing
+ysql.template0.sql_sizing_profiles
+ysql.template1.pg_aggregate
+ysql.template1.pg_am
+ysql.template1.pg_am_name_index
+ysql.template1.pg_amop
+ysql.template1.pg_amop_fam_strat_index
+ysql.template1.pg_amop_opr_fam_index
+ysql.template1.pg_amproc
+ysql.template1.pg_amproc_fam_proc_index
+ysql.template1.pg_attrdef
+ysql.template1.pg_attrdef_adrelid_adnum_index
+ysql.template1.pg_attribute
+ysql.template1.pg_attribute_relid_attnam_index
+ysql.template1.pg_auth_members
+ysql.template1.pg_auth_members_member_role_index
+ysql.template1.pg_authid
+ysql.template1.pg_authid_rolname_index
+ysql.template1.pg_cast
+ysql.template1.pg_cast_source_target_index
+ysql.template1.pg_class
+ysql.template1.pg_class_relname_nsp_index
+ysql.template1.pg_class_tblspc_relfilenode_index
+ysql.template1.pg_collation
+ysql.template1.pg_collation_name_enc_nsp_index
+ysql.template1.pg_constraint
+ysql.template1.pg_constraint_conname_nsp_index
+ysql.template1.pg_constraint_conparentid_index
+ysql.template1.pg_constraint_conrelid_contypid_conname_index
+ysql.template1.pg_constraint_contypid_index
+ysql.template1.pg_conversion
+ysql.template1.pg_conversion_default_index
+ysql.template1.pg_conversion_name_nsp_index
+ysql.template1.pg_database
+ysql.template1.pg_database_datname_index
+ysql.template1.pg_db_role_setting
+ysql.template1.pg_default_acl
+ysql.template1.pg_default_acl_role_nsp_obj_index
+ysql.template1.pg_depend
+ysql.template1.pg_depend_depender_index
+ysql.template1.pg_depend_reference_index
+ysql.template1.pg_description
+ysql.template1.pg_enum
+ysql.template1.pg_enum_typid_label_index
+ysql.template1.pg_enum_typid_sortorder_index
+ysql.template1.pg_event_trigger
+ysql.template1.pg_event_trigger_evtname_index
+ysql.template1.pg_extension
+ysql.template1.pg_extension_name_index
+ysql.template1.pg_foreign_data_wrapper
+ysql.template1.pg_foreign_data_wrapper_name_index
+ysql.template1.pg_foreign_server
+ysql.template1.pg_foreign_server_name_index
+ysql.template1.pg_foreign_table
+ysql.template1.pg_index
+ysql.template1.pg_index_indrelid_index
+ysql.template1.pg_inherits
+ysql.template1.pg_inherits_parent_index
+ysql.template1.pg_init_privs
+ysql.template1.pg_language
+ysql.template1.pg_language_name_index
+ysql.template1.pg_largeobject
+ysql.template1.pg_largeobject_metadata
+ysql.template1.pg_namespace
+ysql.template1.pg_namespace_nspname_index
+ysql.template1.pg_opclass
+ysql.template1.pg_opclass_am_name_nsp_index
+ysql.template1.pg_operator
+ysql.template1.pg_operator_oprname_l_r_n_index
+ysql.template1.pg_opfamily
+ysql.template1.pg_opfamily_am_name_nsp_index
+ysql.template1.pg_partitioned_table
+ysql.template1.pg_pltemplate
+ysql.template1.pg_policy
+ysql.template1.pg_policy_polrelid_polname_index
+ysql.template1.pg_proc
+ysql.template1.pg_proc_proname_args_nsp_index
+ysql.template1.pg_publication
+ysql.template1.pg_publication_pubname_index
+ysql.template1.pg_publication_rel
+ysql.template1.pg_publication_rel_prrelid_prpubid_index
+ysql.template1.pg_range
+ysql.template1.pg_replication_origin
+ysql.template1.pg_replication_origin_roname_index
+ysql.template1.pg_rewrite
+ysql.template1.pg_rewrite_rel_rulename_index
+ysql.template1.pg_seclabel
+ysql.template1.pg_sequence
+ysql.template1.pg_shdepend
+ysql.template1.pg_shdepend_depender_index
+ysql.template1.pg_shdepend_reference_index
+ysql.template1.pg_shdescription
+ysql.template1.pg_shseclabel
+ysql.template1.pg_statistic
+ysql.template1.pg_statistic_ext
+ysql.template1.pg_statistic_ext_name_index
+ysql.template1.pg_statistic_ext_relid_index
+ysql.template1.pg_subscription
+ysql.template1.pg_subscription_rel
+ysql.template1.pg_subscription_subname_index
+ysql.template1.pg_tablespace
+ysql.template1.pg_tablespace_spcname_index
+ysql.template1.pg_transform
+ysql.template1.pg_transform_type_lang_index
+ysql.template1.pg_trigger
+ysql.template1.pg_trigger_tgconstraint_index
+ysql.template1.pg_trigger_tgrelid_tgname_index
+ysql.template1.pg_ts_config
+ysql.template1.pg_ts_config_cfgname_index
+ysql.template1.pg_ts_config_map
+ysql.template1.pg_ts_dict
+ysql.template1.pg_ts_dict_dictname_index
+ysql.template1.pg_ts_parser
+ysql.template1.pg_ts_parser_prsname_index
+ysql.template1.pg_ts_template
+ysql.template1.pg_ts_template_tmplname_index
+ysql.template1.pg_type
+ysql.template1.pg_type_typname_nsp_index
+ysql.template1.pg_user_mapping
+ysql.template1.pg_user_mapping_user_server_index
+ysql.template1.pg_yb_catalog_version
+ysql.template1.pg_yb_migration
+ysql.template1.pg_yb_tablegroup
+ysql.template1.sql_features
+ysql.template1.sql_implementation_info
+ysql.template1.sql_languages
+ysql.template1.sql_packages
+ysql.template1.sql_parts
+ysql.template1.sql_sizing
+ysql.template1.sql_sizing_profiles
+ysql.yugabyte.pg_aggregate
+ysql.yugabyte.pg_am
+ysql.yugabyte.pg_am_name_index
+ysql.yugabyte.pg_amop
+ysql.yugabyte.pg_amop_fam_strat_index
+ysql.yugabyte.pg_amop_opr_fam_index
+ysql.yugabyte.pg_amproc
+ysql.yugabyte.pg_amproc_fam_proc_index
+ysql.yugabyte.pg_attrdef
+ysql.yugabyte.pg_attrdef_adrelid_adnum_index
+ysql.yugabyte.pg_attribute
+ysql.yugabyte.pg_attribute_relid_attnam_index
+ysql.yugabyte.pg_cast
+ysql.yugabyte.pg_cast_source_target_index
+ysql.yugabyte.pg_class
+ysql.yugabyte.pg_class_relname_nsp_index
+ysql.yugabyte.pg_class_tblspc_relfilenode_index
+ysql.yugabyte.pg_collation
+ysql.yugabyte.pg_collation_name_enc_nsp_index
+ysql.yugabyte.pg_constraint
+ysql.yugabyte.pg_constraint_conname_nsp_index
+ysql.yugabyte.pg_constraint_conparentid_index
+ysql.yugabyte.pg_constraint_conrelid_contypid_conname_index
+ysql.yugabyte.pg_constraint_contypid_index
+ysql.yugabyte.pg_conversion
+ysql.yugabyte.pg_conversion_default_index
+ysql.yugabyte.pg_conversion_name_nsp_index
+ysql.yugabyte.pg_default_acl
+ysql.yugabyte.pg_default_acl_role_nsp_obj_index
+ysql.yugabyte.pg_depend
+ysql.yugabyte.pg_depend_depender_index
+ysql.yugabyte.pg_depend_reference_index
+ysql.yugabyte.pg_description
+ysql.yugabyte.pg_enum
+ysql.yugabyte.pg_enum_typid_label_index
+ysql.yugabyte.pg_enum_typid_sortorder_index
+ysql.yugabyte.pg_event_trigger
+ysql.yugabyte.pg_event_trigger_evtname_index
+ysql.yugabyte.pg_extension
+ysql.yugabyte.pg_extension_name_index
+ysql.yugabyte.pg_foreign_data_wrapper
+ysql.yugabyte.pg_foreign_data_wrapper_name_index
+ysql.yugabyte.pg_foreign_server
+ysql.yugabyte.pg_foreign_server_name_index
+ysql.yugabyte.pg_foreign_table
+ysql.yugabyte.pg_index
+ysql.yugabyte.pg_index_indrelid_index
+ysql.yugabyte.pg_inherits
+ysql.yugabyte.pg_inherits_parent_index
+ysql.yugabyte.pg_init_privs
+ysql.yugabyte.pg_language
+ysql.yugabyte.pg_language_name_index
+ysql.yugabyte.pg_largeobject
+ysql.yugabyte.pg_largeobject_metadata
+ysql.yugabyte.pg_namespace
+ysql.yugabyte.pg_namespace_nspname_index
+ysql.yugabyte.pg_opclass
+ysql.yugabyte.pg_opclass_am_name_nsp_index
+ysql.yugabyte.pg_operator
+ysql.yugabyte.pg_operator_oprname_l_r_n_index
+ysql.yugabyte.pg_opfamily
+ysql.yugabyte.pg_opfamily_am_name_nsp_index
+ysql.yugabyte.pg_partitioned_table
+ysql.yugabyte.pg_policy
+ysql.yugabyte.pg_policy_polrelid_polname_index
+ysql.yugabyte.pg_proc
+ysql.yugabyte.pg_proc_proname_args_nsp_index
+ysql.yugabyte.pg_publication
+ysql.yugabyte.pg_publication_pubname_index
+ysql.yugabyte.pg_publication_rel
+ysql.yugabyte.pg_publication_rel_prrelid_prpubid_index
+ysql.yugabyte.pg_range
+ysql.yugabyte.pg_rewrite
+ysql.yugabyte.pg_rewrite_rel_rulename_index
+ysql.yugabyte.pg_seclabel
+ysql.yugabyte.pg_sequence
+ysql.yugabyte.pg_statistic
+ysql.yugabyte.pg_statistic_ext
+ysql.yugabyte.pg_statistic_ext_name_index
+ysql.yugabyte.pg_statistic_ext_relid_index
+ysql.yugabyte.pg_subscription_rel
+ysql.yugabyte.pg_transform
+ysql.yugabyte.pg_transform_type_lang_index
+ysql.yugabyte.pg_trigger
+ysql.yugabyte.pg_trigger_tgconstraint_index
+ysql.yugabyte.pg_trigger_tgrelid_tgname_index
+ysql.yugabyte.pg_ts_config
+ysql.yugabyte.pg_ts_config_cfgname_index
+ysql.yugabyte.pg_ts_config_map
+ysql.yugabyte.pg_ts_dict
+ysql.yugabyte.pg_ts_dict_dictname_index
+ysql.yugabyte.pg_ts_parser
+ysql.yugabyte.pg_ts_parser_prsname_index
+ysql.yugabyte.pg_ts_template
+ysql.yugabyte.pg_ts_template_tmplname_index
+ysql.yugabyte.pg_type
+ysql.yugabyte.pg_type_typname_nsp_index
+ysql.yugabyte.pg_user_mapping
+ysql.yugabyte.pg_user_mapping_user_server_index
+ysql.yugabyte.pg_yb_migration
+ysql.yugabyte.pg_yb_tablegroup
+ysql.yugabyte.sql_features
+ysql.yugabyte.sql_implementation_info
+ysql.yugabyte.sql_languages
+ysql.yugabyte.sql_packages
+ysql.yugabyte.sql_parts
+ysql.yugabyte.sql_sizing
+ysql.yugabyte.sql_sizing_profiles
+  

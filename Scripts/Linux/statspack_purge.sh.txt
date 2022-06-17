@@ -1,0 +1,14 @@
+#!/bin/bash
+. ~/.bash_profile
+set -x
+export PATH=/usr/local/bin:$PATH
+export ORACLE_SID=$1
+export ORAENV_ASK=NO; . oraenv
+export LEVEL=$2
+export DAYS=$3
+sqlplus perfstat/uFdrJq2n9CNW <<EOF
+-- Maak een snapshot level 6 --
+exec statspack.snap(i_snap_level => ${LEVEL});
+-- Purge alle snapshots ouder dan  dagen --
+delete from stats\$snapshot where snap_time < sysdate - ${DAYS};
+EOF

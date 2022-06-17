@@ -1,0 +1,21 @@
+Saves time having to find the links all the time.
+Mac - Go to “System Preferences” --> “Keyboard” --> “Text”
+Here is the list of mine to save you time if you want to copy them…
+db-ra
+Database workloads on Nutanix | Reference Architecture: https://portal.nutanix.com/page/documents/solutions/details?targetId=RA-2006-Database-Workloads-on-Nutanix:RA-2006-Database-Workloads-on-Nutanix
+era-faq
+Have you read the User Guides, Release Notes & FAQs?
+User Guides & Release Notes - https://portal.nutanix.com/page/downloads?product=era
+FAQs - https://docs.google.com/document/d/1IpVn-3-xBZzgymC4AJmEKxUKY1Pde5xdrm7jdvu8_ck/edit#heading=h.fhjlpq8rimwp
+era-youtube
+Era YouTube playlist: https://www.youtube.com/playlist?list=PLAHgaS9IrJeeUrx44ZBH_LgjotuK_5TNw
+mongo-bp
+MongoDB | Best practices: https://portal.nutanix.com/page/documents/solutions/details?targetId=BP-2023-MongoDB-on-Nutanix:BP-2023-MongoDB-on-Nutanix
+oracle-bp
+Oracle | Best practices: https://portal.nutanix.com/page/documents/solutions/details?targetId=BP-2000-Oracle-on-Nutanix:BP-2000-Oracle-on-Nutanix
+pg-bp
+PostgreSQL | Best practices: https://portal.nutanix.com/page/documents/solutions/details?targetId=BP-2061-PostgreSQL-on-Nutanix:BP-2061-PostgreSQL-on-Nutanix
+sap-bp
+SAP HANA | Best practices: https://portal.nutanix.com/page/documents/solutions/details?targetId=BP-2097-SAP-HANA-on-AHV:BP-2097-SAP-HANA-on-AHV
+sql-bp
+MS SQL | Best practices: https://portal.nutanix.com/page/documents/solutions/details?targetId=BP-2015-Microsoft-SQL-Server:BP-2015-Microsoft-SQL-Server

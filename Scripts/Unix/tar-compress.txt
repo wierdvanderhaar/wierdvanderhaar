@@ -1,0 +1,3 @@
+tar -cvf - <path>/* | compress > naam.tar.Z
+
+uncompress < pned.tar.Z | tar -xvf -

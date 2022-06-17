@@ -1,0 +1,756 @@
+De view DBA_FEATURE_USAGE_STATISTICS wordt elke week geupdate via het package dbms_feature_usage. 
+Onderstaande queries worden gebruikt om te bekijken of een feature wordt gebruikt. 
+select * from DBA_FEATURE_USAGE_STATISTICS  where DETECTED_USAGES <> 0
+-- Clear DBA_FEATURE_USAGE_STATISTICS. delete DBA_FEATURE_USAGE_STATISTICS; => commit;
+
+-- list all awr tabellen
+SELECT table_name_kewrtb, table_id_kewrtb, desc_kewrtb
+     FROM x$kewrtb
+   ORDER BY 2
+
+column NAME format A30
+select NAME 	||'","'||
+version 	||'","'||
+DETECTED_USAGES	||'","'||
+CURRENTLY_USED	||'","'||
+to_char(FIRST_USAGE_DATE,'YYYY-MON-DD HH24:MI:SS') ||'","'||
+to_char(LAST_USAGE_DATE,'YYYY-MON-DD HH24:MI:SS') ||'","'||
+-- FEATURE_INFO,
+DESCRIPTION
+from DBA_FEATURE_USAGE_STATISTICS
+where  detected_usages > 0 and
+( name like '%ADDM%'
+or name like '%Automatic Database Diagnostic Monitor%'
+or name like '%Automatic Workload Repository%'
+or name like '%AWR%'
+or name like '%Baseline%'
+or (name like '%Compression%' and name not like '%HeapCompression%')  -- (#46352) - Ignore HeapCompression in dba fus)
+or name like '%Data Guard%'
+or name like '%Data Mining%'
+or name like '%Database Replay%'
+or name like '%EM%'
+or name like '%Encrypt%'
+or name like '%Exadata%'
+or name like '%Flashback Data Archive%'
+or name like '%Label Security%'
+or name like '%OLAP%'
+or name like '%Pack%'
+or name like '%Partitioning%'
+or name like '%Real Application Clusters%'
+or name like '%SecureFile%'
+or name like '%Spatial%'
+or name like '%SQL Monitoring%'
+or name like '%SQL Performance%'
+or name like '%SQL Profile%'
+or (name like '%SQL Tuning%' and name not like 'Automatic SQL Tuning Advisor') -- (#46989) - Ignore Automatic SQL Tuning Advisor in DBA FUS
+or name like '%SQL Access Advisor%'
+or name like '%Vault%')
+order by name;   
+
+SQL> select snap_flag,count(*) from  wrm$_snapshot group by snap_flag;
+
+set long 1000
+select name, USG_DET_LOGIC from wri$_dbu_feature_metadata where name not like '_DB%' order by 1;
+SQL> /
+
+SQL> select name, USG_DET_LOGIC from wri$_dbu_feature_metadata where name not like '_DB%' order by 1;
+
+NSQL> /
+
+NAME                                                             USG_DET_LOGIC
+---------------------------------------------------------------- --------------------------------------------------------------------------------
+ADDM                                                             SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 , xmltype(prvt_hdm.db_feature_clob) ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'ADDM'), (SELECT count(*) used
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'ADDM' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report
+
+ASO native encryption and checksumming                           select count (*), NULL, NULL from v$session_connect_info where network_service_b
+                                                                 anner like '%AES256 encryption%' or network_service_banner like '%AES192 encrypt
+                                                                 ion%' or network_service_banner like '%AES128 encryption%' or network_service_ba
+                                                                 nner like '%RC4_256 encryption%' or network_service_banner like '%RC4_128 encryp
+                                                                 tion%' or network_service_banner like '%3DES168 encryption%' or network_service_
+                                                                 banner like '%3DES112 encryption%' or network_service_banner like '%RC4_56 encry
+                                                                 ption%' or network_service_banner like '%RC4_40 encryption%' or network_service_
+                                                                 banner like '%DES encryption%' or network_service_banner like '%DES40 encryption
+                                                                 %' or network_service_banner like '%SHA1 crypto-checksumming%' or network_servic
+                                                                 e_banner like '%MD5 crypto-checksumming%'
+
+AWR Baseline                                                     select count(*), count(*), NULL from dba_hist_baseline where baseline_name != 'S
+                                                                 YSTEM_MOVING_WINDOW'
+
+AWR Baseline Template                                            select count(*), count(*), NULL from dba_hist_baseline_template
+AWR Report                                                       with last_period as
+                                                                        (select * from wrm$_wr_usage
+                                                                          where upper(feature_type) like 'REPORT'
+                                                                            and usage_time >=  (select nvl(max(last_sample_date), sysdate-7) from
+                                                                  wri$_dbu_usage_sample) )
+                                                                        select decode (count(*), 0, 0, 1),
+                                                                               count(*),
+                                                                               feature_list
+                                                                          from last_period,
+                                                                         (select substr(sys_connect_by_path(feature_count, ','),2) feature_list
+                                                                            from
+                                                                              (select feature_count,
+                                                                                      count(*) over () cnt,
+                                                                                      row_number () over (order by 1) seq
+                                                                                 from
+                                                                                   (select feature_name || ':' || count(*) feature_count
+                                                                                      from last_period
+                                                                                  group by feature_name)
+                                                                              )
+                                                                         where seq=cnt
+                                                                         start with seq=1
+                                                                    connect by prior seq+1=seq)
+                                                                      group by feature_list
+
+Active Data Guard - Real-Time Query on Physical Standby          select p, NULL, NULL from (select count(*) p from    (select count(*) a from v$a
+                                                                 rchive_dest_status      where recovery_mode like 'MANAGED%'        and status =
+                                                                 'VALID'        and database_mode = 'OPEN_READ-ONLY'),    (select count(*) b from
+                                                                  v$parameter      where name = 'compatible' and value like '11%')    where a > 0
+                                                                  and b > 0)
+
+Advanced Replication                                             select count(*), NULL, NULL from dba_repcat
+Application Express                                              DBMS_FEATURE_APEX
+Audit Options                                                    select count(*), NULL, NULL from audit$ where exists (select 1 from v$parameter
+                                                                 where name = 'audit_trail' and upper(value) != 'FALSE' and upper(value) != 'NONE
+                                                                 ')
+
+Automatic Database Diagnostic Monitor                            select used, sofar_exec, dbf_clob
+                                                                        from  (select count(*) used
+                                                                               from wri$_adv_usage u, wri$_adv_definitions a
+                                                                               where a.name = 'ADDM' and
+                                                                                     u.advisor_id = a.id and
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                     greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                              nvl(u.last_report_time, sysdate - 1000)) >=
+                                                                                                             (select max(last_sample_date)
+                                                                                                              from wri$_dbu_usage_sample)),
+                                                                              (select num_execs sofar_exec,
+                                                                                      xmlelement("advisor_usage",
+                                                                                        xmlelement("reports",
+                                                                                          xmlelement("first_report_time",
+                                                                                                     to_char(first_report_time,
+                                                                                                             'dd-mon-yyyy hh24:mi:ss')),
+                                                                                          xmlelement("last_report_time",
+                                                                                                     to_char(la
+
+Automatic Maintenance - Optimizer Statistics Gathering           select nvl(ats, 0) * nvl(cls, 0) enabled, NVL((select SUM(jobs_created) from dba
+                                                                 _autotask_client_history where client_name = 'auto optimizer stats collection' a
+                                                                 nd window_start_time >  (SYSDATE - INTERVAL '168' HOUR) ), 0) jobs, NULL from (s
+                                                                 elect DECODE(MAX(autotask_status),'ENABLED',1,0) ats, DECODE(MAX(OPTIMIZER_STATS
+                                                                 ),'ENABLED',1,0) cls from dba_autotask_window_clients)
+
+Automatic Maintenance - SQL Tuning Advisor                       select nvl(ats, 0) * nvl(cls, 0) enabled, NVL((select SUM(jobs_created) from dba
+                                                                 _autotask_client_history where client_name = 'sql tuning advisor' and window_sta
+                                                                 rt_time >  (SYSDATE - INTERVAL '168' HOUR) ), 0) jobs, NULL from (select DECODE(
+                                                                 MAX(autotask_status),'ENABLED',1,0) ats, DECODE(MAX(SQL_TUNE_ADVISOR),'ENABLED',
+                                                                 1,0) cls from dba_autotask_window_clients)
+
+Automatic Maintenance - Space Advisor                            select nvl(ats, 0) * nvl(cls, 0) enabled, NVL((select SUM(jobs_created) from dba
+                                                                 _autotask_client_history where client_name = 'auto space advisor' and window_sta
+                                                                 rt_time >  (SYSDATE - INTERVAL '168' HOUR) ), 0) jobs, NULL from (select DECODE(
+                                                                 MAX(autotask_status),'ENABLED',1,0) ats, DECODE(MAX(SEGMENT_ADVISOR),'ENABLED',1
+                                                                 ,0) cls from dba_autotask_window_clients)
+
+Automatic Memory Tuning                                          DBMS_FEATURE_AUTO_MEM
+Automatic SGA Tuning                                             DBMS_FEATURE_AUTO_SGA
+Automatic SQL Execution Memory                                   select decode(pga + wap, 2, 1, 0), pga_aux + wap_aux, NULL from (select count(*)
+                                                                  pga, 0 pga_aux from v$system_parameter where name = 'pga_aggregate_target' and
+                                                                 value != '0'), (select count(*) wap, 0 wap_aux from v$system_parameter where nam
+                                                                 e = 'workarea_size_policy' and upper(value) = 'AUTO')
+
+Automatic SQL Tuning Advisor                                     DBMS_FEATURE_AUTOSTA
+Automatic Segment Space Management (system)                      DBMS_FEATURE_AUTO_SSM
+Automatic Segment Space Management (user)                        select count(*), NULL, NULL from dba_tablespaces where segment_space_management
+                                                                 = 'AUTO' and tablespace_name not in ('SYSTEM', 'SYSAUX', 'TEMP', 'USERS', 'EXAMP
+                                                                 LE')
+
+Automatic Storage Management                                     DBMS_FEATURE_ASM
+Automatic Storage Manager                                        select count(*), NULL, NULL from V$ASM_CLIENT
+Automatic Undo Management                                        DBMS_FEATURE_AUM
+Automatic Workload Repository                                    DBMS_FEATURE_AWR
+Backup BASIC Compression                                         DBMS_FEATURE_RMAN_BASIC
+Backup BZIP2 Compression                                         DBMS_FEATURE_RMAN_BZIP2
+Backup Encryption                                                DBMS_FEATURE_BACKUP_ENCRYPTION
+Backup HIGH Compression                                          DBMS_FEATURE_RMAN_HIGH
+Backup LOW Compression                                           DBMS_FEATURE_RMAN_LOW
+Backup MEDIUM Compression                                        DBMS_FEATURE_RMAN_MEDIUM
+Backup Rollforward                                               select p, NULL, NULL from (select count(*) p from v$rman_status  where operation
+                                                                  = 'BACKUP COPYROLLFORWARD')
+
+Backup ZLIB Compression                                          DBMS_FEATURE_RMAN_ZLIB
+Baseline Adaptive Thresholds                                     select decode(nvl(sum(moving)+sum(static),0), 0, 0, 1) ,nvl(sum(moving)+sum(stat
+                                                                 ic),0) ,'Adaptive: '||nvl(sum(moving),0)||'; Static:'||nvl(sum(static),0) from (
+                                                                 select decode(AB.baseline_id, 0, 0, 1) static ,decode(AB.baseline_id, 0, 1, 0) m
+                                                                 oving from dbsnmp.bsln_threshold_params TP ,dbsnmp.bsln_baselines B ,dba_hist_ba
+                                                                 seline AB ,v$database D ,v$instance I where AB.dbid = D.dbid and B.dbid = AB.dbi
+                                                                 d and B.baseline_id = AB.baseline_id and B.instance_name = I.instance_name and T
+                                                                 P.bsln_guid = B.bsln_guid and in_effect = 'Y')
+
+Baseline Static Computations                                     select decode(count(*), 0, 0, 1), count(*), NULL from dba_hist_baseline_metadata
+                                                                  AB ,dbsnmp.bsln_baselines B ,v$database D ,v$instance I where AB.dbid = D.dbid
+                                                                 and AB.baseline_type <> 'MOVING_WINDOW' and B.dbid = AB.dbid and B.baseline_id =
+                                                                  AB.baseline_id and B.instance_name = I.instance_name and B.last_compute_date IS
+                                                                  NOT NULL
+
+Bigfile Tablespace                                               select p, NULL, NULL from (select count(*) p from v$tablespace  where bigfile =
+                                                                 'YES')
+
+Block Media Recovery                                             select p, NULL, NULL from (select count(*) p from v$rman_status  where operation
+                                                                  = 'BLOCK MEDIA RECOVERY')
+
+CSSCAN                                                           select count(*), null, null  from csmig.csm$parameters c where c.name='TIME_STAR
+                                                                 T' and to_date(c.value, 'YYYY-MM-DD HH24:MI:SS') >=  (select nvl(max(last_sample
+                                                                 _date), sysdate-7) from wri$_dbu_usage_sample)
+
+Change Data Capture                                              DBMS_FEATURE_CDC
+Change-Aware Incremental Backup                                  select count(*), NULL, NULL from v$block_change_tracking where status = 'ENABLED
+                                                                 '
+
+Character Semantics                                              select count(*), null, null  from sys.v$nls_parameters where parameter='NLS_LENG
+                                                                 TH_SEMANTICS' and upper(value)='CHAR'
+
+Character Set                                                    select 1, null, value  from sys.v$nls_parameters where parameter='NLS_CHARACTERS
+                                                                 ET'
+
+Client Identifier                                                select count(*), NULL, NULL from v$session where client_identifier is not null
+Clusterwide Global Transactions                                  select value, NULL, NULL from v$sysstat where name = 'Clusterwide global transac
+                                                                 tions'
+
+Compression Advisor                                              SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'Compression Advisor'), (SELECT count(*) u
+                                                                 sed
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'Compression Advisor' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report_time,
+
+Crossedition Triggers                                            select count(1), count(1), NULL from trigger$ t where bitand(t.property, 8192) =
+                                                                  8192
+
+DBMS_STATS Incremental Maintenance                               DBMS_FEATURE_STATS_INCREMENTAL
+Data Guard                                                       DBMS_FEATURE_DATA_GUARD
+Data Guard Broker                                                select count(*), NULL, NULL from v$system_parameter where name = 'dg_broker_star
+                                                                 t' and upper(value) = 'TRUE'
+
+Data Mining                                                      select count(*), null, null from model$ where (alg not in (4,5)) or (alg in (4,5
+                                                                 ) and obj# in (select mod# from modeltab$ where typ#=2))
+
+Data Recovery Advisor                                            select p, NULL, NULL from (select count(*) p from v$ir_repair  where rownum = 1)
+Data Redaction                                                   DBMS_FEATURE_DATA_REDACTION
+Database Migration Assistant for Unicode                         DBMS_FEATURE_DMU
+Database Replay: Workload Capture                                DBMS_FEATURE_WCR_CAPTURE
+Database Replay: Workload Replay                                 DBMS_FEATURE_WCR_REPLAY
+Deferred Open Read Only                                          select p, NULL, NULL from (select count(*) p from v$parameter  where name = 'rea
+                                                                 d_only_open_delayed' and value = 'TRUE')
+
+Deferred Segment Creation                                        DBMS_FEATURE_DEFERRED_SEG_CRT
+Diagnostic Pack                                                  select count(1), null, null from dbsnmp.mgmt_db_feature_log a where a.source='Di
+                                                                 agnostic' and CAST(a.last_update_date AS DATE) >=  (select nvl(max(last_sample_d
+                                                                 ate), sysdate-7) from wri$_dbu_usage_sample)
+
+Direct NFS                                                       select count(*), NULL, NULL from v$dnfs_servers
+Dynamic SGA                                                      DBMS_FEATURE_DYN_SGA
+EM Database Control                                              select count(1), null, null from dbsnmp.mgmt_db_feature_log a where a.source='DB
+                                                                 C' and CAST(a.last_update_date AS DATE) >=  (select nvl(max(last_sample_date), s
+                                                                 ysdate-7) from wri$_dbu_usage_sample)
+
+EM Grid Control                                                  select count(1), null, null from dbsnmp.mgmt_db_feature_log a where a.source='GC
+                                                                 ' and CAST(a.last_update_date AS DATE) >=  (select nvl(max(last_sample_date), sy
+                                                                 sdate-7) from wri$_dbu_usage_sample)
+
+EM Performance Page                                              select count(1), null, null from dbsnmp.mgmt_db_feature_log a where a.source='Di
+                                                                 agnostic' and CAST(a.last_update_date AS DATE) >=  (select nvl(max(last_sample_d
+                                                                 ate), sysdate-7) from wri$_dbu_usage_sample)
+
+Editioning Views                                                 select count(1), count(1), null from sys.view$ v where bitand(v.property, 32) =
+                                                                 32
+
+Editions                                                         select count(1), count(1), null from sys.edition$ e, sys.obj$ o where e.obj# = o
+                                                                 .obj# and o.name != 'ORA$BASE'
+
+Encrypted Tablespaces                                            select count(*), NULL, NULL from v$encrypted_tablespaces
+Exadata                                                          DBMS_FEATURE_EXADATA
+Extensibility                                                    DBMS_FEATURE_EXTENSIBILITY
+File Mapping                                                     select count(*), NULL, NULL from v$system_parameter where name = 'file_mapping'
+                                                                 and upper(value) = 'TRUE' and exists (select 1 from v$map_file)
+
+Flashback Data Archive                                           select count(*), NULL, NULL from DBA_FLASHBACK_ARCHIVE_TABLES
+Flashback Database                                               select count(*), NULL, NULL from v$database where flashback_on = 'YES'
+GoldenGate                                                       dbms_feature_goldengate
+HeapCompression                                                  select value, 0, NULL from v$sysstat where name like 'HSC OLTP positive compress
+                                                                 ion'
+
+Hybrid Columnar Compression                                      DBMS_FEATURE_HCC
+Instance Caging                                                  select count(*), NULL, NULL from v$rsrc_plan_history where name != 'INTERNAL_PLA
+                                                                 N' and name is not null and instance_caging = 'ON' and (name != 'DEFAULT_MAINTEN
+                                                                 ANCE_PLAN' or   (window_name is null or    (window_name != 'MONDAY_WINDOW' and
+                                                                    window_name != 'TUESDAY_WINDOW' and     window_name != 'WEDNESDAY_WINDOW' and
+                                                                      window_name != 'THURSDAY_WINDOW' and     window_name != 'FRIDAY_WINDOW' and
+                                                                      window_name != 'SATURDAY_WINDOW' and     window_name != 'SUNDAY_WINDOW')))
+
+Internode Parallel Execution                                     select sum(value), NULL, NULL from gv$pq_sysstat where statistic like '%Initiate
+                                                                 d (IPQ)%'
+
+Job Scheduler                                                    DBMS_FEATURE_JOB_SCHEDULER
+LOB                                                              select count(*), NULL, NULL from sys.lob$ l, sys.obj$ o, sys.user$ u where l.obj
+                                                                 # = o.obj# and o.owner# = u.user# and u.name not in (select schema_name from v$s
+                                                                 ysaux_occupants) and u.name not in ('OUTLN', 'OE', 'IX', 'PM', 'SH',
+                                                                               'FLOWS_FILES', 'FLOWS_030000', 'FLOWS_030100', 'APEX_030200')
+
+Label Security                                                   select count(*), NULL, NULL from dba_policies where pf_owner = 'LBACSYS' and pol
+                                                                 icy_name like 'LBAC_%' and object_owner != 'SA_DEMO'
+
+Locally Managed Tablespaces (system)                             DBMS_FEATURE_LMT
+Locally Managed Tablespaces (user)                               select count(*), NULL, NULL from dba_tablespaces where extent_management = 'LOCA
+                                                                 L' and tablespace_name not in ('SYSTEM', 'SYSAUX', 'TEMP', 'USERS', 'EXAMPLE')
+
+Locator                                                          select atc*six, atc*six, NULL from (select count(*) atc from mdsys.sdo_geom_meta
+                                                                 data_table where sdo_owner not in ('MDSYS', 'OE')),  ( select decode(sx-ix, -1,
+                                                                 0, 0, 0, 1) six from (  select count(*) sx from  dba_registry where comp_id = 'O
+                                                                 RDIM'),  ( select count(*) ix from  dba_registry where comp_id = 'SDO'))
+
+Logfile Multiplexing                                             select p, NULL, NULL from (select count(*) p from   (select count(*) a from v$lo
+                                                                 gfile group by group#)  where a>1)
+
+Long-term Archival Backup                                        select count(*), NULL, decode(min(keep_options), 'BACKUP_LOGS',
+                                                                     'Consistent backups archived') from v$backup_set where keep = 'YES'
+
+MTTR Advisor                                                     select count(*), NULL, NULL from v$statistics_level where statistics_name = 'MTT
+                                                                 R Advice' and system_status = 'ENABLED' and exists (select 1 from v$instance_rec
+                                                                 overy where target_mttr != 0) and exists (select 1 from v$mttr_target_advice whe
+                                                                 re advice_status = 'ON')
+
+Materialized Views (User)                                        DBMS_FEATURE_USER_MVS
+Messaging Gateway                                                select count(*), NULL, NULL from dba_registry where comp_id = 'MGW' and status !
+                                                                 = 'REMOVED' and exists (select 1 from mgw$_links)
+
+Multi Section Backup                                             select count(*), NULL, NULL from v$backup_set where multi_section = 'YES'
+Multiple Block Sizes                                             select count(*), NULL, NULL from v$system_parameter where name like 'db_%_cache_
+                                                                 size' and value != '0'
+
+OLAP - Analytic Workspaces                                       select count(*), count(*), NULL from dba_aws where AW_NUMBER >= 1000and owner no
+                                                                 t in ('DM','OLAPTRAIN','GLOBAL','HR','OE','PM','SH','IX','BI','SCOTT')
+
+OLAP - Cubes                                                     select count(*), count(*), NULL from DBA_OLAP2_CUBES where invalid != 'Y' and OW
+                                                                 NER = 'SYS' and CUBE_NAME = 'STKPRICE_TBL'
+
+Object                                                           DBMS_FEATURE_OBJECT
+Oracle Database Vault                                            DBMS_FEATURE_DATABASE_VAULT
+Oracle Java Virtual Machine (system)                             sys.dbms_java.dbms_feature_system_ojvm
+Oracle Java Virtual Machine (user)                               sys.dbms_java.dbms_feature_ojvm
+Oracle Managed Files                                             select count(*), NULL, NULL from dba_data_files where upper(file_name) like '%O1
+                                                                 _MF%'
+
+Oracle Multimedia                                                ordsys.CARTRIDGE.dbms_feature_multimedia
+Oracle Multimedia DICOM                                          ordsys.CARTRIDGE.dbms_feature_dicom
+Oracle Secure Backup                                             select count(*), NULL, NULL from x$kccbp where bitand(bpext, 256) = 256 and bita
+                                                                 nd(bpflg,1+4096+8192) = 0
+
+Oracle Text                                                      ctxsys.drifeat.dr$feature_track
+Oracle Utility Datapump (Export)                                 dbms_feature_utilities1
+Oracle Utility Datapump (Import)                                 dbms_feature_utilities2
+Oracle Utility External Table                                    dbms_feature_utilities4
+Oracle Utility Metadata API                                      dbms_feature_utilities3
+Oracle Utility SQL Loader (Direct Path Load)                     select usecnt, NULL, NULL, NULL, NULL from sys.ku_utluse           where utlname
+                                                                  = 'Oracle Utility SQL Loader (Direct Path Load)'  and   (last_used >=
+                                                                                                            (SELECT nvl(max(last_sample_date), sy
+                                                                 sdate-7)                        FROM dba_feature_usage_statistics))
+
+PL/SQL Native Compilation                                        DBMS_FEATURE_PLSQL_NATIVE
+Parallel SQL DDL Execution                                       select value, NULL, NULL from v$pq_sysstat where rtrim(statistic,' ') = 'DDL Ini
+                                                                 tiated'
+
+Parallel SQL DML Execution                                       select value, NULL, NULL from v$pq_sysstat where rtrim(statistic,' ') = 'DML Ini
+                                                                 tiated'
+
+Parallel SQL Query Execution                                     select value, NULL, NULL from v$pq_sysstat where rtrim(statistic,' ') = 'Queries
+                                                                  Initiated'
+
+Partitioning (system)                                            DBMS_FEATURE_PARTITION_SYSTEM
+Partitioning (user)                                              DBMS_FEATURE_PARTITION_USER
+Pillar Storage                                                   DBMS_FEATURE_PILLAR_STORAGE
+Pillar Storage with EHCC                                         DBMS_FEATURE_PILLAR_EHCC
+Protection Mode - Maximum Availability                           select count(*), NULL, NULL from v$database where protection_mode = 'MAXIMUM AVA
+                                                                 ILABILITY'
+
+Protection Mode - Maximum Performance                            select count(*), NULL, NULL from v$database where protection_mode = 'MAXIMUM PER
+                                                                 FORMANCE'
+
+Protection Mode - Maximum Protection                             select count(*), NULL, NULL from v$database where protection_mode = 'MAXIMUM PRO
+                                                                 TECTION'
+
+Protection Mode - Unprotected                                    select count(*), NULL, NULL from v$database where protection_mode = 'UNPROTECTED
+                                                                 '
+
+Quality of Service Management                                    DBMS_FEATURE_QOSM
+RMAN - Disk Backup                                               DBMS_FEATURE_RMAN_DISK_BACKUP
+RMAN - Tape Backup                                               DBMS_FEATURE_RMAN_TAPE_BACKUP
+Read Only Tablespace                                             select p, NULL, NULL from (select count(*) p from v$datafile  where enabled = 'R
+                                                                 EAD ONLY')
+
+Real Application Clusters (RAC)                                  DBMS_FEATURE_RAC
+Real-Time SQL Monitoring                                         SELECT used, sofar_exec, dbf_clob
+                                                                          FROM   (SELECT count(*) used
+                                                                                  FROM   dba_sql_monitor_usage
+                                                                                  WHERE  num_db_reports > 0 AND
+                                                                                         last_db_report_time >=  (select nvl(max(last_sample_date
+                                                                 ), sysdate-7) from wri$_dbu_usage_sample) ),
+                                                                                 (SELECT num_db_reports sofar_exec,
+                                                                                         xmlelement("sqlmon_usage",
+                                                                                          xmlelement("num_em_reports", num_em_reports),
+                                                                                          xmlelement("first_db_report_time",
+                                                                                            to_char(first_db_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                          xmlelement("last_db_report_time",
+                                                                                            to_char(last_db_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                          xmlelement("first_em_report_time",
+                                                                                            to_char(first_em_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+
+Recovery Area                                                    select p, s, NULL from (select count(*) p from v$parameter where name = 'db_reco
+                                                                 very_file_dest' and value is not null), (select to_number(value) s from v$parame
+                                                                 ter where name = 'db_recovery_file_dest_size')
+
+Recovery Manager (RMAN)                                          DBMS_FEATURE_RMAN_BACKUP
+Resource Manager                                                 DBMS_FEATURE_RESOURCE_MANAGER
+Restore Point                                                    select p, NULL, NULL from (select count(*) p from v$restore_point)
+Result Cache                                                     select (select value from v$result_cache_statistics         where name = 'Block
+                                                                 Count Current'),        (select value from v$result_cache_statistics         whe
+                                                                 re name = 'Find Count'), null from dual
+
+Rules Manager                                                    DBMS_FEATURE_RULESMANAGER
+SGA/Memory Advisor                                               select count(*), NULL, NULL from wri$_adv_usage u, wri$_adv_definitions a where
+                                                                 a.name = 'SGA/Memory Advisor' and u.advisor_id = a.id and  u.num_execs > 0 and u
+                                                                 .last_exec_time >= (select max(last_sample_date) from wri$_dbu_usage_sample)
+
+SQL Access Advisor                                               SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'SQL Access Advisor'), (SELECT count(*) us
+                                                                 ed
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'SQL Access Advisor' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report_time, s
+
+SQL Monitoring and Tuning pages                                  select count(1), null, null from dbsnmp.mgmt_db_feature_log a where a.source='Tu
+                                                                 ning' and CAST(a.last_update_date AS DATE) >=  (select nvl(max(last_sample_date)
+                                                                 , sysdate-7) from wri$_dbu_usage_sample)
+
+SQL Performance Analyzer                                         SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'SQL Performance Analyzer'), (SELECT count
+                                                                 (*) used
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'SQL Performance Analyzer' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_re
+
+SQL Plan Management                                              select count(*), count(*) num_plans, NULL from sqlobj$ where obj_type = 2
+SQL Profile                                                      SELECT used,
+                                                                                 prof_count,
+                                                                                 profs || ', ' || manual || ', ' || auto || ', ' ||
+                                                                                 enabl || ', ' || cat as details
+                                                                          FROM (SELECT sum(decode(status, 'ENABLED', 1, 0)) used,
+                                                                                       sum(1) prof_count,
+                                                                                      'Total so far: ' || sum(1) profs,
+                                                                                      'Enabled: ' || sum(decode(status, 'ENABLED', 1, 0)) enabl,
+                                                                                      'Manual: ' || sum(decode(type, 'MANUAL', 1, 0)) manual,
+                                                                                      'Auto: ' || sum(decode(type, 'AUTO', 1, 0)) auto,
+                                                                                      'Category count: ' || count(unique category) cat
+                                                                                FROM dba_sql_profiles)
+
+SQL Repair Advisor                                               SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'SQL Repair Advisor'), (SELECT count(*) us
+                                                                 ed
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'SQL Repair Advisor' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report_time, s
+
+SQL Tuning Advisor                                               SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'SQL Tuning Advisor'), (SELECT count(*) us
+                                                                 ed
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'SQL Tuning Advisor' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report_time, s
+
+SQL Tuning Set                                                   select numss, numref, NULL from (select count(*) numss  from wri$_sqlset_definit
+                                                                 ions), (select count(*) numref from wri$_sqlset_references)
+
+SQL Tuning Set (system)                                          select numss, numref, NULL from (select count(*) numss  from wri$_sqlset_definit
+                                                                 ions  where owner = 'SYS'), (select count(*) numref  from wri$_sqlset_references
+                                                                  r, wri$_sqlset_definitions d  where d.id = r.sqlset_id and d.owner = 'SYS')
+
+SQL Tuning Set (user)                                            select numss, numref, NULL from (select count(*) numss  from wri$_sqlset_definit
+                                                                 ions  where owner <> 'SYS'), (select count(*) numref  from wri$_sqlset_reference
+                                                                 s r, wri$_sqlset_definitions d  where d.id = r.sqlset_id and d.owner <> 'SYS')
+
+SQL Workload Manager                                             SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'SQL Workload Manager'), (SELECT count(*)
+                                                                 used
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'SQL Workload Manager' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report_tim
+
+SecureFile Compression (system)                                  DBMS_FEATURE_SFCOMPRESS_SYS
+SecureFile Compression (user)                                    DBMS_FEATURE_SFCOMPRESS_USR
+SecureFile Deduplication (system)                                DBMS_FEATURE_SFDEDUP_SYS
+SecureFile Deduplication (user)                                  DBMS_FEATURE_SFDEDUP_USR
+SecureFile Encryption (system)                                   DBMS_FEATURE_SFENCRYPT_SYS
+SecureFile Encryption (user)                                     DBMS_FEATURE_SFENCRYPT_USR
+SecureFiles (system)                                             DBMS_FEATURE_SECUREFILES_SYS
+SecureFiles (user)                                               DBMS_FEATURE_SECUREFILES_USR
+Segment Advisor                                                  select count(*), NULL, NULL from wri$_adv_usage u, wri$_adv_definitions a where
+                                                                 a.name = 'Segment Advisor' and u.advisor_id = a.id and  u.num_execs > 0 and u.la
+                                                                 st_exec_time >= (select max(last_sample_date) from wri$_dbu_usage_sample)
+
+Segment Advisor (user)                                           DBMS_FEATURE_SEGADV_USER
+Segment Shrink                                                   select  count(*), 0, null from  sys.seg$ s where s.scanhint != 0 and bitand(s.sp
+                                                                 are1, 65793) = 257 and s.type# in (5, 6,8)
+
+Semantics/RDF                                                    select cnt, cnt, null from  (select count(*) cnt from mdsys.rdf_model$)
+Server Flash Cache                                               select count(*), NULL, NULL from v$system_parameter where name like '%flash_cach
+                                                                 e_size' and value != '0'
+
+Server Parameter File                                            select count(*), NULL, NULL from v$system_parameter where name = 'spfile' and va
+                                                                 lue is not null
+
+Services                                                         DBMS_FEATURE_SERVICES
+Shared Server                                                    select count(*), NULL, NULL from v$system_parameter where name = 'shared_servers
+                                                                 ' and value != '0' and exists (select 1 from v$shared_server where requests > 0)
+
+Spatial                                                          select atc*ix, atc*ix, NULL from (select count(*) atc from mdsys.sdo_geom_metada
+                                                                 ta_table where sdo_owner not in ('MDSYS', 'OE')), (select count(*) ix from  dba_
+                                                                 registry where comp_id = 'SDO')
+
+Standby Archival - ARCH                                          select count(*), NULL, NULL from v$archive_dest where status = 'VALID' and targe
+                                                                 t = 'STANDBY' and archiver like 'ARC%'
+
+Standby Archival - LGWR                                          select count(*), NULL, NULL from v$archive_dest where status = 'VALID' and targe
+                                                                 t = 'STANDBY' and archiver = 'LGWR'
+
+Standby Transmission                                             select count(*), NULL, NULL from v$archive_dest where status = 'VALID' and targe
+                                                                 t = 'STANDBY'
+
+Streams (system)                                                 dbms_feature_streams
+Streams (user)                                                   select decode(strmsg + aq, 0, 0, 1), 0, NULL from (select decode(count(*), 0, 0,
+                                                                  1) strmsg   from dba_streams_message_consumers   where streams_name != 'SCHEDUL
+                                                                 ER_COORDINATOR' and   streams_name != 'SCHEDULER_PICKUP'),(select decode (count(
+                                                                 *), 0, 0, 1) aq   from system.aq$_queue_tables where schema not in   ('SYS', 'SY
+                                                                 STEM', 'IX', 'WMSYS', 'SYSMAN'))
+
+Sun ZFS with EHCC                                                DBMS_FEATURE_ZFS_EHCC
+Tablespace Advisor                                               select count(*), NULL, NULL from wri$_adv_usage u, wri$_adv_definitions a where
+                                                                 a.name = 'Tablespace Advisor' and u.advisor_id = a.id and  u.num_execs > 0 and u
+                                                                 .last_exec_time >= (select max(last_sample_date) from wri$_dbu_usage_sample)
+
+Transparent Data Encryption                                      SELECT (T1.A + T2.B) IsFeatureUsed, (T1.A + T2.B) AUX_COUNT, 'Encryption TABLESP
+                                                                 ACE Count = ' || T1.A || ',Encryption COLUMN Count = ' || T2.B REMARK FROM   (SE
+                                                                 LECT count(*) A FROM DBA_TABLESPACES WHERE  UPPER(ENCRYPTED) = 'YES') T1, (SELEC
+                                                                 T count(*) B FROM DBA_ENCRYPTED_COLUMNS) T2
+
+Transparent Gateway                                              select count(*), NULL, NULL from hs_fds_class_date where fds_class_name != 'BITE
+                                                                 '
+
+Transportable Tablespace                                         select p, NULL, NULL from (select count(*) p from v$datafile  where plugged_in =
+                                                                  1)
+
+Tune MView                                                       SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'Tune MView'), (SELECT count(*) used
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'Tune MView' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report_time, sysdate - 1000))
+
+Tuning Pack                                                      select count(1), null, null from dbsnmp.mgmt_db_feature_log a where a.source='Tu
+                                                                 ning' and CAST(a.last_update_date AS DATE) >=  (select nvl(max(last_sample_date)
+                                                                 , sysdate-7) from wri$_dbu_usage_sample)
+
+Undo Advisor                                                     SELECT used, sofar_exec, dbf_clob FROM
+                                                                              (SELECT num_execs sofar_exec,  xmlelement("advisor_usage",
+                                                                               xmlelement("reports",
+                                                                                 xmlelement("first_report_time",
+                                                                                             to_char(first_report_time,
+                                                                                                     'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("last_report_time",
+                                                                                            to_char(last_report_time,
+                                                                                                    'dd-mon-yyyy hh24:mi:ss')),
+                                                                                 xmlelement("num_db_reports", num_db_reports))
+                                                                                 ).getClobVal(2,2)  dbf_clob
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE  u.advisor_name = 'Undo Advisor'), (SELECT count(*) used
+                                                                               FROM   dba_advisor_usage u
+                                                                               WHERE u.advisor_name = 'Undo Advisor' AND
+                                                                                     (u.num_execs > 0 or u.num_db_reports > 0) and
+                                                                                      greatest(nvl(u.last_exec_time, sysdate - 1000),
+                                                                                               nvl(u.last_report_time, sysdate - 100
+
+Very Large Memory                                                select count(*), NULL, NULL from v$system_parameter where name like 'use_indirec
+                                                                 t_data_buffers' and upper(value) != 'FALSE'
+
+Virtual Private Database (VPD)                                   select count(*), NULL, NULL from DBA_POLICIES where OBJECT_OWNER NOT IN ('SYSMAN
+                                                                 ','XDB','CTXSYS','OE','LBACSYS')
+
+Workspace Manager                                                select count(*), count(*), NULL from wmsys.wm$versioned_tables
+XStream In                                                       dbms_feature_xstream_in
+XStream Out                                                      dbms_feature_xstream_out
+XStream Streams                                                  dbms_feature_xstream_streams
+ZFS Storage                                                      DBMS_FEATURE_ZFS_STORAGE
+
+176 rows selected.
+
+SQL> spool off
+
+
+
+
+
+
+
+
+Query die door Oracle wordt gebruikt voor het bekijken van gebruik van Oties;
+SELECT
+0                     ||',"' ||
+DBID                  ||'","'||
+NAME                  ||'","'||
+VERSION               ||'","'||
+DETECTED_USAGES       ||'","'||
+TOTAL_SAMPLES         ||'","'||
+CURRENTLY_USED        ||'","'||
+FIRST_USAGE_DATE      ||'","'||
+LAST_USAGE_DATE       ||'","'||
+AUX_COUNT             ||'","'||
+''                    ||'","'|| -- skip FEATURE_INFO clob
+LAST_SAMPLE_DATE      ||'","'||
+LAST_SAMPLE_PERIOD    ||'","'||
+SAMPLE_INTERVAL       ||'","'||
+DESCRIPTION
+from DBA_FEATURE_USAGE_STATISTICS
+where  detected_usages > 0 and
+( name like '%ADDM%'
+or name like '%Automatic Database Diagnostic Monitor%'
+or name like '%Automatic Workload Repository%'
+or name like '%AWR%'
+or name like '%Baseline%'
+or name like '%Compression%'
+or name like '%Data Guard%'
+or name like '%Data Mining%'
+or name like '%Database Replay%'
+or name like '%EM%'
+or name like '%Encrypt%'
+or name like '%Exadata%'
+or name like '%Flashback Data Archive%'
+or name like '%Label Security%'
+or name like '%OLAP%'
+or name like '%Pack%'
+or name like '%Partitioning%'
+or name like '%Real Application Clusters%'
+or name like '%SecureFile%'
+or name like '%Spatial%'
+or name like '%SQL Monitoring%'
+or name like '%SQL Performance%'
+or name like '%SQL Profile%'
+or name like '%SQL Tuning%'
+or name like '%SQL Access Advisor%'
+or name like '%Vault%')
+order by name;

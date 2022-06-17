@@ -1,0 +1,3 @@
+crosscheck backup of controlfile;
+delete noprompt expired backup;
+exit

@@ -1,0 +1,92 @@
+-- https://docs.oracle.com/cd/E52668_01/E54669/html/ol7-s14-storage.html
+-- https://www.linux.com/blog/how-full-encrypt-your-system-lvm-luks-cli
+-- https://oracle-base.com/articles/linux/luks-encrypted-file-systems#persistent_mounts
+
+[root@wierd-lnx ~]# yum install cryptsetup
+-- Let op dat het block-device leeg moet zijn voordat de encryptie erop gezet wordt.
+
+[root@wierd-lnx ~]# cryptsetup luksFormat /dev/sdc
+
+WARNING!
+========
+This will overwrite data on /dev/sdc irrevocably.
+
+Are you sure? (Type uppercase yes): YES
+Enter passphrase:
+Verify passphrase:
+
+-- cryptsetup luksOpen /dev/sdc <LOGISCHE NAAM VOOR HET DM-Device => b.v. = sdcCrypted>
+[root@wierd-lnx ~]# cryptsetup luksOpen /dev/sdc sdcCrypted
+Enter passphrase for /dev/sdc:
+
+-- Nu is er een DM device in /dev/mapper
+[root@wierd-lnx ~]# ls /dev/mapper/sdcCrypted
+
+-- Creatie Physical Volume
+[root@wierd-lnx ~]# pvcreate /dev/mapper/sdcCrypted
+  Physical volume "/dev/mapper/sdcCrypted" successfully created.
+-- Creatie Volume Group. 
+[root@wierd-lnx ~]# vgcreate -v vg_fra /dev/mapper/sdcCrypted
+
+[root@wierd-lnx ~]# lvcreate -l+100%FREE -n lv_fra -v vg_fra
+    Converted 100% of FREE (5119) extents into 5119 (with mimages 1 and stripes 1 for segtype striped).
+    Archiving volume group "vg_fra" metadata (seqno 1).
+    Creating logical volume lv_fra
+    Creating volume group backup "/etc/lvm/backup/vg_fra" (seqno 2).
+    Activating logical volume vg_fra/lv_fra.
+    activation/volume_list configuration setting not defined: Checking only host tags for vg_fra/lv_fra.
+    Creating vg_fra-lv_fra
+    Loading vg_fra-lv_fra table (253:2)
+    Resuming vg_fra-lv_fra (253:2)
+    Wiping known signatures on logical volume "vg_fra/lv_fra"
+    Initializing 4.00 KiB of logical volume "vg_fra/lv_fra" with value 0.
+  Logical volume "lv_fra" created.
+
+- Creatie FileSysteem.
+[root@wierd-lnx ~]# lvscan
+  ACTIVE            '/dev/vg_fra/lv_fra' [<20.00 GiB] inherit
+  ACTIVE            '/dev/vgbackup/lvbackup' [<50.00 GiB] inherit
+[root@wierd-lnx ~]# mkfs.xfs /dev/vg_fra/lv_fra
+meta-data=/dev/vg_fra/lv_fra     isize=256    agcount=4, agsize=1310464 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=0        finobt=0
+data     =                       bsize=4096   blocks=5241856, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=0
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtexten
+
+
+[root@wierd-lnx ~]# cryptsetup status sdcCrypted
+/dev/mapper/sdcCrypted is active and is in use.
+  type:    LUKS1
+  cipher:  aes-xts-plain64
+  keysize: 256 bits
+  device:  /dev/sdc
+  offset:  4096 sectors
+  size:    41938944 sectors
+  mode:    read/write
+  
+-- Automount Filesystem
+-- Voor het automatisch mounten van het Encrypted Block-Device moeten er een aantal zaken worden geregeld. 
+-- Allereerst moet de wachtwoorden van de diverse filesystemen worden toegevoegd aan een keyfile.
+[root@wierd-lnx ~]# touch /root/luks_sdcCrypto.key
+[root@wierd-lnx ~]# cryptsetup luksAddKey /dev/sdc /root/luks_sdcCrypto.key
+Enter any existing passphrase:				<= WW zoals eerder gebruikt voor het encrypten.
+-- Zet de rechten:
+chmod 600 luks_sdcCrypto.key
+
+-- Voeg de entry toe aan /etc/crypttab.
+[root@wierd-lnx ~]# cat /etc/crypttab
+sdcCrypted /dev/sdc /root/luks_sdcCrypto.key		=> 1ste column is Device-mapper naam. 2de is block-device. 3de is keyfile
+
+-- Vervolgens het Logical volume toevoegen aan /etc/fstab
+# dm-crypto filesysteem. Als het block-device niet is geopend kan het filesysteem niet worden gemount.
+/dev/vg_fra/lv_fra      /u01/app/oracle/fast_recovery_area      xfs     defaults        0 0
+
+--  Na een reboot is de het filesysteem een encrypted FS.
+
+
+
+

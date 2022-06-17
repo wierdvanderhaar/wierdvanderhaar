@@ -1,0 +1,19 @@
+[oracle@lnx41 dataguard]$ cat check_plus_restart.sh
+#!/bin/bash
+# set -x
+x=`ping -c1 lnx40 2>&1 | grep Unreachable`
+# echo $x
+if [ ! "$x" = "" ]; then
+        echo "DOWN" > DOWN.log
+        #echo $x
+        else
+                if [ `cat DOWN.log 2>&1 | grep DOWN` ]; then
+        #       echo $x
+                # start script to restart broker
+                /home/oracle/scripts/dataguard/enable_all.sh
+        #       echo "RESTART" > status.log
+                echo "UP" > DOWN.log
+                else
+                echo "UP no restart" > status.log
+                fi
+fi

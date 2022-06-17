@@ -1,0 +1,4 @@
+emcli login -username=sysman
+emcli get_agentimage -destination=/home/oracle/agent_13cWinx64 -platform="Microsoft Windows x64 (64-bit)" -version=13.2.0.0.0
+
+agentDeploy.bat AGENT_BASE_DIR=D:\oracle\agent13c -ignorePrereqs OMS_HOST=srvman10.ggo.local EM_UPLOAD_PORT=1159 AGENT_REGISTRATION_PASSWORD=agent13cc -force -forceConfigure

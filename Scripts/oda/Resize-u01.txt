@@ -1,0 +1,176 @@
+	
+Hi, 
+
+1. Make sure ODA_BASE is down 
+# oakcli show oda_base 
+ODA base domain 
+: 
+ODA base current status :Stopped 
+
+if ODA_BASE is running, you should stop it issuing the following command (from dom0): 
+oakcli stop oda_base 
+
+
+2. Check the partition consistency 
+a. Check your ODA_BASE 'u01' partition consistency to be sure it's in a good status. You need to use the loop device setup 
+
+# cd /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1 
+# losetup -fv /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1/u01.img 
+Loop device is /dev/loop0 
+b. Note as losetup puts the whole device onto (for example) /dev/loop0 (note as the loop device name could be different) and doesn’t automatically give you a loop0p1 for the partitions. You need to use 'kpartx' command. kpartx will scan a block device — e.g., your /dev/loop0 — and create device-mapped specials under /dev/mapper for the partitions. Then you can address individual partitions. 
+
+# kpartx -av /dev/loop0 
+add map loop0p1 (252:0): 0 195308405 linear /dev/loop0 4096 
+# ls -l /dev/mapper/loop* 
+brw-r----- 1 root disk 252, 0 Jul 18 20:50 /dev/mapper/loop0p1 
+c. Execute e2fsck 
+
+# e2fsck -f /dev/mapper/loop0p1 
+e2fsck 1.39 (29-May-2006) 
+Pass 1: Checking inodes, blocks, and sizes 
+Pass 2: Checking directory structure 
+Pass 3: Checking directory connectivity 
+Pass 4: Checking reference counts 
+Pass 5: Checking group summary information 
+u01fs: 11/12222464 files (9.1% non-contiguous), 431627/24413550 blocks 
+d. As you are not getting errors and the filesystem is clean you can continue. Use the following commands to release the virtual disk: 
+
+kpartx -dv /dev/loop0 
+losetup -d /dev/loop0 
+
+3. Resize the virtual disk 
+Option 1 - Resize the u01.img virtual disk directly 
+
+This option is faster and it needs less disk space, but you have not got a copy of original u01.img file, if something will goes wrong. Resize the disk issuing (the following command will add 100GB to your original u01.img virtual disk): 
+dd if=/dev/zero bs=1M count=100000 >> /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1/u01.img 
+
+Option 2 - Create a new virtual disk 
+a. Create a new virtual disk 
+
+Create a new sparse file (in this example 200G), it will be the new bigger disk used by the ODA_BASE 'u01' partition: 
+
+cd /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1/ 
+dd if=/dev/zero of=NEW_u01.img bs=1 count=1024 seek=200GB 
+ls -lhs 
+total 176G 
+16K -rw-r--r-- 1 root root 187G Jul 17 20:50 NEW_u01.img 
+20G -rw-rw-r-- 1 root root 20G Oct 29 2013 swap.img 
+59G -rw-rw-r-- 1 root root 59G Jul 17 20:49 System.img 
+98G -rw-rw-r-- 1 root root 98G Jul 17 20:49 u01.img 
+4.0K -rw-r--r-- 1 root root 772 Jul 13 04:43 vm.cfg 
+b. Copy the old "u01" image on the new 
+
+# dd if=u01.img of=NEW_u01.img conv=notrunc 
+204800000+0 records in 
+204800000+0 records out 
+104857600000 bytes (105 GB) copied, 2979.2 seconds, 35.2 MB/s 
+ls -slh *u01.img 
+98G -rw-r--r-- 1 root root 187G Jul 18 00:19 NEW_u01.img 
+98G -rw-rw-r-- 1 root root 98G Jul 17 20:49 u01.img 
+Note: you can monitor the dd progress, issuing the following command from another shell (dd will print out the current statistics to its STDERR): 
+
+pgrep -l '^dd$' |awk '{print $1}'|while read pid; do watch -n 10 kill -USR1 $pid; done 
+c. Rename the new image 
+
+You may take a backup of your old image 
+
+mv u01.img u01.img_OLD 
+mv NEW_u01.img u01.img 
+4. Resize the partition 
+ODA_BASE 'u01' partition is using Ext3 and it can not be resize but ext2 can. So we need to convert the partition ext3 to ext2. The conversion is basically done disabling journal on ext3. 
+
+a. You need to use loopdevice: 
+
+# losetup -fv /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1/u01.img 
+Loop device is /dev/loop0 
+
+# kpartx -av /dev/loop0 
+add map loop0p1 (252:0): 0 195308405 linear /dev/loop0 4096 
+b. Remove the journal on ext3 doing: 
+
+tune2fs -O ^has_journal /dev/mapper/loop0p1 
+The u01 partition filesystem is now ext2: 
+
+# parted -s u01.img unit b print 
+
+Model: (file) 
+Disk /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1/u01.img: 200000001023B 
+Sector size (logical/physical): 512B/512B 
+Partition Table: msdos 
+
+Number Start End Size Type File system Flags 
+1 2097152B 100000000511B 99997903360B primary ext2 
+c. You can now use GNU Parted - a partition manipulation program to expand the partition on /dev/loop0. 
+For example using 200GB as max disk size (you must change the value to the size used at point 3): 
+
+parted -s /dev/loop0 rm 1 
+parted -s /dev/loop0 unit b mkpart primary 2097152 200GB 
+Note: the 'Start' 2097152 must be the same value provided above by 'parted print' command. 
+The above 'parted' commands will remove the existing partition and it will create a primary linux partition for the entire disk. 
+
+# parted -s u01.img print 
+
+Model: (file) 
+Disk /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1/u01.img: 200GB 
+Sector size (logical/physical): 512B/512B 
+Partition Table: msdos 
+
+Number Start End Size Type File system Flags 
+1 2097kB 200GB 200GB primary ext2 
+
+
+If partitioning the virtual disk you are getting the following warning: 
+
+Error: Error informing the kernel about modifications to partition /dev/loop0p1 -- Invalid argument. This means Linux won't know about any changes you made to /dev/loop0p1 until you reboot -- so you shouldn't mount it or use it in any way before rebooting. 
+Warning: The kernel was unable to re-read the partition table on /dev/loop0 (Invalid argument). This means Linux won't know anything about the modifications you made until you reboot. You should reboot your computer before doing anything with /dev/loop0. 
+You need to execute the following commands: 
+
+kpartx -dv /dev/loop0 
+losetup -d /dev/loop0 
+
+losetup -fv /OVS/Repositories/odabaseRepo/VirtualMachines/oakDom1/u01.img 
+kpartx -av /dev/loop0 
+5. Resize the filesystem 
+Now your disk image has new partition size, we need to resize the filesystem as well 
+
+a. execute e2fsck required for resizefs 
+
+# e2fsck -f /dev/mapper/loop0p1 
+e2fsck 1.39 (29-May-2006) 
+Pass 1: Checking inodes, blocks, and sizes 
+Pass 2: Checking directory structure 
+Pass 3: Checking directory connectivity 
+Pass 4: Checking reference counts 
+Pass 5: Checking group summary information 
+u01fs: 11/12222464 files (9.1% non-contiguous), 398825/24413550 blocks 
+b. run resisefs 
+
+# resize2fs /dev/mapper/loop0p1 
+resize2fs 1.39 (29-May-2006) 
+Resizing the filesystem on /dev/mapper/loop0p1 to 48827613(4k) blocks. 
+
+The filesystem on /dev/mapper/loop0p1 is now 48827613 blocks long. 
+c. Turn on the ext3 journal 
+
+tune2fs -j /dev/mapper/loop0p1 
+d. When you are done, use the following commands to release the virtual disk: 
+
+kpartx -dv /dev/loop0 
+losetup -d /dev/loop0 
+6. Startup the ODA_BASE 
+You can now startup the ODA_BASE with the resized disk: 
+
+oakcli start oda_base 
+Once the ODA_BASE is up & running you could verify the new disk size using "df -h" OS command: 
+
+# df -h 
+Filesystem Size Used Avail Use% Mounted on 
+/dev/xvda2 55G 18G 35G 34% / 
+/dev/xvda1 460M 30M 407M 7% /boot 
+/dev/xvdb1 184G 49G 131G 29% /u01 
+tmpfs 32G 0 32G 0% /dev/shm 
+
+
+
+Regards 
+Shilpa 

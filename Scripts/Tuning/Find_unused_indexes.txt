@@ -1,0 +1,165 @@
+-- Find indexes die worden gebruikt volgens AWR
+select distinct b.index_name from dba_hist_sql_plan a, dba_indexes b where a.object_owner='DEVVANESSA' and a.object_name=b.index_name order by 1;
+--------------------------------------------------------------------------------------------------
+-- Find indexes die niet worden gebruikt.
+select z.table_name, z.index_name, z.column_name, z.column_position
+from dba_ind_columns z,
+(select distinct index_name from dba_indexes where owner='QS_DWH'
+minus
+select distinct b.index_name 
+from 	dba_hist_sql_plan a, 
+	dba_indexes b 
+where 	a.object_owner='QS_DWH' 
+and 	a.object_name=b.index_name 
+order by 1) x
+where z.index_name = x.index_name;
+
+
+
+--Betere query
+select index_name from dba_indexes where owner='DEVVANESSA' 
+minus
+select
+   p.object_name c1
+--   p.operation   c2,
+--   p.options     c3,
+--   count(1)      c4
+from
+   dba_hist_sql_plan p,
+   dba_hist_sqlstat s
+where
+   p.object_owner = 'DEVVANESSA'
+and
+   p.operation like '%INDEX%'
+and
+   p.sql_id = s.sql_id
+group by
+   p.object_name
+--   p.operation,
+--   p.options
+order by p.object_name) x
+where z.index_name = x.index_name
+
+
+--------------------------------------------------------------------------------------------------
+-- Hoeveel ruimte wordt er in gebruik genomen door de niet gebruikte indexes.
+select sum(bytes/1024/1024/1024) from dba_segments seg,
+(select index_name from dba_indexes where owner='QS_DWH' 
+minus
+select
+   p.object_name index_name
+--   p.operation   c2,
+--   p.options     c3,
+--   count(1)      c4
+from	
+   dba_hist_sql_plan p,
+   dba_hist_sqlstat s
+where
+   p.object_owner = 'QS_DWH'
+and
+   p.operation like '%INDEX%'
+and
+   p.sql_id = s.sql_id
+group by
+   p.object_name
+--   p.operation,
+--   p.options
+order by 1) indx
+where seg.segment_name = indx.index_name;
+
+--------------------------------------------------------------------------------------------------
+
+col c1 heading ‘Owner’              format a13
+col c2 heading ‘Object|Type’        format a15
+ 
+col c3 heading ‘Object|Name’        format a25
+col c4 heading ‘Average|CPU|Cost’   format 9,999,999
+col c5 heading ‘Average|IO|Cost’    format 9,999,999
+ 
+ 
+break on c1 skip 2
+break on c2 skip 2
+ 
+ 
+select
+  p.object_owner    c1,
+  p.object_type     c2,
+  p.object_name     c3,
+  avg(p.cpu_cost )   c4,
+  avg(p.io_cost )    c5
+from
+  dba_hist_sql_plan p
+where
+        p.object_name is not null
+    and
+        p.object_owner = 'DEVVANESSA'
+group by
+  p.object_owner,
+  p.object_type,
+  p.object_name
+order by
+  1,2,4 desc
+;
+
+
+
+select c.table_name, c.num_rows, ind.ind_count from dba_tables c,
+(select table_name, count(*) as ind_count from dba_indexes a, unused_indexes b where a.index_name=b.index_name group by table_name order by 1) ind
+where c.table_name = ind.table_name
+order by 2,1;
+
+
+select table_name, count(*) from dba_indexes dx where index_name in (
+select index_name from dba_indexes where owner='QS_DWH' and index_name not like 'PK_%'
+minus
+select distinct b.index_name 
+from 	dba_hist_sql_plan a, 
+	dba_indexes b ,
+	dba_hist_sqlstat c
+where 	a.object_owner='QS_DWH' 
+and		a.operation like '%INDEX%'
+and		a.sql_id = c.sql_id
+and 	a.object_name=b.index_name 
+order by 1)
+
+
+group by table_name;
+
+dba_hist_sql_plan
+
+
+declare
+tabname varchar2(50);
+aantal number(5);
+cursor c1 is select index_name from dba_indexes where owner='QS_DWH'
+minus
+select distinct b.index_name 
+from 	dba_hist_sql_plan a, 
+	dba_indexes b ,
+	dba_hist_sqlstat c
+where 	a.object_owner='QS_DWH' 
+and		a.operation like '%INDEX%'
+and		a.sql_id = c.sql_id
+and 	a.object_name=b.index_name 
+order by 1;
+begin
+for x in c1 loop
+select table_name, count(*) into tabname, aantal from dba_indexes where index_name = x.index_name;
+dbms_output.put_line ('Tabel ' || tabname || ' heeft ' || aantal || ' indexen die niet worden gebruikt. 
+
+
+
+
+select x.index_name from (select index_name from dba_indexes where owner='QS_DWH') x,
+(select distinct b.index_name 
+from 	dba_hist_sql_plan a, 
+	dba_indexes b ,
+	dba_hist_sqlstat c
+where 	a.object_owner='QS_DWH' 
+and		b.index_name not like 'PK_%'
+and		a.operation like '%INDEX%'
+and		a.sql_id = c.sql_id
+and 	a.object_name=b.index_name 
+order by 1) y
+where x.index_name <> y.index_name
+group by x.index_name;

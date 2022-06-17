@@ -1,0 +1,16 @@
+Pas aan:
+/etc/sysconfig/clock
+ZONE="Europe/Amsterdam"
+UTC=true
+
+zet in (root) .bash_profile
+export TZ=Europe/Amsterdam
+
+Zet in /etc/ntp.conf
+server  <ntpserver> prefer
+
+service ntpd restart
+
+
+Linux 7 
+timedatectl set-timezone Europe/Amsterdam

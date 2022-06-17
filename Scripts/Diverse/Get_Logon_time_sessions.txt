@@ -1,0 +1,16 @@
+select inst_id,to_char(LOGON_TIME, 'DD-MM-YYYY HH24:MI'), count(*) 
+from gv$session 
+-- where username is not null 
+-- and inst_id = 1
+group by inst_id, to_char(LOGON_TIME, 'DD-MM-YYYY HH24:MI') 
+having count(*) > 1 
+order by 1,2;
+
+
+select inst_id,to_char(LOGON_TIME, 'DD-MM-YYYY HH24:MI'), count(*) 
+from gv$session 
+where username is not null 
+and inst_id = 1
+group by inst_id, to_char(LOGON_TIME, 'DD-MM-YYYY HH24:MI') 
+having count(*) > 10 
+order by 1,2;

@@ -1,0 +1,33 @@
+# https://docs.oracle.com/en/database/oracle/oracle-database/12.2/ostmg/administer-filter-driver.html#GUID-6F16B5EC-BE7D-44FA-A05B-A62CF33763D3
+# 20.4.1 Configuring Oracle ASM Filter Driver During Installation
+
+su root
+set ORACLE_HOME=/u01/app/oracle/12.2.0/grid
+set ORACLE_BASE=/tmp
+export PATH=${ORACLE_HOME/bin};$PATH
+asmcmd afd_label DATA0 /dev/sdb1 --init
+asmcmd afd_lslbl /dev/sdb1
+asmcmd afd_label LOG0 /dev/sdc1 --init
+asmcmd afd_lslbl /dev/disk1a
+
+unset ORACLE_BASE
+
+Run the setup installation script (gridSetup.sh) to install Oracle Grid Infrastructure and enable Oracle ASM Filter Driver configuration.
+
+    On the Create ASM Disk Group wizard page during the installation process, check the Configure ASM Filter Driver box to enable configuration of Oracle ASM Filter Driver and then add your provisioned disks to the initial disk group (typically named DATA).
+
+ 
+/u01/app/grid/12.2.0/gridinfra_1/gridSetup.sh -silent -responseFile /home/oracle/GI_12R2.rsp -logLevel info
+
+As a root user, execute the following script(s):
+/u01/app/oraInventory/orainstRoot.sh
+/u01/app/grid/12.2.0/gridinfra_1/root.sh
+
+		
+[root@vnd-12 ~]#  umount tmpfs
+[root@vnd-12 ~]# mount -t tmpfs shmfs -o size=1500m /dev/shm
+
+ 
+ -- Overige ASM disken creeren
+[oracle@vnd-12 ~]$ asmca -silent -createDiskGroup -diskGroupName LOGS -disk 'AFD:LOG0' -redundancy EXTERNAL -au_size 4 -compatible.asm '12.2.0.1.0' -compatible.rdbms '11.2.0.0.0'
+

@@ -1,0 +1,113 @@
+
+defaults {
+        user_friendly_names yes
+}
+blacklist {
+        devnode "^(ram|raw|loop|fd|md|dm-|sr|scd|st)[0-9]*"
+        devnode "^hd[a-z]"
+        devnode "^dcssblk[0-9]*"
+        device {
+                vendor "DGC"
+                product "LUNZ"
+        }
+        device {
+                vendor "IBM"
+                product "S/390.*"
+        }
+        # don't count normal SATA devices as multipaths
+        device {
+                vendor  "ATA"
+        }
+        # don't count 3ware devices as multipaths
+        device {
+                vendor  "3ware"
+        }
+        device {
+                vendor  "AMCC"
+        }
+        # nor highpoint devices
+        device {
+                vendor  "HPT"
+        }
+        wwid "1900356E1456EA46"
+        wwid "3600508e00000000022be91f602815e07"
+        device {
+                vendor AMI
+                product Virtual_CDROM
+        }
+        device {
+                vendor TEAC
+                product DV-W28SS-W
+        }
+        wwid "*"
+}
+blacklist_exceptions {
+        wwid "360a9800044316479425d4435514e6977"
+        wwid "360a9800044316479425d4435514e6975"
+        wwid "360a9800044316479425d4435514e6979"
+        wwid "360a9800044316479425d4435514e6a30"
+        wwid "360a9800044316479425d4435514e6a34"
+}
+multipaths {
+        multipath {
+                uid 0
+                gid 0
+                wwid "360a9800044316479425d4435514e6977"
+                alias ASMDATA1
+#               path_grouping_policy multibus
+#               path_selector "round-robin 0"
+                mode 0600
+        }
+        multipath {
+                uid 0
+                gid 0
+                wwid "360a9800044316479425d4435514e6975"
+                alias ASMDATA2
+#               path_grouping_policy multibus
+#               path_selector "round-robin 0"
+                mode 0600
+        }
+        multipath {
+                uid 0
+                gid 0
+                wwid "360a9800044316479425d4435514e6979"
+                alias ASMDATA3
+#               path_grouping_policy multibus
+#               path_selector "round-robin 0"
+                mode 0600
+        }
+        multipath {
+                uid 0
+                gid 0
+                wwid "360a9800044316479425d4435514e6a30"
+                alias ASMFRA1
+#               path_grouping_policy multibus
+#               path_selector "round-robin 0"
+                mode 0600
+        }
+        multipath {
+                uid 0
+                gid 0
+                wwid "360a9800044316479425d4435514e6a34"
+                alias BACKUP_VOL01
+#               path_grouping_policy multibus
+#               path_selector "round-robin 0"
+                mode 0600
+        }
+}
+devices {
+        device {
+                vendor "NETAPP"
+                product "LUN"
+                path_grouping_policy group_by_prio
+                features "3 queue_if_no_path pg_init_retries 50"
+                prio "ontap"
+                path_checker tur
+                failback immediate
+                path_selector "round-robin 0"
+                hardware_handler "0"
+                rr_weight uniform
+                rr_min_io 128
+                getuid_callout "/lib/udev/scsi_id -g -u -d /dev/%n"
+        }
+}

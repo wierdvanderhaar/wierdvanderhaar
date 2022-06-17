@@ -1,0 +1,184 @@
+REM  Locate the top PGA user
+
+set lines 75
+set pages 999
+set serveroutput on
+
+spool topuser.out
+
+select * from gv$version;
+
+declare a1 number;
+            a2 number;
+            a3 varchar2(30);
+            a4 varchar2(30);
+            a5 number;
+            a6 number;
+            a7 number;
+            a8 number;
+            blankline varchar2(70);
+
+cursor code is select pid, spid, substr(username,1,20) "USER" , substr(program,1,30) "Program",
+PGA_USED_MEM, PGA_ALLOC_MEM, PGA_FREEABLE_MEM, PGA_MAX_MEM
+from v$process where pga_alloc_mem=
+(select max(pga_alloc_mem) from v$process
+where program not like '%LGWR%');
+
+begin
+  blankline:=chr(13);
+  open code;
+  fetch code into a1, a2, a3, a4, a5, a6, a7, a8;
+
+  dbms_output.put_line(blankline);
+  dbms_output.put_line('               Top PGA User');
+  dbms_output.put_line(blankline);
+
+  dbms_output.put_line('PID:   '||a1||'             '||'SPID:   '||a2);
+  dbms_output.put_line('User Info:           '||a3);
+  dbms_output.put_line('Program:            '||a4);
+  dbms_output.put_line('PGA Used:            '||a5);
+  dbms_output.put_line('PGA Allocated:        '||a6);
+  dbms_output.put_line('PGA Freeable:             '||a7);
+  dbms_output.put_line('Maximum PGA:            '||a8);
+
+end;
+/  
+
+set lines 132
+col value format 999,999,999,999,999
+
+select * from v$pgastat;
+
+spool off
+
+REM
+REM  Investigate memory from the database side
+REM
+
+col TTL format 999,999,999,999 heading "Total Memory"
+
+break on report
+compute sum on report of TTL
+
+select bytes TTL from v$sgainfo where name='Maximum SGA Size'
+union
+select value from v$pgastat where name='total PGA allocated'
+/
+
+set lines 132
+set pages 999
+
+spool workareaoverview.out
+
+REM overview of PGA usage
+
+col name format a40 head "Name"
+col value format 999,999,999 head "Total"
+col unit format a10 head "Units"
+col pga_size format a25 head "PGA Size"
+col optimal_executions format 999,999,999,999 head "Optimal"
+col onepass_executions format 999,999,999,999 head "One-Pass"
+col multipasses_executions format 999,999,999,999 head "Multi-Pass"
+col optimal_count format 999,999,999,999 head "Optimal Count"
+col optimal_perc format 999 head "Optimal|PCT"
+col onepass_count format 999,999,999,999 head "One-Pass Count"
+col onepass_perc format 999 head "One|PCT"
+col multipass_count format 999,999,999,999 head "Multi-Pass Count"
+col multipass_perc format 999 head "Multi|PCT"
+
+col sid format 999,999 Head "SID"
+col operation format a30 head "Operation"
+col esize format 999,999,999 head "Expected Size"
+col mem format 999,999,999 head "Actual Mem"
+col "MAX MEM" format 999,999,999 head "Maximum Mem"
+col pass format 999,999 head "Passes"
+col tsize format 999,999,999,999,999 head "Temporary|Segment Size"
+
+spool workareaoverview.out
+
+SELECT  name,  decode(unit, 'bytes', trunc(value/1024/1024), value) value ,
+decode(unit, 'bytes', 'MBytes', unit) unit FROM V$PGASTAT
+/
+
+REM Review workarea buckets to see how efficient memory is utilized
+REM  Ideal to see OPTIMAL EXECUTIONS vs. ONE-PASS and Multi-PASS
+
+select case when low_optimal_size < 1024*1024
+then to_char(low_optimal_size/1024,'999999') || 'kb  0
+order by low_optimal_size
+/
+
+REM Review workarea buckets as percentages overall
+REM      this script assuming 64K optimal size 
+
+SELECT optimal_count, round(optimal_count*100/total, 2) optimal_perc,
+       onepass_count, round(onepass_count*100/total, 2) onepass_perc,
+       multipass_count, round(multipass_count*100/total, 2) multipass_perc
+FROM
+       (SELECT decode(sum(total_executions), 0, 1, sum(total_executions)) total,
+               sum(OPTIMAL_EXECUTIONS) optimal_count,
+               sum(ONEPASS_EXECUTIONS) onepass_count,
+               sum(MULTIPASSES_EXECUTIONS) multipass_count
+        FROM   v$sql_workarea_histogram
+        WHERE  low_optimal_size > 64*1024)
+/
+
+REM   Review current activity in Work Areas
+
+SELECT to_number(decode(SID, 65535, NULL, SID)) sid,
+       operation_type OPERATION,trunc(EXPECTED_SIZE/1024) ESIZE,
+       trunc(ACTUAL_MEM_USED/1024) MEM, trunc(MAX_MEM_USED/1024) "MAX MEM",
+       NUMBER_PASSES PASS, trunc(TEMPSEG_SIZE/1024) TSIZE
+FROM V$SQL_WORKAREA_ACTIVE
+ORDER BY 1,2
+/
+
+alter session set NLS_DATE_FORMAT='DD-MON-YYYY HH24:MI:SS';
+select sysdate from dual;
+
+select * from v$pgastat;
+
+col time form a30
+col name form a30
+select a.BEGIN_INTERVAL_TIME time, b.*
+from DBA_HIST_SNAPSHOT a, DBA_HIST_PGASTAT b
+where a.SNAP_ID=b.SNAP_ID
+and b.name='total PGA allocated'
+order by a.BEGIN_INTERVAL_TIME desc
+/
+
+show parameter parallel_execution_message_size
+
+show parameter memory
+
+show parameter pga
+
+spool off
+clear col
+
+#collect AIX info 
+
+ls -al $ORACLE_HOME/bin/oracle >> /tmp/support.txt
+oslevel -s
+whoami >> /tmp/support.txt
+ulimit -a >> /tmp/support.txt
+svmon -O unit=MB >> /tmp/support.txt
+/usr/sbin/lsps -a >> /tmp/support.txt
+/usr/sbin/lsattr -HE -l sys0 -a realmem >> /tmp/support.txt
+ipcs -m >> /tmp/support.txt
+
+opatch lsinventory -detail
+
+#collect Linux info
+
+arch
+cat /etc/issue
+whoami
+ulimit -a
+df -h /dev/shm
+ipcs -ma
+cat /etc/sysctl.conf
+cat /proc/meminfo
+cat /proc/swaps
+cat /proc/vmstat
+opatch lsinventory -detail

@@ -1,0 +1,70 @@
+SQL> select client_name, status
+from dba_autotask_client;  2
+
+CLIENT_NAME                                                     |STATUS
+----------------------------------------------------------------|--------
+auto optimizer stats collection                                 |ENABLED
+auto space advisor                                              |ENABLED
+sql tuning advisor                                              |ENABLED
+
+select distinct client_name, window_name, job_status, job_info
+from dba_autotask_job_history
+where job_status = 'SUCCEEDED'
+order by 1,2;
+
+auto optimizer stats collection
+col window_name format a35
+col job_name fomat a35
+col job_start_time format a45
+col JOB_DURATION format a45
+select WINDOW_NAME, JOB_NAME,JOB_START_TIME,JOB_DURATION from DBA_AUTOTASK_JOB_HISTORY where JOB_NAME like 'ORA$AT_OS_OPT_%'
+order by JOB_START_TIME;
+
+
+WINDOW_NAME                        |JOB_NAME                                          |JOB_START_TIME                               |JOB_DURATION
+-----------------------------------|--------------------------------------------------|---------------------------------------------|---------------------------------------------
+TUESDAY_WINDOW                     |ORA$AT_OS_OPT_SY_11231                            |04-OCT-16 10.00.04.130931 PM EUROPE/VIENNA   |+000 00:31:59
+WEDNESDAY_WINDOW                   |ORA$AT_OS_OPT_SY_11251                            |05-OCT-16 10.00.11.760740 PM EUROPE/VIENNA   |+000 00:18:50
+THURSDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11271                            |06-OCT-16 10.00.03.328932 PM EUROPE/VIENNA   |+000 00:12:35
+FRIDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11291                            |07-OCT-16 10.00.03.526544 PM EUROPE/VIENNA   |+000 00:35:18
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11311                            |08-OCT-16 06.00.03.668470 AM EUROPE/VIENNA   |+000 00:07:27
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11331                            |08-OCT-16 10.06.54.203962 AM EUROPE/VIENNA   |+000 00:05:48
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11351                            |08-OCT-16 02.07.17.298598 PM EUROPE/VIENNA   |+000 00:05:51
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11371                            |08-OCT-16 06.07.44.560756 PM EUROPE/VIENNA   |+000 00:04:47
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11391                            |08-OCT-16 10.08.08.922766 PM EUROPE/VIENNA   |+000 00:06:41
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11411                            |09-OCT-16 06.00.03.522773 AM EUROPE/VIENNA   |+000 00:07:27
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11414                            |09-OCT-16 10.09.24.137234 AM EUROPE/VIENNA   |+000 00:04:57
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11431                            |09-OCT-16 02.09.49.026460 PM EUROPE/VIENNA   |+000 00:05:25
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11451                            |09-OCT-16 06.10.17.614916 PM EUROPE/VIENNA   |+000 00:08:42
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11471                            |09-OCT-16 10.10.43.168648 PM EUROPE/VIENNA   |+000 00:07:20
+MONDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11491                            |17-OCT-16 10.00.10.570274 PM EUROPE/VIENNA   |+000 00:22:22
+TUESDAY_WINDOW                     |ORA$AT_OS_OPT_SY_11511                            |18-OCT-16 10.00.08.455579 PM EUROPE/VIENNA   |+000 00:43:18
+WEDNESDAY_WINDOW                   |ORA$AT_OS_OPT_SY_11531                            |19-OCT-16 10.00.08.070130 PM EUROPE/VIENNA   |+000 00:18:26
+THURSDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11551                            |20-OCT-16 10.00.17.219742 PM EUROPE/VIENNA   |+000 01:31:26
+FRIDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11571                            |21-OCT-16 10.00.16.006842 PM EUROPE/VIENNA   |+000 00:24:58
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11591                            |22-OCT-16 06.00.03.265721 AM EUROPE/VIENNA   |+000 00:08:11
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11594                            |22-OCT-16 10.06.39.265661 AM EUROPE/VIENNA   |+000 00:09:26
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11611                            |22-OCT-16 02.07.19.636648 PM EUROPE/VIENNA   |+000 00:18:43
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11631                            |22-OCT-16 06.07.56.600449 PM EUROPE/VIENNA   |+000 00:07:04
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11651                            |22-OCT-16 10.08.30.961952 PM EUROPE/VIENNA   |+000 00:09:18
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11671                            |23-OCT-16 06.00.02.689573 AM EUROPE/VIENNA   |+000 00:19:47
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11691                            |23-OCT-16 10.00.22.180113 AM EUROPE/VIENNA   |+000 00:08:42
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11711                            |23-OCT-16 02.00.58.889060 PM EUROPE/VIENNA   |+000 00:18:35
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11731                            |23-OCT-16 06.01.37.310656 PM EUROPE/VIENNA   |+000 00:11:18
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11751                            |23-OCT-16 10.02.12.479610 PM EUROPE/VIENNA   |+000 00:07:49
+MONDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11771                            |24-OCT-16 10.00.09.927646 PM EUROPE/VIENNA   |+000 01:06:12
+TUESDAY_WINDOW                     |ORA$AT_OS_OPT_SY_11791                            |25-OCT-16 10.00.08.786950 PM EUROPE/VIENNA   |+000 00:39:06
+WEDNESDAY_WINDOW                   |ORA$AT_OS_OPT_SY_11811                            |26-OCT-16 10.00.02.325047 PM EUROPE/VIENNA   |+000 00:13:08
+THURSDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11831                            |27-OCT-16 10.00.11.818708 PM EUROPE/VIENNA   |+000 00:52:26
+FRIDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11851                            |28-OCT-16 10.00.08.296429 PM EUROPE/VIENNA   |+000 00:29:52
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11871                            |29-OCT-16 06.00.05.242743 AM EUROPE/VIENNA   |+000 00:18:04
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11891                            |29-OCT-16 10.09.47.529342 AM EUROPE/VIENNA   |+000 00:10:46
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11911                            |29-OCT-16 02.10.23.743547 PM EUROPE/VIENNA   |+000 00:10:17
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11931                            |29-OCT-16 06.10.55.225471 PM EUROPE/VIENNA   |+000 00:10:39
+SATURDAY_WINDOW                    |ORA$AT_OS_OPT_SY_11951                            |29-OCT-16 10.11.27.416190 PM EUROPE/VIENNA   |+000 00:08:29
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11971                            |30-OCT-16 06.00.03.048083 AM EUROPE/VIENNA   |+000 00:11:55
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_11991                            |30-OCT-16 10.03.22.213160 AM EUROPE/VIENNA   |+000 00:08:45
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_12011                            |30-OCT-16 02.03.57.234580 PM EUROPE/VIENNA   |+000 00:08:14
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_12031                            |30-OCT-16 06.04.31.447240 PM EUROPE/VIENNA   |+000 00:08:59
+SUNDAY_WINDOW                      |ORA$AT_OS_OPT_SY_12051                            |30-OCT-16 10.05.03.494386 PM EUROPE/VIENNA   |+000 00:08:15
+

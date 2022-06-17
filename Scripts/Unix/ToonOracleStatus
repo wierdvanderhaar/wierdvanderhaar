@@ -1,0 +1,186 @@
+#! /bin/ksh
+#
+# Naam   : ToonOracleStatus
+# 
+
+ORATAB_LOC=/var/opt/oracle/oratab
+TMP_DIR=/tmp
+
+# --------------------------------------------------------- 
+# Naam         : Toon_Header
+# Parameters   : 1 - ORACLE_SID
+# 
+# Omschrijving
+# ------------
+# Toon een header sectie voor een bepaalde database
+# --------------------------------------------------------- 
+
+Toon_Header() {
+   echo
+   echo '---------------------------------------------------------------'
+   echo 'Database : '${1}
+   echo 'Gestart  : \c'
+   ps -ef |grep ' ora_smon_'${1}'$' >/dev/null 2>&1
+   if [ ${?} -eq 0 ]; then
+      echo 'Ja'
+   else
+      echo 'Nee'
+   fi
+   echo '---------------------------------------------------------------'
+   echo
+}
+
+# --------------------------------------------------------- 
+# Naam         : Check_DB_Jobs
+# Parameters   : -
+# 
+# Omschrijving
+# ------------
+# Controleer op foutmeldingen in de uitvoer van database
+# jobs
+# --------------------------------------------------------- 
+
+Check_DB_Jobs() {
+   if [ ! -f ${BDUMP_DIR}/${ORACLE_SID}_j[0-9]*.trc ]; then
+      return
+   fi
+
+   # Zoek alle Oracle meldingen uit de job logs
+
+   for Job_Log in ${BDUMP_DIR}/${ORACLE_SID}_j[0-9]*.trc
+   do
+      PID=`basename ${Job_Log} .trc`
+      PID=`echo ${PID} | cut -d'_' -f 3`
+      grep '^ORA-' ${Job_Log} >${TMP_DIR}/trc_${ORACLE_SID}_${PID}.tmp
+   done
+
+   # Bepaal alle identieke job-logs
+
+   for TMP_FILE in ${TMP_DIR}/trc_${ORACLE_SID}_*.tmp
+   do
+      if [ ! -f ${TMP_FILE} ]; then
+         continue
+      fi
+
+      # Vergelijk deze file met alle andere
+   
+      COUNT=1
+      for TMP_FILE2 in ${TMP_DIR}/trc_${ORACLE_SID}_*.tmp
+      do
+         if [ ${TMP_FILE} != ${TMP_FILE2} ]; then
+            diff ${TMP_FILE} ${TMP_FILE2} >/dev/null 2>&1
+            if [ ${?} -eq 0 ]; then
+               COUNT=`expr ${COUNT} + 1`
+               rm ${TMP_FILE2}
+            fi
+         fi
+      done
+      echo '------------------------------------------------------------------'
+      echo 'Fout in database job'
+      echo 'Aantal occurrences : '${COUNT}
+      echo
+      cat ${TMP_FILE}
+      rm ${TMP_FILE}
+      echo '------------------------------------------------------------------'
+   done
+}
+
+# --------------------------------------------------------- 
+# Naam         : Check_Alert_Log
+# Parameters   : -
+# 
+# Omschrijving
+# ------------
+# Controleer de alert-log op foutmeldingen
+# --------------------------------------------------------- 
+
+Check_Alert_Log() {
+   cat ${BDUMP_LOC} | nawk '
+BEGIN	{ Vandaag='`date +%Y%m%d`'
+	}
+
+function DatumNaarYYYYMMDD(DatumRegel)
+{
+   split(DatumRegel,DatumVeld)
+   DD=DatumVeld[3]
+   if ( DatumVeld[2] == "Feb" )
+      MM=2
+   else
+      MM=0
+   YYYY=DatumVeld[5]
+   return ( DD + ( MM * 100 ) + ( YYYY * 10000 ) )
+}
+
+function VerwerkDatumRegel(DatumRegel)
+{
+   AFGEDRUKT="N"
+   YYYYMMDD=DatumNaarYYYYMMDD(DatumRegel)
+   if ( YYYYMMDD == Vandaag )
+      RECENT="J"
+   else
+      RECENT="N"
+}
+
+/^Sun /	{ DATUM_REGEL=$0 ; VerwerkDatumRegel($0) }
+/^Mon /	{ DATUM_REGEL=$0 ; VerwerkDatumRegel($0) }
+/^Tue /	{ DATUM_REGEL=$0 ; VerwerkDatumRegel($0) }
+/^Wed /	{ DATUM_REGEL=$0 ; VerwerkDatumRegel($0) }
+/^Thu /	{ DATUM_REGEL=$0 ; VerwerkDatumRegel($0) }
+/^Fri /	{ DATUM_REGEL=$0 ; VerwerkDatumRegel($0) }
+/^Sat /	{ DATUM_REGEL=$0 ; VerwerkDatumRegel($0) }
+
+/^ORA-/ { if ( RECENT == "J" ) {
+             if ( AFGEDRUKT == "N" ) {
+                print DATUM_REGEL
+                AFGEDRUKT="J"
+             }
+             print 
+           }
+        }
+'
+}
+
+# --------------------------------------------------------- 
+#            H O O F D - P R O C E D U R E
+# --------------------------------------------------------- 
+
+ORAENV_ASK=NO
+for DB_DATA in `grep -v '^#' ${ORATAB_LOC} | grep ':' | grep -v 'LISTENER' | grep -v '*' | sort -f`; do
+   ORACLE_SID=`echo ${DB_DATA} | cut -d: -f 1`
+   OH=`echo ${DB_DATA} | cut -d: -f 2`
+
+   Toon_Header ${ORACLE_SID}
+
+   if [ ! -f ${OH}/bin/oraenv ]; then
+       echo ${0}: Instellingenscript ${OH}/bin/oraenv bestaat niet >&2
+       continue
+   fi
+
+   . ${OH}/bin/oraenv
+
+   ADMIN_DIR=${ORACLE_BASE}/admin/${ORACLE_SID}
+   BDUMP_DIR=${ADMIN_DIR}/bdump
+
+   if [ ! -d ${BDUMP_DIR} ]; then
+      echo ${0}: Alert log voor database ${ORACLE_SID} niet gevonden >&2
+      echo ${0}: Verwachte locatie: ${BDUMP_DIR} >&2
+      continue
+   fi
+
+   BDUMP_FILE='alert_'${ORACLE_SID}'.log'
+   BDUMP_LOC=${BDUMP_DIR}/${BDUMP_FILE}
+
+   if [ ! -f ${BDUMP_LOC} ]; then
+      echo ${0}: Alert log niet gevonden >&2
+      echo ${0}: ${BDUMP_LOC} >&2
+      continue
+   fi
+
+   Check_Alert_Log
+   Check_DB_Jobs ${ORACLE_SID}
+
+    for SqlScript in ${ORACLE_BASE}/admin/scripts/ToonOracleStatus/*
+    do
+       sqlplus -S '/ as sysdba' @${SqlScript}
+    done
+done

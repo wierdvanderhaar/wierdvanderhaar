@@ -1,0 +1,28 @@
+update era_dbservers set status='UP', ip_addresses='{10.68.101.52}' where id='e24c667e-49c5-11ea-8f10-506b8d573c7c';
+
+
+
+era_repos=# select id,name,status,type,date_modified from era_dbservers where status = 'DELETED_FROM_CLUSTER';
+                  id                  |                 name                  |        status        |   type    |    date_modified
+--------------------------------------+---------------------------------------+----------------------+-----------+---------------------
+ f28dbc86-9b13-48a1-ab39-e08db770e2c5 | PGTEST                                | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:39
+ c967a07c-49c7-11ea-8f10-506b8d573c7c | Maria1-SENL                           | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:39
+ 53643ee2-4713-49b2-993b-f828c589a71a | wh-stod-jagadeesh3-03                 | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-07 19:27:04
+ 7dd73849-9d68-436f-bbd9-9ee917e54c51 | WH-OL7u9-Source                       | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:43
+ e24c667e-49c5-11ea-8f10-506b8d573c7c | MSSQL1-SENL                           | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:43
+ 1450bdce-ab90-4321-954f-c120586a9ea2 | WH-TMDB-01                            | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:43
+ 61ed929e-0307-4f93-877f-775131e96a0a | EraAgent_Era_Agent_olvb_DO_NOT_DELETE | DELETED_FROM_CLUSTER | ERA_AGENT | 2021-06-17 14:18:55
+
+
+era_repos=# select id,name,status,type,date_modified, ip_addresses  from era_dbservers where status <> 'UP';
+
+era_repos=# select id,name,status,type,date_modified, ip_addresses  from era_dbservers where status =  'DELETED_FROM_CLUSTER';
+                  id                  |                 name                  |        status        |   type    |    date_modified    | ip_addresses
+--------------------------------------+---------------------------------------+----------------------+-----------+---------------------+--------------
+ f28dbc86-9b13-48a1-ab39-e08db770e2c5 | PGTEST                                | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:39 | {0.0.0.0}
+ c967a07c-49c7-11ea-8f10-506b8d573c7c | Maria1-SENL                           | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:39 | {0.0.0.0}
+ 53643ee2-4713-49b2-993b-f828c589a71a | wh-stod-jagadeesh3-03                 | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-07 19:27:04 | {0.0.0.0}
+ 7dd73849-9d68-436f-bbd9-9ee917e54c51 | WH-OL7u9-Source                       | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:43 | {0.0.0.0}
+ e24c667e-49c5-11ea-8f10-506b8d573c7c | MSSQL1-SENL                           | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:43 | {0.0.0.0}
+ 1450bdce-ab90-4321-954f-c120586a9ea2 | WH-TMDB-01                            | DELETED_FROM_CLUSTER | DBSERVER  | 2021-06-17 14:18:43 | {0.0.0.0}
+ 61ed929e-0307-4f93-877f-775131e96a0a | EraAgent_Era_Agent_olvb_DO_NOT_DELETE | DELETED_FROM_CLUSTER | ERA_AGENT | 2021-06-17 14:18:55 | {0.0.0.0}

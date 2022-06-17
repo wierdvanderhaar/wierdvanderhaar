@@ -1,0 +1,63 @@
+CREATE OR REPLACE
+PROCEDURE check_unused_indexes(
+    l_schema IN VARCHAR2)
+IS
+  -- Deze procedure zoekt de indexen die niet worden gebruikt aan de hand van de gebruikte executieplannen.
+  -- roep deze procedure aan met als variable de schemanaam waarvan de info voor moet worden opgehaald.
+  aantal NUMBER;
+  grote  NUMBER;
+  snapmin DATE;
+  snapmax DATE;
+  CURSOR c_snap
+  IS
+    SELECT MIN(TIMESTAMP) minsnap,
+      MAX(TIMESTAMP) maxsnap
+    FROM dba_hist_sql_plan
+    WHERE object_owner=upper(l_schema);
+  CURSOR c_totindx
+  IS
+    SELECT COUNT(*) AS aantal FROM dba_indexes WHERE owner=upper(l_schema);
+  CURSOR c_indnotused
+  IS
+    SELECT index_name FROM dba_indexes WHERE owner=upper(l_schema)
+  MINUS
+  SELECT DISTINCT b.index_name
+  FROM dba_hist_sql_plan a,
+    dba_indexes b
+  WHERE a.object_owner=upper(l_schema)
+  AND a.object_name   =b.index_name
+  ORDER BY 1;
+  CURSOR c_usedspace
+  IS
+    SELECT ROUND(SUM(bytes/1024/1024/1024),0) AS gebruikt
+    FROM dba_segments seg,
+      (SELECT index_name FROM dba_indexes WHERE owner=upper(l_schema)
+    MINUS
+    SELECT DISTINCT b.index_name
+    FROM dba_hist_sql_plan a,
+      dba_indexes b
+    WHERE a.object_owner=upper(l_schema)
+    AND a.object_name   =b.index_name
+    ORDER BY 1
+      ) indx
+    WHERE seg.segment_name = indx.index_name;
+  BEGIN
+    OPEN c_snap;
+    FETCH c_snap INTO snapmin, snapmax;
+    dbms_output.put_line('De informatie aangaande de index usages is vergaard tussen ' || snapmin || ' en ' || snapmax || '.');
+    CLOSE c_snap;
+    OPEN c_totindx;
+    FETCH c_totindx INTO aantal;
+    dbms_output.put_line('Totaal aantal indexen voor schema ' || l_schema || ':' || aantal );
+    CLOSE c_totindx;
+    dbms_output.put_line('Indexes in schema ' || l_schema || ' die niet worden gebruikt:');
+    FOR x IN c_indnotused
+    LOOP
+      dbms_output.put_line(l_schema || '.' || x.index_name);
+    END LOOP;
+    OPEN c_usedspace;
+    FETCH c_usedspace INTO grote;
+    dbms_output.put_line('Totaal gebruiken deze NIET gebruikte indexen ' || grote || 'GB aan ruimte');
+    CLOSE c_usedspace;
+  END;
+  /

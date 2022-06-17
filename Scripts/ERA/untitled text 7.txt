@@ -1,0 +1,6 @@
+yum install -y oracle-database-preinstall-19c.x86_64 \
+https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.12-1.el7.x86_64.rpm \
+oracleasm \
+oracleasm-support \
+https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.12-1.el7.x86_64.rpm \
+gcc

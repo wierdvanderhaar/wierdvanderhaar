@@ -1,0 +1,28 @@
+SELECT          DECODE( sl.sequence#-max(al.sequence#)
+                ,       1
+                ,       'Physical standby is up-to-date'
+                ,       'Physical standby is NIET up to date'
+                )
+FROM            v$standby_log sl
+,               V$archived_log al
+WHERE           sl.status = 'ACTIVE'
+AND             al.applied='YES'
+GROUP BY        sl.sequence#
+,               al.applied
+/
+
+
+
+Media Recovery Waiting for thread 2 sequence 13190
+Fetching gap sequence in thread 2, gap sequence 13190-13210
+Thu Jun 14 17:08:52 CEST 2012
+FAL[client]: Failed to request gap sequence
+ GAP - thread 2 sequence 13190-13210
+ DBID 4018683745 branch 721321825
+FAL[client]: All defined FAL servers have been attempted.
+-------------------------------------------------------------
+Check that the CONTROL_FILE_RECORD_KEEP_TIME initialization
+parameter is defined to a value that is sufficiently large
+enough to maintain adequate log switch information to resolve
+archivelog gaps.
+-------------------------------------------------------------

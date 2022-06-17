@@ -1,0 +1,58 @@
+[root@yb-demo network-scripts]# yb-ctl --rf 3 create
+Creating cluster.
+Waiting for cluster to be ready.
+----------------------------------------------------------------------------------------------------
+| Node Count: 3 | Replication Factor: 3                                                            |
+----------------------------------------------------------------------------------------------------
+| JDBC                : jdbc:postgresql://127.0.0.1:5433/yugabyte                                  |
+| YSQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ysqlsh                                     |
+| YCQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ycqlsh                                     |
+| YEDIS Shell         : /yugabyte/yugabyte-2.13.0.1/bin/redis-cli                                  |
+| Web UI              : http://127.0.0.1:7000/                                                     |
+| Cluster Data        : /root/yugabyte-data                                                        |
+----------------------------------------------------------------------------------------------------
+
+[root@yb-demo network-scripts]# yb-ctl status
+----------------------------------------------------------------------------------------------------
+| Node Count: 3 | Replication Factor: 3                                                            |
+----------------------------------------------------------------------------------------------------
+| JDBC                : jdbc:postgresql://127.0.0.1:5433/yugabyte                                  |
+| YSQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ysqlsh                                     |
+| YCQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ycqlsh                                     |
+| YEDIS Shell         : /yugabyte/yugabyte-2.13.0.1/bin/redis-cli                                  |
+| Web UI              : http://127.0.0.1:7000/                                                     |
+| Cluster Data        : /root/yugabyte-data                                                        |
+----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+| Node 1: yb-tserver (pid 22947), yb-master (pid 22937)                                            |
+----------------------------------------------------------------------------------------------------
+| JDBC                : jdbc:postgresql://127.0.0.1:5433/yugabyte                                  |
+| YSQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ysqlsh                                     |
+| YCQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ycqlsh                                     |
+| YEDIS Shell         : /yugabyte/yugabyte-2.13.0.1/bin/redis-cli                                  |
+| data-dir[0]         : /root/yugabyte-data/node-1/disk-1/yb-data                                  |
+| yb-tserver Logs     : /root/yugabyte-data/node-1/disk-1/yb-data/tserver/logs                     |
+| yb-master Logs      : /root/yugabyte-data/node-1/disk-1/yb-data/master/logs                      |
+----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+| Node 2: yb-tserver (pid 22950), yb-master (pid 22940)                                            |
+----------------------------------------------------------------------------------------------------
+| JDBC                : jdbc:postgresql://127.0.0.2:5433/yugabyte                                  |
+| YSQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ysqlsh -h 127.0.0.2                        |
+| YCQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ycqlsh 127.0.0.2                           |
+| YEDIS Shell         : /yugabyte/yugabyte-2.13.0.1/bin/redis-cli -h 127.0.0.2                     |
+| data-dir[0]         : /root/yugabyte-data/node-2/disk-1/yb-data                                  |
+| yb-tserver Logs     : /root/yugabyte-data/node-2/disk-1/yb-data/tserver/logs                     |
+| yb-master Logs      : /root/yugabyte-data/node-2/disk-1/yb-data/master/logs                      |
+----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+| Node 3: yb-tserver (pid 22953), yb-master (pid 22943)                                            |
+----------------------------------------------------------------------------------------------------
+| JDBC                : jdbc:postgresql://127.0.0.3:5433/yugabyte                                  |
+| YSQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ysqlsh -h 127.0.0.3                        |
+| YCQL Shell          : /yugabyte/yugabyte-2.13.0.1/bin/ycqlsh 127.0.0.3                           |
+| YEDIS Shell         : /yugabyte/yugabyte-2.13.0.1/bin/redis-cli -h 127.0.0.3                     |
+| data-dir[0]         : /root/yugabyte-data/node-3/disk-1/yb-data                                  |
+| yb-tserver Logs     : /root/yugabyte-data/node-3/disk-1/yb-data/tserver/logs                     |
+| yb-master Logs      : /root/yugabyte-data/node-3/disk-1/yb-data/master/logs                      |
+----------------------------------------------------------------------------------------------------

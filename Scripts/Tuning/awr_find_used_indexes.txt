@@ -1,0 +1,5 @@
+select distinct b.index_name 
+from dba_hist_sql_plan a, 
+dba_indexes b 
+where a.object_owner='&1' 
+and a.object_name=b.index_name order by 1;

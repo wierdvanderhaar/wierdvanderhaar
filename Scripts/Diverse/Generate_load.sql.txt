@@ -1,0 +1,27 @@
+set serveroutput on
+select to_char(sysdate,'YYYY-MM-DD HH24:MI:SS') AS startijd from dual;
+EXEC DBMS_WORKLOAD_REPOSITORY.create_snapshot;
+exec p_redomonitor('Start');
+set timing on
+declare
+cursor c1 is select orderid, orderdatetime from van_order order by userid;
+v_date date;
+v_count number(2);
+begin
+v_count := 0;
+for x in c1 loop
+v_date := add_months(to_date(x.ORDERDATETIME), 1);
+update van_order o set o.ORDERDATETIME = v_date where orderid = x.orderid;
+v_count := v_count + 1;
+IF ( v_count = 10 ) THEN
+dbms_output.put_line('Commit');
+commit;
+v_count := 0;
+END IF;
+end loop;
+end;
+/
+set timing off
+exec p_redomonitor('Eind');
+EXEC DBMS_WORKLOAD_REPOSITORY.create_snapshot;
+select to_char(sysdate,'YYYY-MM-DD HH24:MI:SS') AS eindtijd from dual;

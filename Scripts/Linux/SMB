@@ -1,0 +1,34 @@
+smb.conf:
+
+[xmcare]
+        comment = sldb11 xmcp shared
+        path = /oracle/xmcare/xmcp/shared
+        valid users = jwerf, promm, mdijk, clema, xmcdgr
+        create mask = 0777
+        readonly = no
+        directory mask = 0777
+
+[Naar_SHO]
+        comment = sldb11 Naar_SHO
+        path = /dump/Naar_SHO
+        valid users = srvc_p-nexus-sho
+        create mask = 0777
+        readonly = no
+        directory mask = 0777
+
+[Van_SHO]
+        comment = sldb11 Van_SHO
+        path = /dump/Van_SHO
+        valid users = srvc_p-nexus-sho
+        create mask = 0777
+        readonly = no
+        directory mask = 0777
+
+smbpasswd -a srvc_p-nexus-sho
+
+smbpasswd -e srvc_p-nexus-sho
+
+systemctl restart smb nmb
+
+
+pdbedit -L -v

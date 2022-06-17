@@ -1,0 +1,14 @@
+-bash-4.2$ $ORACLE_HOME/OPatch/opatch version
+/u02/app/oracle/product/19.0.0/dbhome_1/OPatch/opatch: line 839: [: too many arguments
+/u02/app/oracle/product/19.0.0/dbhome_1/OPatch/opatch: line 839: [: too many arguments
+Java (1.7) could not be located. OPatch cannot proceed!
+OPatch returns with error code = 1
+
+FIX: $ORACLE_HOME/OPatch/opatch apply -jre $ORACLE_HOME
+
+LET op dit zorgt ervoor dat je de datapatch niet kan worden toegepast.
+
+Dan deze fix:
+
+rm -rf $ORACLE_HOME/OPatch/jre
+cp -r $ORACLE_HOME/jdk/jre $ORACLE_HOME/OPatch/

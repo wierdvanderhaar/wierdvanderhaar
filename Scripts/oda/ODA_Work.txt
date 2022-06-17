@@ -1,0 +1,62 @@
+-- Creatie shared repository
+[root@odarac1a-public ~]# oakcli create repo shared01 -dg RECO -size 250G
+
+Created Shared Repo : shared01
+
+-- Import VM Template
+[root@odarac1a-public ~]# oakcli import vmtemplate OL6U11 -assembly /OVS/VM_TEMPLATES/OVM_OL5U11_x86_64_PVM.ova -repo odarepo1
+
+Imported VM Template
+
+[root@odarac1a-public ~]# oakcli clone vm EBSVM01 -vmtemplate OL6U11 -repo shared01 -node 0
+
+Cloned VM : EBSVM01
+
+[root@odarac1a-public ~]# oakcli show vm EBSVM01
+Resource: EBSVM01
+        AutoStart       :       restore
+        CPUPriority     :       100
+        Disks           :       |file:/OVS/Repositories/shared01/.A
+                                CFS/snaps/EBSVM01/VirtualMachines/E
+                                BSVM01/4bfee547adae4548b8ad86f8b288
+                                a9c7.img,xvda,w|
+        Domain          :       XEN_PVM
+        ExpectedState   :       offline
+        FailOver        :       false
+        IsSharedRepo    :       true
+        Keyboard        :       en-us
+        MaxMemory       :       2048M
+        MaxVcpu         :       2
+        Memory          :       2048M
+        Mouse           :       OS_DEFAULT
+        Name            :       EBSVM01
+        Networks        :
+        NodeNumStart    :       0
+        OS              :       OL_5
+        PrefNodeNum     :       0
+        PrivateIP       :       None
+        ProcessorCap    :       100
+        RepoName        :       shared01
+        Source          :       0
+        State           :       Offline
+        TemplateName    :       otml_OL6U11
+        VDisks          :       |0|
+        Vcpu            :       2
+        cpupool         :       default-unpinned-pool
+        vncport         :       None
+
+[root@odarac1a-public ~]# oakcli configure vm EBSVM01 -network "['type=netfront,bridge=net1']"
+
+Configured VM : EBSVM01. Changes will take effect on next restart of VM.
+
+[root@odarac1a-public oakvmclient]# oakcli start vm EBSVM01
+
+[root@odarac1a-public oakvmclient]# oakcli show vmconsole EBSVM01
+
+root password changeme12345
+
+
+oakcli create vdisk EBSVM01-SD01 -repo shared01 -size 100G -type shared
+oakcli modify vm EBSVM01 -attachvdisk EBSVM01-SD01
+
+

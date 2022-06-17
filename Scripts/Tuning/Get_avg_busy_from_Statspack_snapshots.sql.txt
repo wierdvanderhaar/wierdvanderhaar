@@ -1,0 +1,12 @@
+set pages 10000
+select busy.snap_id, to_char(snaps.snap_time, 'DD-MM-YY HH24:MI:SS'),round((busy.value/(busy.value+idle.value) * 100),2) as Percent_busy 
+from 
+(select b.instance_number, b.snap_id, b.value from STATS$OSSTAT b, STATS$OSSTATNAME c where c.stat_name = 'BUSY_TIME'  and c.OSSTAT_ID = b.OSSTAT_ID group by b.instance_number, b.snap_id, value order by 1,2) busy,
+(select b.instance_number, b.snap_id, b.value from STATS$OSSTAT b, STATS$OSSTATNAME c where c.stat_name = 'IDLE_TIME'  and c.OSSTAT_ID = b.OSSTAT_ID group by b.instance_number, b.snap_id, value order by 1,2) idle,
+STATS$SNAPSHOT snaps
+where busy.snap_id = idle.snap_id
+and busy.snap_id = snaps.snap_id
+group by busy.snap_id, snaps.snap_time,busy.value,idle.value
+order by 1;
+
+

@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# Run level script to start DataGuard Broker Fast-Start Failover Observer.
+# -------------------------------------------------------------------------
+# Created by:   Wierd van der Haar
+# Company:      DBA.nl
+# Date:         09-09-2016
+# -------------------------------------------------------------------------
+# chkconfig: 345 91 19
+# description: Startup/Shutdown FSFO Observer.
+ 
+OUSER="oracle"
+OHPATH="/var/opt/oracle/product/11.2.0/observer_1"
+SCRIPTDIR="/home/oracle/fsfo-observer"
+ 
+case "$1" in
+        start)
+        echo  "*** Starting FSFO Observer***"
+        su - $OUSER -c "$SCRIPTDIR/bin/manage_observer.sh START"
+        ;;
+        stop)
+        echo  "*** Stopping FSFO Observer***"
+        su - $OUSER -c "$SCRIPTDIR/bin/manage_observer.sh STOP"
+        ;;
+        restart)
+        $0 stop
+        $1 start
+        ;;
+        *)
+        echo $"Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+exit 0

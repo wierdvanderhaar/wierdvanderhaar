@@ -1,0 +1,40 @@
+printf '\033[?7l'
+yum list installed | awk '{print $1}' >> /tmp/fryslan.lst
+
+
+for package in `cat /tmp/fryslan.lst` 
+do
+export john="`cat /tmp/minimal.lst | grep $package | wc -l`"
+if [ $john -eq 0 ] 
+then echo "rpm -e --nodeps $package" >> /tmp/result.lst
+fi
+done
+
+rpm --rebuilddb
+yum clean dbcache
+yum clean all
+yum update
+
+
+swapoff -a
+fdisk /dev/sda - t - partitie# - 8e -p -w
+pvcreate /dev/sda3
+WARNING: swap signature detected on /dev/sda3. Wipe it? [y/n] y
+  Wiping swap signature on /dev/sda3.
+  Physical volume "/dev/sda3" successfully created
+vgcreate VG_SWAP /dev/sda3
+lvcreate -l+100%FREE -n LV_SWAP VG_SWAP
+mkswap /dev/mapper/VG_SWAP-LV_SWAP
+[root@rac-srv06 ~]# vi /etc/fstab
+[root@rac-srv06 ~]# swapon -va
+swapon on /dev/mapper/VG_SWAP-LV_SWAP
+swapon: /dev/mapper/VG_SWAP-LV_SWAP: found swap signature: version 1, page-size 4, same byte order
+swapon: /dev/mapper/VG_SWAP-LV_SWAP: pagesize=4096, swapsize=10481565696, devsize=10481565696
+[root@rac-srv06 ~]# swapon -s
+Filename                                Type            Size    Used    Priority
+/dev/dm-1                               partition       10235900        0       -1
+[root@rac-srv06 ~]#
+[root@rac-srv06 ~]#
+[root@rac-srv06 ~]#
+[root@rac-srv06 ~]# fdisk -l
+
